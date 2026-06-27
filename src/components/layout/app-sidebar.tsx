@@ -50,7 +50,7 @@ import { Badge } from "@/components/ui/badge"
 import { useBoutique } from "@/app/(dashboard)/layout"
 
 const Lottie = dynamic(() => import("lottie-react"), { ssr: false })
-const AWA_AVATAR_URL = "https://lottie.host/79c5c707-6a2e-4b6e-b394-47867664658a/woman-avatar.json"
+const AWA_AVATAR_URL = "/awa-avatar.json"
 
 const navItems = [
   { title: "Accueil", icon: LayoutDashboard, url: "/dashboard", roles: ["owner", "manager"] },

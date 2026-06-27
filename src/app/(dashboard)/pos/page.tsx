@@ -34,7 +34,7 @@ import { saleService } from "@/services/saleService"
 import { SaleType, PaymentMethod } from "@/types/supabase"
 
 const Lottie = dynamic(() => import("lottie-react"), { ssr: false })
-const LOADING_CUBE_URL = "https://lottie.host/b04f762a-8d6b-4b11-9a74-9556d16f3938/iEAnS0oR6v.json"
+const LOADING_CUBE_URL = "/loading-cube.json"
 
 interface CartItem {
   id: string
