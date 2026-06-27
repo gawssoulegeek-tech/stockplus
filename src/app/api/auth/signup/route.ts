@@ -30,11 +30,10 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Initialize Supabase client with service role (server-side only)
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
-    if (!supabaseUrl || !supabaseServiceKey) {
+    if (!supabaseUrl || !supabaseAnonKey) {
       console.error('Missing Supabase environment variables')
       return NextResponse.json(
         { error: 'Server configuration error' },
@@ -42,18 +41,12 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const supabase = createClient(supabaseUrl, supabaseServiceKey, {
-      auth: {
-        autoRefreshToken: false,
-        persistSession: false,
-      },
-    })
+    const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
-    // 1. Create Auth user
-    const { data: authData, error: authError } = await supabase.auth.admin.createUser({
+    // 1. Create Auth user via signUp (auto-confirm enabled in Supabase)
+    const { data: authData, error: authError } = await supabase.auth.signUp({
       email: email.trim().toLowerCase(),
       password,
-      email_confirm: true, // Auto-confirm email
     })
 
     if (authError || !authData.user) {
@@ -69,12 +62,16 @@ export async function POST(request: NextRequest) {
 
     const uid = authData.user.id
 
+    // Create an authenticated client with the user's session
+    const userClient = createClient(supabaseUrl, supabaseAnonKey)
+    if (authData.session) {
+      userClient.auth.setSession(authData.session)
+    }
+
     // 2. Create boutique first (to get ID)
-    const boutiqueId = await createBoutique(supabase, boutiqueName, uid)
+    const boutiqueId = await createBoutique(userClient, boutiqueName, uid)
 
     if (!boutiqueId) {
-      // Rollback: Delete the auth user if boutique creation fails
-      await supabase.auth.admin.deleteUser(uid)
       return NextResponse.json(
         { error: 'Failed to create boutique' },
         { status: 500 }
@@ -83,7 +80,7 @@ export async function POST(request: NextRequest) {
 
     // 3. Create user profile
     const profileCreated = await createUserProfile(
-      supabase,
+      userClient,
       uid,
       email,
       ownerName,
@@ -91,9 +88,7 @@ export async function POST(request: NextRequest) {
     )
 
     if (!profileCreated) {
-      // Rollback: Delete auth user and boutique if profile creation fails
-      await supabase.auth.admin.deleteUser(uid)
-      await supabase.from('boutiques').delete().eq('id', boutiqueId)
+      await userClient.from('boutiques').delete().eq('id', boutiqueId)
       return NextResponse.json(
         { error: 'Failed to create user profile' },
         { status: 500 }
