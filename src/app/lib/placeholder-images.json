@@ -1,0 +1,41 @@
+
+{
+  "placeholderImages": [
+    {
+      "id": "hero-senegal-shop",
+      "description": "Une boutique moderne et ordonnée à Dakar, Sénégal",
+      "imageUrl": "https://picsum.photos/seed/senegal-boutique-1/1000/1300",
+      "imageHint": "Senegal boutique"
+    },
+    {
+      "id": "merchant-success",
+      "description": "Commerçant sénégalais souriant gérant sa boutique avec succès",
+      "imageUrl": "https://picsum.photos/seed/senegal-merchant-1/800/1000",
+      "imageHint": "African merchant"
+    },
+    {
+      "id": "market-dakar",
+      "description": "Ambiance colorée et vivante d'un marché sénégalais",
+      "imageUrl": "https://picsum.photos/seed/dakar-market-1/1200/800",
+      "imageHint": "Senegal market"
+    },
+    {
+      "id": "wax-fabric",
+      "description": "Pile de tissus wax colorés dans un étal sénégalais",
+      "imageUrl": "https://picsum.photos/seed/wax-senegal-1/400/400",
+      "imageHint": "wax fabric"
+    },
+    {
+      "id": "skincare-organic",
+      "description": "Produits cosmétiques naturels locaux à base de karité",
+      "imageUrl": "https://picsum.photos/seed/shea-cosmetic-1/400/400",
+      "imageHint": "natural skincare"
+    },
+    {
+      "id": "mobile-pos-context",
+      "description": "Utilisation d'un smartphone pour la gestion de vente dans un commerce",
+      "imageUrl": "https://picsum.photos/seed/mobile-pos-senegal/600/800",
+      "imageHint": "mobile pos"
+    }
+  ]
+}
