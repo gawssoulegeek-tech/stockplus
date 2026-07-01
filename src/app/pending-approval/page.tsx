@@ -26,12 +26,14 @@ export default function PendingApprovalPage() {
         .eq('uid', session.user.id)
         .single()
       if (profile?.boutique_id) {
-        const { data: boutique } = await supabase
+        const { data: boutique, error } = await supabase
           .from('boutiques')
           .select('status')
           .eq('id', profile.boutique_id)
-          .single()
-        if (boutique?.status === 'en_attente') {
+          .maybeSingle()
+        if (error || !boutique) {
+          setStatus('pending')
+        } else if (boutique.status === 'en_attente') {
           setStatus('pending')
         } else {
           setStatus('approved')
