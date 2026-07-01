@@ -89,16 +89,43 @@ export async function POST(request: NextRequest) {
       LOG('INFO : pas de session (email confirmation requis)')
     }
 
-    // ---- ÉTAPE 5 : Insertion dans public.users --------------------------------
+    // ---- ÉTAPE 5 : Variables communes ------------------------------------------
     const boutiqueId = `boutique_${Date.now()}`
     const trialEndsAt = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString()
-    const role = email === 'root@senestock.ai' ? 'superadmin' : 'owner'
+    const isRoot = email === 'root@senestock.ai'
+    const selectedPlan = isValidPlan(plan) ? plan : 'Basic'
     const permissions = {
       canManageUsers: true, canDeleteSales: true, canManageFeatures: true,
       canViewReports: true, canUseAdvancedIA: true, canExportData: true,
       canManageProducts: true, canManageInventory: true,
     }
 
+    // ---- ÉTAPE 6 : Insertion boutique (SANS owner_id pour éviter FK circulaire) --
+    LOG('Insertion dans public.boutiques...', { boutiqueId, name: boutiqueName, plan: selectedPlan })
+    const { error: boutiqueInsertError } = await adminClient.from('boutiques').insert({
+      id: boutiqueId,
+      name: boutiqueName,
+      owner_id: null,
+      plan: selectedPlan,
+      status: isRoot ? 'Actif' : 'en_attente',
+      trial_ends_at: isRoot ? null : trialEndsAt,
+      features: getFeaturesForPlan(selectedPlan),
+      team_members_count: 1,
+      is_active: true,
+      created_at: new Date().toISOString(),
+    })
+
+    if (boutiqueInsertError) {
+      LOG('ÉCHEC insertion boutique', { message: boutiqueInsertError.message, code: boutiqueInsertError.code })
+      return NextResponse.json(
+        { error: `Failed to create boutique: ${boutiqueInsertError.message}` },
+        { status: 500 }
+      )
+    }
+    LOG('✅ Boutique insérée')
+
+    // ---- ÉTAPE 7 : Insertion utilisateur (boutique existe déjà → FK ok) ------
+    const role = isRoot ? 'superadmin' : 'owner'
     LOG('Insertion dans public.users...', { uid, email: email.toLowerCase(), role, boutiqueId })
     const { error: userInsertError } = await adminClient.from('users').insert({
       uid,
@@ -111,57 +138,20 @@ export async function POST(request: NextRequest) {
     })
 
     if (userInsertError) {
-      LOG('ÉCHEC insertion users', { message: userInsertError.message, code: userInsertError.code, details: userInsertError.details })
+      LOG('ÉCHEC insertion users', { message: userInsertError.message, code: userInsertError.code })
+      await adminClient.from('boutiques').delete().eq('id', boutiqueId)
       return NextResponse.json(
         { error: `Failed to create user profile: ${userInsertError.message}` },
         { status: 500 }
       )
     }
-    LOG('✅ Utilisateur inséré dans public.users')
+    LOG('✅ Utilisateur inséré')
 
-    // ---- ÉTAPE 6 : Insertion dans public.boutiques ---------------------------
-    const selectedPlan = isValidPlan(plan) ? plan : 'Basic'
-    const isRoot = email === 'root@senestock.ai'
-    LOG('Insertion dans public.boutiques...', { boutiqueId, name: boutiqueName, owner_id: uid, plan: selectedPlan })
-    const { error: boutiqueInsertError } = await adminClient.from('boutiques').insert({
-      id: boutiqueId,
-      name: boutiqueName,
-      owner_id: uid,
-      plan: selectedPlan,
-      status: isRoot ? 'Actif' : 'en_attente',
-      trial_ends_at: isRoot ? null : trialEndsAt,
-      features: getFeaturesForPlan(selectedPlan),
-      team_members_count: 1,
-      is_active: true,
-      created_at: new Date().toISOString(),
-    })
+    // ---- ÉTAPE 8 : Mise à jour owner_id de la boutique -----------------------
+    LOG('Mise à jour owner_id de la boutique...')
+    await adminClient.from('boutiques').update({ owner_id: uid }).eq('id', boutiqueId)
 
-    if (boutiqueInsertError) {
-      LOG('ÉCHEC insertion boutiques', { message: boutiqueInsertError.message, code: boutiqueInsertError.code, details: boutiqueInsertError.details })
-      // Rollback : supprimer l'utilisateur
-      await adminClient.from('users').delete().eq('uid', uid)
-      return NextResponse.json(
-        { error: `Failed to create boutique: ${boutiqueInsertError.message}` },
-        { status: 500 }
-      )
-    }
-    LOG('✅ Boutique insérée dans public.boutiques')
-
-    // ---- ÉTAPE 7 : Mise à jour boutique_id dans users ------------------------
-    LOG('Mise à jour boutique_id dans users...')
-    const { error: userUpdateError } = await adminClient
-      .from('users')
-      .update({ boutique_id: boutiqueId })
-      .eq('uid', uid)
-
-    if (userUpdateError) {
-      LOG('AVERTISSEMENT : échec update boutique_id', userUpdateError)
-      // Non bloquant, le boutique_id est déjà positionné dans l'insert
-    } else {
-      LOG('✅ boutique_id mis à jour')
-    }
-
-    // ---- ÉTAPE 8 : Succès ----------------------------------------------------
+    // ---- ÉTAPE 9 : Succès ----------------------------------------------------
     LOG('✅ Inscription terminée avec succès', { uid, boutiqueId })
     return NextResponse.json(
       {
