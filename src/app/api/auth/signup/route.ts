@@ -100,12 +100,34 @@ export async function POST(request: NextRequest) {
       canManageProducts: true, canManageInventory: true,
     }
 
-    // ---- ÉTAPE 6 : Insertion boutique (SANS owner_id pour éviter FK circulaire) --
-    LOG('Insertion dans public.boutiques...', { boutiqueId, name: boutiqueName, plan: selectedPlan })
+    // ---- ÉTAPE 6 : Insertion utilisateur (SANS boutique_id, FK nullable) ----
+    const role = isRoot ? 'superadmin' : 'owner'
+    LOG('Insertion dans public.users...', { uid, email: email.toLowerCase(), role })
+    const { error: userInsertError } = await adminClient.from('users').insert({
+      uid,
+      email: email.toLowerCase(),
+      name: ownerName,
+      role,
+      boutique_id: null,
+      permissions,
+      created_at: new Date().toISOString(),
+    })
+
+    if (userInsertError) {
+      LOG('ÉCHEC insertion users', { message: userInsertError.message, code: userInsertError.code })
+      return NextResponse.json(
+        { error: `Failed to create user profile: ${userInsertError.message}` },
+        { status: 500 }
+      )
+    }
+    LOG('✅ Utilisateur inséré')
+
+    // ---- ÉTAPE 7 : Insertion boutique (owner_id connu, FK utilisateur ok) ----
+    LOG('Insertion dans public.boutiques...', { boutiqueId, name: boutiqueName, owner_id: uid, plan: selectedPlan })
     const { error: boutiqueInsertError } = await adminClient.from('boutiques').insert({
       id: boutiqueId,
       name: boutiqueName,
-      owner_id: null,
+      owner_id: uid,
       plan: selectedPlan,
       status: isRoot ? 'Actif' : 'en_attente',
       trial_ends_at: isRoot ? null : trialEndsAt,
@@ -117,6 +139,7 @@ export async function POST(request: NextRequest) {
 
     if (boutiqueInsertError) {
       LOG('ÉCHEC insertion boutique', { message: boutiqueInsertError.message, code: boutiqueInsertError.code })
+      await adminClient.from('users').delete().eq('uid', uid)
       return NextResponse.json(
         { error: `Failed to create boutique: ${boutiqueInsertError.message}` },
         { status: 500 }
@@ -124,32 +147,9 @@ export async function POST(request: NextRequest) {
     }
     LOG('✅ Boutique insérée')
 
-    // ---- ÉTAPE 7 : Insertion utilisateur (boutique existe déjà → FK ok) ------
-    const role = isRoot ? 'superadmin' : 'owner'
-    LOG('Insertion dans public.users...', { uid, email: email.toLowerCase(), role, boutiqueId })
-    const { error: userInsertError } = await adminClient.from('users').insert({
-      uid,
-      email: email.toLowerCase(),
-      name: ownerName,
-      role,
-      boutique_id: boutiqueId,
-      permissions,
-      created_at: new Date().toISOString(),
-    })
-
-    if (userInsertError) {
-      LOG('ÉCHEC insertion users', { message: userInsertError.message, code: userInsertError.code })
-      await adminClient.from('boutiques').delete().eq('id', boutiqueId)
-      return NextResponse.json(
-        { error: `Failed to create user profile: ${userInsertError.message}` },
-        { status: 500 }
-      )
-    }
-    LOG('✅ Utilisateur inséré')
-
-    // ---- ÉTAPE 8 : Mise à jour owner_id de la boutique -----------------------
-    LOG('Mise à jour owner_id de la boutique...')
-    await adminClient.from('boutiques').update({ owner_id: uid }).eq('id', boutiqueId)
+    // ---- ÉTAPE 8 : Mise à jour boutique_id dans users ------------------------
+    LOG('Mise à jour boutique_id dans users...')
+    await adminClient.from('users').update({ boutique_id: boutiqueId }).eq('uid', uid)
 
     // ---- ÉTAPE 9 : Succès ----------------------------------------------------
     LOG('✅ Inscription terminée avec succès', { uid, boutiqueId })
