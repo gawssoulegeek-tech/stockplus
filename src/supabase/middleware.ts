@@ -15,6 +15,10 @@ export async function updateSession(request: NextRequest) {
     request,
   });
 
+  if (!supabaseConfig.url || !supabaseConfig.anonKey) {
+    return supabaseResponse;
+  }
+
   const supabase = createServerClient(
     supabaseConfig.url,
     supabaseConfig.anonKey,

@@ -37,6 +37,9 @@ export interface BoutiqueData {
     stockIncrement: boolean
     historicalMoves: boolean
     importChina: boolean
+    chinaImport?: boolean
+    advancedReports?: boolean
+    multiCart?: boolean
   }
   created_at: string
 }
@@ -213,6 +216,7 @@ export async function createUserProfile(
   try {
     const role = email === 'root@senestock.ai' ? 'superadmin' : 'owner'
 
+    console.log('[createUserProfile] Inserting user:', { uid, email: email.toLowerCase(), name, role, boutiqueId })
     const { error } = await supabase.from('users').insert([
       {
         uid,
@@ -225,10 +229,11 @@ export async function createUserProfile(
     ])
 
     if (error) {
-      console.error('Error creating user profile:', error)
+      console.error('[createUserProfile] Error:', { message: error.message, code: error.code, details: error.details })
       return false
     }
 
+    console.log('[createUserProfile] Success:', uid)
     return true
   } catch (error: any) {
     console.error('Error creating user profile:', error)
@@ -260,24 +265,29 @@ export async function createBoutique(
       status: 'Essai',
       trial_ends_at: trialEndsAt.toISOString(),
       features: {
-        units: false,
         wholesale: false,
         credit: false,
         customers: false,
+        units: false,
+        chinaImport: false,
+        advancedReports: false,
+        multiCart: false,
         stockIncrement: true,
-        historicalMoves: false,
-        importChina: false,
       },
+      team_members_count: 1,
+      is_active: true,
       created_at: new Date().toISOString(),
     }
 
+    console.log('[createBoutique] Inserting boutique:', { boutiqueId, name, ownerId })
     const { error } = await supabase.from('boutiques').insert([boutiqueData])
 
     if (error) {
-      console.error('Error creating boutique:', error)
+      console.error('[createBoutique] Error:', { message: error.message, code: error.code, details: error.details })
       return null
     }
 
+    console.log('[createBoutique] Success:', boutiqueId)
     return boutiqueId
   } catch (error: any) {
     console.error('Error creating boutique:', error)
