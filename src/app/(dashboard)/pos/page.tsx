@@ -77,7 +77,7 @@ export default function POSPage() {
   const [customerSuggestions, setCustomerSuggestions] = useState<any[]>([])
   const [showCustomerDropdown, setShowCustomerDropdown] = useState(false)
 
-  const isPro = boutique?.plan === "Pro" || boutique?.plan === "Premium" || boutique?.status === "Essai"
+  const isPro = boutique?.plan === "Pro" || boutique?.status === "Essai"
 
   useEffect(() => {
     fetch(LOADING_CUBE_URL).then(r => r.json()).then(setLoadingData)

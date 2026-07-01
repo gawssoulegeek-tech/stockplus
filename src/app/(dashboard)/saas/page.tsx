@@ -50,12 +50,7 @@ import { useToast } from "@/hooks/use-toast"
 import { useRouter } from "next/navigation"
 import { getSupabaseClient } from "@/supabase/client"
 import { useBoutique } from "../layout"
-
-const PLAN_PRICES: Record<string, number> = {
-  Basic: 10000,
-  Pro: 25000,
-  Premium: 45000,
-}
+import { PLAN_PRICES, getFeaturesForPlan, PAID_PLANS, TRIAL_DAYS, PREMIUM_MODULES, getModuleRevenue } from "@/lib/plan-features"
 
 export default function SaaSAdminPage() {
   const { toast } = useToast()
@@ -188,6 +183,15 @@ export default function SaaSAdminPage() {
     }, 0)
   }, [boutiques])
 
+  const totalModuleRevenue = useMemo(() => {
+    return boutiques.reduce((acc, b) => {
+      const activeModuleIds = PREMIUM_MODULES
+        .filter(m => m.featureFlag && (b as any).features?.[m.featureFlag])
+        .map(m => m.id)
+      return acc + getModuleRevenue(activeModuleIds)
+    }, 0)
+  }, [boutiques])
+
   const handleAccessBoutique = async (boutique: any) => {
     try {
       const { data } = await supabase.from("boutiques").select("*").eq("name", boutique.name).single()
@@ -211,7 +215,7 @@ export default function SaaSAdminPage() {
 
       if (boutiquesToUpdate && boutiquesToUpdate.length > 0) {
         const finalPlan = planToSet || boutiquesToUpdate[0].plan
-        await supabase.from("boutiques").update({ status: "Actif", plan: finalPlan }).eq("name", shopName)
+        await supabase.from("boutiques").update({ status: "Actif", plan: finalPlan, features: getFeaturesForPlan(finalPlan) }).eq("name", shopName)
         await supabase.from("payments").update({ status: "completed" }).eq("id", paymentId)
         await supabase.from("audit_logs").insert([
           {
@@ -232,6 +236,36 @@ export default function SaaSAdminPage() {
           action: <CheckCircle2 className="h-5 w-5 text-green-500" />,
         })
       }
+    } catch (e: any) {
+      toast({ variant: "destructive", title: "Erreur", description: e.message })
+    }
+  }
+
+  const approveBoutique = async (id: string) => {
+    const boutique = boutiques.find((b) => b.id === id)
+    if (!boutique) return
+    try {
+      await supabase
+        .from("boutiques")
+        .update({
+          status: "Essai",
+          trial_ends_at: new Date(Date.now() + TRIAL_DAYS * 24 * 60 * 60 * 1000).toISOString(),
+          features: getFeaturesForPlan(boutique.plan),
+        })
+        .eq("id", id)
+      await supabase.from("audit_logs").insert([
+        {
+          boutique_id: id,
+          action: "boutique_approved",
+          entity_type: "boutiques",
+          entity_id: id,
+          notes: `Boutique approuvée — Plan ${boutique.plan}`,
+          status: "success",
+          created_at: new Date().toISOString(),
+        },
+      ])
+      loadData()
+      toast({ title: "Boutique approuvée", description: `${boutique.name} est maintenant en essai.` })
     } catch (e: any) {
       toast({ variant: "destructive", title: "Erreur", description: e.message })
     }
@@ -319,13 +353,12 @@ export default function SaaSAdminPage() {
   const cyclePlan = async (id: string) => {
     const boutique = boutiques.find((b) => b.id === id)
     if (!boutique) return
-    const plans = ["Basic", "Pro", "Premium"]
-    const currentIndex = plans.indexOf(boutique.plan)
-    const newPlan = plans[(currentIndex + 1) % plans.length]
+    const currentIndex = PAID_PLANS.indexOf(boutique.plan)
+    const newPlan = currentIndex === -1 ? 'Basic' : PAID_PLANS[(currentIndex + 1) % PAID_PLANS.length]
     try {
       await supabase
         .from("boutiques")
-        .update({ plan: newPlan, status: boutique.status === "Essai" ? "Actif" : boutique.status })
+        .update({ plan: newPlan, status: boutique.status === "Essai" ? "Actif" : boutique.status, features: getFeaturesForPlan(newPlan) })
         .eq("id", id)
       await supabase.from("audit_logs").insert([
         {
@@ -375,15 +408,7 @@ export default function SaaSAdminPage() {
           trial_ends_at:
             newBoutique.plan === "Essai" ? new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000).toISOString() : null,
           subscription_ends_at: new Date(now.getTime() + 365 * 24 * 60 * 60 * 1000).toISOString(),
-          features: {
-            units: false,
-            wholesale: false,
-            credit: false,
-            customers: false,
-            stockIncrement: true,
-            historicalMoves: false,
-            importChina: false,
-          },
+          features: getFeaturesForPlan(newBoutique.plan),
           team_members_count: 1,
           created_at: now.toISOString(),
         },
@@ -463,12 +488,13 @@ export default function SaaSAdminPage() {
         </div>
       </div>
 
-      <div className="grid gap-8 md:grid-cols-4">
+      <div className="grid gap-8 md:grid-cols-5">
         {[
           { title: "Boutiques Totales", value: boutiques.length.toString(), icon: Store, trend: "+1", color: "text-primary" },
-          { title: "MRR Actuel (CFA)", value: formatCurrency(totalMRR), icon: TrendingUp, trend: "Réel", color: "text-green-500" },
+          { title: "MRR Plans (CFA)", value: formatCurrency(totalMRR), icon: TrendingUp, trend: "Plans", color: "text-green-500" },
+          { title: "MRR Modules (CFA)", value: formatCurrency(totalModuleRevenue), icon: Cpu, trend: "Add-ons", color: "text-blue-500" },
           { title: "En attente Paiement", value: pendingPayments.length.toString(), icon: Smartphone, trend: "Mobile Money", color: "text-blue-500" },
-          { title: "Essais en cours", value: boutiques.filter((b) => b.status === "Essai").length.toString(), icon: Clock, trend: "7j", color: "text-orange-400" },
+          { title: "En attente Approbation", value: boutiques.filter((b) => b.status === "en_attente").length.toString(), icon: Clock, trend: "Nouvelles", color: "text-purple-500" },
         ].map((stat, i) => (
           <Card key={i} className="premium-card">
             <CardContent className="p-8">
@@ -496,6 +522,18 @@ export default function SaaSAdminPage() {
             Paiements Mobile Money{" "}
             {pendingPayments.length > 0 && (
               <Badge className="ml-2 bg-primary text-white">{pendingPayments.length}</Badge>
+            )}
+          </TabsTrigger>
+          <TabsTrigger value="approvals" className="rounded-xl flex-1 font-bold">
+            Approbations{" "}
+            {boutiques.filter((b) => b.status === "en_attente").length > 0 && (
+              <Badge className="ml-2 bg-purple-500 text-white">{boutiques.filter((b) => b.status === "en_attente").length}</Badge>
+            )}
+          </TabsTrigger>
+          <TabsTrigger value="modules" className="rounded-xl flex-1 font-bold">
+            Modules Premium{" "}
+            {PREMIUM_MODULES.filter(m => m.implemented).length > 0 && (
+              <Badge className="ml-2 bg-blue-500 text-white">{PREMIUM_MODULES.length}</Badge>
             )}
           </TabsTrigger>
           <TabsTrigger value="logs" className="rounded-xl flex-1 font-bold">
@@ -561,7 +599,9 @@ export default function SaaSAdminPage() {
                             ? "bg-green-50 text-green-600 border-none"
                             : b.status === "Essai"
                               ? "bg-orange-50 text-orange-600 border-none"
-                              : "bg-red-50 text-red-600 border-none"
+                              : b.status === "en_attente"
+                                ? "bg-purple-50 text-purple-600 border-none"
+                                : "bg-red-50 text-red-600 border-none"
                         }
                       >
                         {b.status}
@@ -690,6 +730,112 @@ export default function SaaSAdminPage() {
           </Card>
         </TabsContent>
 
+        <TabsContent value="approvals">
+          <Card className="premium-card">
+            <CardHeader className="p-8 border-b">
+              <CardTitle className="font-headline text-2xl">Boutiques en attente d&apos;approbation</CardTitle>
+              <CardDescription>Inscriptions récentes en attente de validation manuelle.</CardDescription>
+            </CardHeader>
+            <CardContent className="p-0">
+              {boutiques.filter((b) => b.status === "en_attente").length > 0 ? (
+                <div className="divide-y">
+                  {boutiques
+                    .filter((b) => b.status === "en_attente")
+                    .map((b) => (
+                      <div key={b.id} className="p-8 flex items-center justify-between">
+                        <div className="flex gap-4">
+                          <div className="h-12 w-12 rounded-2xl bg-purple-50 flex items-center justify-center">
+                            <Store className="h-6 w-6 text-purple-500" />
+                          </div>
+                          <div className="space-y-1">
+                            <div className="font-bold text-gray-900">{b.name}</div>
+                            <div className="text-sm text-gray-500">
+                              {b.owner} — {b.ownerEmail}
+                            </div>
+                            <div className="flex items-center gap-2 text-xs text-gray-400">
+                              <span>Plan demandé :</span>
+                              <Badge className="bg-orange-100 text-primary border-none">{b.plan}</Badge>
+                              <span>•</span>
+                              <span>{b.joinDate}</span>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="rounded-xl border-red-100 text-red-500 hover:bg-red-50"
+                            onClick={async () => {
+                              try {
+                                await supabase.from("boutiques").update({ status: "refuse" }).eq("id", b.id)
+                                loadData()
+                                toast({ title: "Demande refusée", description: `${b.name} a été refusée.` })
+                              } catch (e: any) {
+                                toast({ variant: "destructive", title: "Erreur", description: e.message })
+                              }
+                            }}
+                          >
+                            <XCircle className="h-4 w-4 mr-1" />
+                            Refuser
+                          </Button>
+                          <Button
+                            size="sm"
+                            className="sena-gradient text-white rounded-xl font-bold"
+                            onClick={() => approveBoutique(b.id)}
+                          >
+                            <CheckCircle2 className="h-4 w-4 mr-1" />
+                            Approuver (Essai {TRIAL_DAYS}j)
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                </div>
+              ) : (
+                <div className="p-20 text-center text-gray-400 font-medium italic">
+                  Aucune boutique en attente d&apos;approbation.
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="modules">
+          <Card className="premium-card">
+            <CardHeader className="p-8 border-b">
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="font-headline text-2xl">Modules Premium</CardTitle>
+                  <CardDescription>Add-ons vendus indépendamment du plan d&apos;abonnement.</CardDescription>
+                </div>
+                <Badge className="bg-primary text-white px-4 py-2 rounded-xl text-sm font-bold">
+                  {PREMIUM_MODULES.filter(m => m.implemented).length} disponibles
+                </Badge>
+              </div>
+            </CardHeader>
+            <CardContent className="p-8">
+              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                {PREMIUM_MODULES.map((mod) => (
+                  <div key={mod.id} className={`p-6 rounded-2xl border ${mod.implemented ? 'bg-white hover:border-primary/30' : 'bg-gray-50 border-dashed'} transition-colors`}>
+                    <div className="flex items-center justify-between mb-3">
+                      <span className="font-bold text-gray-900">{mod.label}</span>
+                      {mod.implemented ? (
+                        <Badge className="bg-green-50 text-green-600 border-none text-[10px]">Disponible</Badge>
+                      ) : (
+                        <Badge variant="outline" className="text-gray-400 border-gray-200 text-[10px]">Bientôt</Badge>
+                      )}
+                    </div>
+                    <p className="text-sm text-gray-500 mb-4">{mod.description}</p>
+                    <div className="flex items-center justify-between">
+                      <span className="text-lg font-headline font-bold text-gray-900">{mod.price.toLocaleString()} FCFA</span>
+                      <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">/mois</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
         <TabsContent value="logs">
           <Card className="premium-card">
             <CardHeader className="p-8 border-b flex flex-row items-center justify-between">
@@ -774,10 +920,9 @@ export default function SaaSAdminPage() {
                 onChange={(e) => setNewBoutique((prev) => ({ ...prev, plan: e.target.value }))}
                 className="flex h-12 w-full rounded-xl border border-input bg-background px-4 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               >
-                <option value="Essai">Essai (7 jours)</option>
+                <option value="Essai">Essai (14 jours)</option>
                 <option value="Basic">Basic — 10 000 CFA/mois</option>
                 <option value="Pro">Pro — 25 000 CFA/mois</option>
-                <option value="Premium">Premium — 45 000 CFA/mois</option>
               </select>
             </div>
           </div>

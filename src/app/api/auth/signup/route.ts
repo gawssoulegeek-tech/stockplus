@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { isValidPlan, getFeaturesForPlan } from '@/lib/plan-features'
 
 // ---------------------------------------------------------------------------
 // POST /api/auth/signup
@@ -18,7 +19,7 @@ export async function POST(request: NextRequest) {
   try {
     // ---- ÉTAPE 1 : Parsing du body -------------------------------------------
     const body = await request.json()
-    const { email, password, ownerName, boutiqueName } = body
+    const { email, password, ownerName, boutiqueName, plan } = body
     LOG('Body reçu', { email: email?.substring(0, 3) + '***', hasPassword: !!password, ownerName, boutiqueName })
 
     if (!email || !password || !ownerName || !boutiqueName) {
@@ -119,19 +120,17 @@ export async function POST(request: NextRequest) {
     LOG('✅ Utilisateur inséré dans public.users')
 
     // ---- ÉTAPE 6 : Insertion dans public.boutiques ---------------------------
-    LOG('Insertion dans public.boutiques...', { boutiqueId, name: boutiqueName, owner_id: uid })
+    const selectedPlan = isValidPlan(plan) ? plan : 'Basic'
+    const isRoot = email === 'root@senestock.ai'
+    LOG('Insertion dans public.boutiques...', { boutiqueId, name: boutiqueName, owner_id: uid, plan: selectedPlan })
     const { error: boutiqueInsertError } = await adminClient.from('boutiques').insert({
       id: boutiqueId,
       name: boutiqueName,
       owner_id: uid,
-      plan: 'Essai',
-      status: 'Essai',
-      trial_ends_at: trialEndsAt,
-      features: {
-        wholesale: false, credit: false, customers: false, units: false,
-        chinaImport: false, advancedReports: false, multiCart: false,
-        stockIncrement: true,
-      },
+      plan: selectedPlan,
+      status: isRoot ? 'Actif' : 'en_attente',
+      trial_ends_at: isRoot ? null : trialEndsAt,
+      features: getFeaturesForPlan(selectedPlan),
       team_members_count: 1,
       is_active: true,
       created_at: new Date().toISOString(),
@@ -167,7 +166,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       {
         success: true,
-        message: 'Account created successfully',
+        message: 'Inscription réussie',
+        pending: !isRoot,
         user: { uid, email: email.toLowerCase(), boutiqueId },
       },
       { status: 201 }

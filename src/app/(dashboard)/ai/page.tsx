@@ -115,7 +115,7 @@ export default function AIAssistantPage() {
   }
 
   // Seul le plan Pro (25K) ou l'Essai ont accès aux fonctions avancées
-  const hasProAccess = plan === "Pro" || plan === "Premium" || status === "Essai"
+  const hasProAccess = plan === "Pro" || status === "Essai"
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>, type: 'product' | 'invoice') => {
     const file = e.target.files?.[0]
@@ -211,7 +211,7 @@ export default function AIAssistantPage() {
         <div className="text-gray-400 text-lg font-medium flex items-center justify-center gap-2">
           <span>Forfait actuel :</span> 
           <Badge variant="outline" className="font-bold border-primary text-primary">
-            {status === "Essai" ? `Essai Premium` : (plan === "Premium" ? "Pro" : plan)}
+            {status === "Essai" ? "Essai 7 jours" : plan}
           </Badge>
         </div>
       </div>

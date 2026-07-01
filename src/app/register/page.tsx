@@ -2,7 +2,7 @@
 
 import { useState, Suspense } from "react"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { Sparkles, ArrowRight, Mail, Lock, Store, User, ArrowLeft, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -12,6 +12,7 @@ import { useToast } from "@/hooks/use-toast"
 
 function RegisterForm() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { toast } = useToast()
   
   const [isLoading, setIsLoading] = useState(false)
@@ -38,6 +39,7 @@ function RegisterForm() {
           password: formData.password,
           ownerName: formData.ownerName,
           boutiqueName: formData.boutiqueName,
+          plan: searchParams.get('plan') || 'Basic',
         }),
       })
 
@@ -58,13 +60,19 @@ function RegisterForm() {
       localStorage.setItem("boutique_id", data.user.boutiqueId)
       localStorage.setItem("sena_user_role", "Administrateur")
 
-      toast({
-        title: "Boutique créée !",
-        description: "Bienvenue sur StockPlus. Votre accès est prêt.",
-      })
-      
-      // Redirect only after successful signup
-      router.push("/onboarding")
+      if (data.pending) {
+        toast({
+          title: "Inscription soumise !",
+          description: "Votre compte est en attente d'approbation par un administrateur.",
+        })
+        router.push("/pending-approval")
+      } else {
+        toast({
+          title: "Boutique créée !",
+          description: "Bienvenue sur StockPlus. Votre accès est prêt.",
+        })
+        router.push("/onboarding")
+      }
       
     } catch (error: any) {
       console.error("Registration flow error:", error)

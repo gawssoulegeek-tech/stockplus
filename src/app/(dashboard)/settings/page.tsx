@@ -24,6 +24,7 @@ import { useToast } from "@/hooks/use-toast"
 import { useBoutique } from "../layout"
 import { getSupabaseClient } from "@/supabase/client"
 import { useRouter } from "next/navigation"
+import { PREMIUM_MODULES, getModuleRevenue } from "@/lib/plan-features"
 
 export default function SettingsPage() {
   const router = useRouter()
@@ -81,6 +82,7 @@ export default function SettingsPage() {
           <TabsTrigger value="store" className="rounded-xl flex-1 font-bold whitespace-nowrap"><Store className="mr-2 h-4" /> Boutique</TabsTrigger>
           <TabsTrigger value="features" className="rounded-xl flex-1 font-bold whitespace-nowrap"><Cpu className="mr-2 h-4" /> Feature Flags</TabsTrigger>
           <TabsTrigger value="subscription" className="rounded-xl flex-1 font-bold whitespace-nowrap"><Crown className="mr-2 h-4" /> Abonnement</TabsTrigger>
+          <TabsTrigger value="modules" className="rounded-xl flex-1 font-bold whitespace-nowrap"><Cpu className="mr-2 h-4" /> Modules Premium</TabsTrigger>
           <TabsTrigger value="team" className="rounded-xl flex-1 font-bold whitespace-nowrap"><Users className="mr-2 h-4" /> Équipe</TabsTrigger>
           <TabsTrigger value="security" className="rounded-xl flex-1 font-bold whitespace-nowrap"><Lock className="mr-2 h-4" /> Sécurité</TabsTrigger>
         </TabsList>
@@ -146,6 +148,58 @@ export default function SettingsPage() {
                   ))}
                 </div>
               )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="modules">
+          <Card className="premium-card">
+            <CardHeader className="p-8 border-b bg-gray-50/30">
+              <CardTitle className="text-2xl flex items-center gap-3">
+                <Cpu className="text-primary" />
+                Modules Premium
+              </CardTitle>
+              <CardDescription>
+                Activez des fonctionnalités supplémentaires pour personnaliser votre gestion. 
+                Contactez l&apos;administrateur pour souscrire.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="p-8">
+              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                {PREMIUM_MODULES.map((mod) => {
+                  const isActive = mod.featureFlag ? (features[mod.featureFlag] || false) : false
+                  return (
+                    <div key={mod.id} className={`p-6 rounded-2xl border ${isActive ? 'bg-green-50/30 border-green-200' : 'bg-white border-gray-100'} transition-colors`}>
+                      <div className="flex items-center justify-between mb-3">
+                        <span className="font-bold text-gray-900">{mod.label}</span>
+                        {isActive ? (
+                          <Badge className="bg-green-50 text-green-600 border-none text-[10px]">Actif</Badge>
+                        ) : mod.implemented ? (
+                          <Badge variant="outline" className="text-gray-400 border-gray-200 text-[10px]">Disponible</Badge>
+                        ) : (
+                          <Badge variant="outline" className="text-gray-400 border-dashed text-[10px]">Bientôt</Badge>
+                        )}
+                      </div>
+                      <p className="text-sm text-gray-500 mb-4">{mod.description}</p>
+                      <div className="flex items-center justify-between">
+                        <span className="text-lg font-headline font-bold">{mod.price.toLocaleString()} FCFA</span>
+                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">/mois</span>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+              <div className="mt-8 p-6 rounded-2xl bg-gray-50 border border-gray-100 flex items-center justify-between">
+                <div>
+                  <p className="font-bold text-gray-900">Total modules actifs</p>
+                  <p className="text-sm text-gray-500">Revenu supplémentaire généré par vos modules</p>
+                </div>
+                <p className="text-3xl font-headline font-bold text-gray-900">
+                  {getModuleRevenue(
+                    PREMIUM_MODULES.filter(m => m.featureFlag && features[m.featureFlag]).map(m => m.id)
+                  ).toLocaleString()} FCFA
+                </p>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>

@@ -62,7 +62,7 @@ export default function ReportsPage() {
     }
   }, [])
 
-  const effectivePlan = status === "Essai" ? "Pro" : (plan === "Premium" ? "Pro" : plan)
+  const effectivePlan = status === "Essai" ? "Pro" : plan
 
   const filteredSales = useMemo(() => {
     const now = new Date()

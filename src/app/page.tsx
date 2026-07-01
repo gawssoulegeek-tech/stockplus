@@ -230,14 +230,36 @@ export default function LandingPage() {
                   name: "BASIC", 
                   price: "10 000", 
                   color: "border-gray-100 bg-white hover:bg-orange-50/20 shadow-sm",
-                  features: ["Gestion de stock", "Ventes (POS)", "Factures simples", "Scan produit photo", "Historique des ventes", "1 Utilisateur unique"] 
+                  features: [
+                    "POS complet",
+                    "Gestion des produits et du stock",
+                    "Dashboard & rapports simples",
+                    "Impression de facture thermique",
+                    "Prix de gros & vente à crédit",
+                    "Gestion des clients",
+                    "IA Awa basique",
+                    "Historique illimité",
+                    "Sauvegarde cloud automatique",
+                    "Notifications de stock faible",
+                    "2 gérants",
+                  ] 
                 },
                 { 
                   name: "PRO", 
                   price: "25 000", 
                   recommended: true,
                   color: "bg-gray-950 border-gray-800 text-white hover:bg-gray-800 shadow-2xl shadow-orange-500/30",
-                  features: ["Tout le plan Basic", "Multi-utilisateurs", "Multi-panier (Caisse)", "Rapports de ventes", "Alertes intelligentes", "Résumé quotidien par email", "Assistant intelligent", "Support prioritaire 7j/7"] 
+                  features: [
+                    "Tout le plan Basic",
+                    "IA avancée & prévisions des ventes",
+                    "Analyse des bénéfices et ruptures",
+                    "Scan IA des produits",
+                    "Import & Export Excel/PDF",
+                    "Multi-panier (caisses simultanées)",
+                    "Rapports avancés",
+                    "Jusqu'à 20 gérants",
+                    "Support prioritaire 7j/7",
+                  ] 
                 }
               ].map((plan, i) => (
                 <div key={i} className={cn(
