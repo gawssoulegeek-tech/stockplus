@@ -224,34 +224,51 @@ export default function LandingPage() {
               <p className="text-xl text-gray-500 font-medium">Simple, transparent, payable via Wave ou Orange Money.</p>
             </div>
 
-            <div className="grid md:grid-cols-2 gap-10 max-w-5xl mx-auto">
+            <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto items-stretch">
               {[
                 { 
-                  name: "BASIC", 
-                  price: "10 000", 
+                  name: "ESSAI", 
+                  price: "Gratuit", 
+                  period: "14 jours",
                   color: "border-gray-100 bg-white hover:bg-orange-50/20 shadow-sm",
+                  btnClass: "bg-gray-100 text-gray-900 hover:bg-orange-100",
                   features: [
                     "POS complet",
                     "Gestion des produits et du stock",
-                    "Dashboard & rapports simples",
+                    "Dashboard & rapports",
                     "Impression de facture thermique",
                     "Prix de gros & vente à crédit",
                     "Gestion des clients",
                     "IA Awa basique",
-                    "Historique illimité",
+                    "2 gérants",
+                  ] 
+                },
+                { 
+                  name: "BASIC", 
+                  price: "10 000", 
+                  period: "/mois",
+                  recommended: true,
+                  color: "border-primary/20 bg-white hover:border-primary shadow-2xl shadow-orange-500/10 scale-105 md:scale-110 z-10",
+                  btnClass: "sena-gradient text-white hover:brightness-110",
+                  features: [
+                    "Tout l'Essai",
                     "Sauvegarde cloud automatique",
                     "Notifications de stock faible",
-                    "2 gérants",
+                    "Historique illimité",
+                    "Produits illimités",
+                    "Rapports de ventes",
+                    "",
                   ] 
                 },
                 { 
                   name: "PRO", 
                   price: "25 000", 
-                  recommended: true,
-                  color: "bg-gray-950 border-gray-800 text-white hover:bg-gray-800 shadow-2xl shadow-orange-500/30",
+                  period: "/mois",
+                  color: "border-gray-100 bg-white hover:bg-gray-50 shadow-sm",
+                  btnClass: "bg-gray-100 text-gray-900 hover:bg-orange-100",
                   features: [
                     "Tout le plan Basic",
-                    "IA avancée & prévisions des ventes",
+                    "IA avancée & prévisions",
                     "Analyse des bénéfices et ruptures",
                     "Scan IA des produits",
                     "Import & Export Excel/PDF",
@@ -274,10 +291,10 @@ export default function LandingPage() {
                   </div>
                   <div className="flex items-baseline gap-3 mb-12">
                     <span className="text-6xl md:text-7xl font-headline font-bold">{plan.price}</span>
-                    <span className={cn("text-xs font-bold uppercase tracking-[0.2em]", plan.recommended ? "opacity-60" : "opacity-40")}>FCFA / MOIS</span>
+                    <span className={cn("text-xs font-bold uppercase tracking-[0.2em]", plan.recommended ? "opacity-60" : "opacity-40")}>{plan.period}</span>
                   </div>
                   <ul className="space-y-6 mb-12 flex-1">
-                    {plan.features.map((f, j) => (
+                    {plan.features.filter(f => f).map((f, j) => (
                       <li key={j} className="flex items-center gap-4 text-base font-bold">
                         <div className={cn("h-6 w-6 rounded-full flex items-center justify-center shrink-0", plan.recommended ? "bg-primary/20 text-primary" : "bg-orange-100 text-primary")}>
                            <Check className="h-3.5 w-3.5" />
@@ -288,14 +305,48 @@ export default function LandingPage() {
                   </ul>
                   <Button className={cn(
                     "w-full h-20 rounded-[2rem] font-bold text-xl transition-all shadow-2xl",
-                    plan.recommended ? "sena-gradient text-white hover:brightness-110" : "bg-gray-100 text-gray-900 hover:bg-orange-100"
+                    plan.btnClass
                   )} asChild>
-                    <Link href={`/register?plan=${plan.name}`}>
-                      Choisir {plan.name}
+                    <Link href={plan.name === "ESSAI" ? "/register?plan=Basic" : `/register?plan=${plan.name}`}>
+                      {plan.name === "ESSAI" ? "Essayer gratuitement" : `Choisir ${plan.name}`}
                     </Link>
                   </Button>
                 </div>
               ))}
+            </div>
+
+            {/* Modules Premium */}
+            <div className="mt-24 max-w-4xl mx-auto">
+              <div className="text-center mb-12">
+                <Badge className="bg-blue-50 text-blue-600 border-none px-6 py-2 rounded-full font-black text-xs tracking-widest uppercase mb-4">Modules Premium</Badge>
+                <h3 className="text-3xl md:text-4xl font-headline font-bold text-gray-900 tracking-tighter">
+                  Personnalisez votre boutique
+                </h3>
+                <p className="text-lg text-gray-500 font-medium mt-3">
+                  Ajoutez des fonctionnalités à la carte, quel que soit votre plan.
+                </p>
+              </div>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {[
+                  { name: "Import Chine", price: "2 500", emoji: "🌍" },
+                  { name: "Unités de mesure", price: "2 500", emoji: "📏" },
+                  { name: "Multi-panier", price: "2 500", emoji: "🛒" },
+                  { name: "Rapports avancés", price: "2 500", emoji: "📊" },
+                  { name: "Fidélité", price: "2 500", emoji: "⭐" },
+                  { name: "WhatsApp Business", price: "2 500", emoji: "💬" },
+                  { name: "Restaurant", price: "5 000", emoji: "🍽️" },
+                  { name: "Multi-boutiques", price: "10 000", emoji: "🏪" },
+                ].map((mod, i) => (
+                  <div key={i} className="p-6 rounded-2xl border border-gray-100 bg-white hover:border-blue-200 transition-all text-center group">
+                    <div className="text-3xl mb-3 group-hover:scale-110 transition-transform">{mod.emoji}</div>
+                    <p className="font-bold text-gray-900 text-sm mb-1">{mod.name}</p>
+                    <p className="text-primary font-headline font-bold text-lg">{mod.price} <span className="text-[10px] text-gray-400 uppercase tracking-widest">CFA</span></p>
+                  </div>
+                ))}
+              </div>
+              <p className="text-center text-sm text-gray-400 font-medium mt-8">
+                + Scanner code-barres, Paiement Wave, Orange Money, SMS, Pharmacie, Balance, Étiquettes...
+              </p>
             </div>
           </div>
         </section>
