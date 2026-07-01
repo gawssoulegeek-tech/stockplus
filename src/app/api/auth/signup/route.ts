@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-import { isValidPlan, getFeaturesForPlan } from '@/lib/plan-features'
+import { isValidPlan, getFeaturesForPlan, MAX_GERANTS } from '@/lib/plan-features'
 
 // ---------------------------------------------------------------------------
 // POST /api/auth/signup
@@ -132,7 +132,7 @@ export async function POST(request: NextRequest) {
       status: isRoot ? 'Actif' : 'Suspendu',
       trial_ends_at: isRoot ? null : trialEndsAt,
       features: getFeaturesForPlan(selectedPlan),
-      team_members_count: 1,
+      team_members_count: MAX_GERANTS[selectedPlan] || 1,
       is_active: true,
       created_at: new Date().toISOString(),
     })

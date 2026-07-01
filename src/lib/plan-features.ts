@@ -26,11 +26,17 @@ export const ALL_FEATURES: Record<FeatureKey, string> = {
   historicalMoves: 'Mouvements historiques',
 }
 
+export const MAX_GERANTS: Record<string, number> = {
+  Essai: 1,
+  Basic: 1,
+  Pro: 20,
+}
+
 /** Features activées pour chaque plan */
 export const PLAN_FEATURES: Record<string, Record<FeatureKey, boolean>> = {
   Essai: {
-    wholesale: true,
-    credit: true,
+    wholesale: false,
+    credit: false,
     customers: true,
     units: false,
     chinaImport: false,
@@ -40,8 +46,8 @@ export const PLAN_FEATURES: Record<string, Record<FeatureKey, boolean>> = {
     historicalMoves: false,
   },
   Basic: {
-    wholesale: true,
-    credit: true,
+    wholesale: false,
+    credit: false,
     customers: true,
     units: false,
     chinaImport: false,

@@ -50,7 +50,7 @@ import { useToast } from "@/hooks/use-toast"
 import { useRouter } from "next/navigation"
 import { getSupabaseClient } from "@/supabase/client"
 import { useBoutique } from "../layout"
-import { PLAN_PRICES, getFeaturesForPlan, PAID_PLANS, TRIAL_DAYS, PREMIUM_MODULES, getModuleRevenue } from "@/lib/plan-features"
+import { PLAN_PRICES, getFeaturesForPlan, PAID_PLANS, TRIAL_DAYS, PREMIUM_MODULES, getModuleRevenue, MAX_GERANTS } from "@/lib/plan-features"
 
 export default function SaaSAdminPage() {
   const { toast } = useToast()
@@ -251,6 +251,7 @@ export default function SaaSAdminPage() {
           status: "Essai",
           trial_ends_at: new Date(Date.now() + TRIAL_DAYS * 24 * 60 * 60 * 1000).toISOString(),
           features: getFeaturesForPlan(boutique.plan),
+          team_members_count: MAX_GERANTS[boutique.plan] || 1,
         })
         .eq("id", id)
       await supabase.from("audit_logs").insert([
@@ -409,7 +410,7 @@ export default function SaaSAdminPage() {
             newBoutique.plan === "Essai" ? new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000).toISOString() : null,
           subscription_ends_at: new Date(now.getTime() + 365 * 24 * 60 * 60 * 1000).toISOString(),
           features: getFeaturesForPlan(newBoutique.plan),
-          team_members_count: 1,
+          team_members_count: MAX_GERANTS[newBoutique.plan] || 1,
           created_at: now.toISOString(),
         },
       ])

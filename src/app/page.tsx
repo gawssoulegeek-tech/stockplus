@@ -237,10 +237,9 @@ export default function LandingPage() {
                     "Gestion des produits et du stock",
                     "Dashboard & rapports",
                     "Impression de facture thermique",
-                    "Prix de gros & vente à crédit",
                     "Gestion des clients",
                     "IA Awa basique",
-                    "2 gérants",
+                    "1 gérant",
                   ] 
                 },
                 { 
@@ -264,16 +263,17 @@ export default function LandingPage() {
                   name: "PRO", 
                   price: "25 000", 
                   period: "/mois",
-                  color: "border-gray-100 bg-white hover:bg-gray-50 shadow-sm",
-                  btnClass: "bg-gray-100 text-gray-900 hover:bg-orange-100",
+                  color: "bg-gray-100 border-gray-200 hover:bg-white hover:border-primary/30 transition-all",
+                  btnClass: "bg-gray-900 text-white hover:bg-gray-800",
                   features: [
                     "Tout le plan Basic",
+                    "Prix de gros & vente à crédit",
+                    "Multi-panier (caisses simultanées)",
                     "IA avancée & prévisions",
                     "Analyse des bénéfices et ruptures",
+                    "Rapports avancés",
                     "Scan IA des produits",
                     "Import & Export Excel/PDF",
-                    "Multi-panier (caisses simultanées)",
-                    "Rapports avancés",
                     "Jusqu'à 20 gérants",
                     "Support prioritaire 7j/7",
                   ] 
