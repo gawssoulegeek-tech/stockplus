@@ -35,7 +35,7 @@ CREATE TABLE IF NOT EXISTS public.boutiques (
   name text NOT NULL,
   owner_id uuid NOT NULL REFERENCES public.users(uid) ON DELETE CASCADE,
   plan text NOT NULL DEFAULT 'Essai' CHECK (plan IN ('Essai', 'Basic', 'Pro', 'Premium')),
-  status text NOT NULL DEFAULT 'Essai' CHECK (status IN ('Essai', 'Actif', 'Suspendu')),
+  status text NOT NULL DEFAULT 'Essai' CHECK (status IN ('Essai', 'Actif', 'Suspendu', 'en_attente', 'refuse')),
   description text,
   logo_url text,
   location text,
