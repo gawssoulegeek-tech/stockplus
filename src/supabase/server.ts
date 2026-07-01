@@ -5,7 +5,7 @@
  */
 
 import 'server-only';
-import { createServerClient, serialize } from '@supabase/ssr';
+import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import { supabaseConfig, validateSupabaseConfig } from './config';
 
