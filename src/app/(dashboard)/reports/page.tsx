@@ -38,6 +38,14 @@ import {
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
 import { useToast } from "@/hooks/use-toast"
 import { Badge } from "@/components/ui/badge"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
 
 export default function ReportsPage() {
   const { toast } = useToast()
@@ -119,25 +127,85 @@ export default function ReportsPage() {
   }, [filteredSales, products])
 
   if (effectivePlan === "Basic") {
+    const basicStats = {
+      revenue: filteredSales.reduce((acc, s) => acc + (s.total || 0), 0),
+      count: filteredSales.length,
+      avgOrder: filteredSales.length > 0 ? filteredSales.reduce((acc, s) => acc + (s.total || 0), 0) / filteredSales.length : 0,
+    }
+
     return (
-      <div className="min-h-[70vh] flex flex-col items-center justify-center">
-        <Card className="premium-card p-16 text-center bg-gray-50/50 border-none shadow-none max-w-2xl space-y-10">
-          <div className="h-32 w-32 rounded-[2.5rem] bg-orange-100 flex items-center justify-center mx-auto shadow-xl shadow-orange-500/10">
-            <Lock className="h-12 w-12 text-primary" />
+      <div className="space-y-12">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-8">
+          <div className="space-y-2">
+            <h1 className="text-4xl md:text-6xl font-headline font-bold text-gray-900 tracking-tighter">Rapports</h1>
+            <p className="text-gray-500 font-medium text-lg">Aperçu simple de vos ventes.</p>
           </div>
-          <div className="space-y-4">
-            <Badge className="bg-primary/10 text-primary border-none px-5 py-1 rounded-full font-black text-[10px] tracking-widest uppercase">Plan Pro Requis</Badge>
-            <h2 className="text-4xl md:text-5xl font-headline font-bold text-gray-900 tracking-tighter">Analyses & Rapports</h2>
-            <div className="text-gray-500 font-medium text-lg max-w-md mx-auto leading-relaxed">
-              Les statistiques détaillées, marges bénéficiaires et prévisions de vente sont réservées au plan <strong className="text-gray-900">Pro (25 000 FCFA)</strong>.
-            </div>
+          <Badge className="bg-gray-100 text-gray-500 border-none px-5 py-2 rounded-xl font-black text-xs">Plan Basic</Badge>
+        </div>
+
+        <div className="grid gap-6 md:grid-cols-3">
+          <Card className="premium-card">
+            <CardContent className="p-8">
+              <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Chiffre d&apos;affaires</p>
+              <p className="text-4xl font-headline font-bold text-gray-900">{basicStats.revenue.toLocaleString()} FCFA</p>
+            </CardContent>
+          </Card>
+          <Card className="premium-card">
+            <CardContent className="p-8">
+              <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Ventes</p>
+              <p className="text-4xl font-headline font-bold text-gray-900">{basicStats.count}</p>
+            </CardContent>
+          </Card>
+          <Card className="premium-card">
+            <CardContent className="p-8">
+              <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Panier moyen</p>
+              <p className="text-4xl font-headline font-bold text-gray-900">{Math.round(basicStats.avgOrder).toLocaleString()} FCFA</p>
+            </CardContent>
+          </Card>
+        </div>
+
+        <Card className="premium-card p-10 text-center bg-gradient-to-br from-orange-50 to-white border-none">
+          <div className="max-w-md mx-auto space-y-4">
+            <Lock className="h-8 w-8 text-primary mx-auto" />
+            <p className="text-gray-600 font-medium">
+              Passez au <strong className="text-gray-900">Pro (25 000 FCFA)</strong> pour les analyses détaillées, marges, prévisions et graphiques.
+            </p>
+            <Button className="sena-gradient text-white h-12 px-8 rounded-xl font-bold shadow-lg">
+              <Star className="h-4 w-4 mr-2" />
+              Passer au Pro
+            </Button>
           </div>
-          <Button className="sena-gradient text-white h-20 px-16 rounded-[2rem] font-bold text-2xl shadow-2xl shadow-orange-500/30 group">
-            <Star className="h-6 w-6 mr-3 fill-white" />
-            Activer le Plan Pro
-            <ChevronRight className="ml-2 h-6 w-6 group-hover:translate-x-2 transition-transform" />
-          </Button>
-          <p className="text-[10px] font-black text-gray-300 uppercase tracking-[0.4em]">StockPlus Intelligence</p>
+        </Card>
+
+        <Card className="premium-card">
+          <CardHeader className="p-8 border-b">
+            <CardTitle className="font-headline text-2xl">Dernières ventes</CardTitle>
+          </CardHeader>
+          <CardContent className="p-0">
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-gray-50/50">
+                  <TableHead className="font-bold text-[10px] uppercase px-8">Date</TableHead>
+                  <TableHead className="font-bold text-[10px] uppercase">Client</TableHead>
+                  <TableHead className="font-bold text-[10px] uppercase text-right px-8">Total</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredSales.slice(0, 10).map((sale) => (
+                  <TableRow key={sale.id}>
+                    <TableCell className="px-8 py-4 font-medium">{new Date(sale.date).toLocaleDateString("fr-FR")}</TableCell>
+                    <TableCell>{sale.client || "Client Passager"}</TableCell>
+                    <TableCell className="text-right px-8 font-bold">{(sale.total || 0).toLocaleString()} FCFA</TableCell>
+                  </TableRow>
+                ))}
+                {filteredSales.length === 0 && (
+                  <TableRow>
+                    <TableCell colSpan={3} className="text-center py-12 text-gray-400 font-medium italic">Aucune vente</TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </CardContent>
         </Card>
       </div>
     )
