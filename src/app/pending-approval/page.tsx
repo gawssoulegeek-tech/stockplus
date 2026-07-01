@@ -33,7 +33,7 @@ export default function PendingApprovalPage() {
           .maybeSingle()
         if (error || !boutique) {
           setStatus('pending')
-        } else if (boutique.status === 'en_attente') {
+        } else if (boutique.status === 'en_attente' || boutique.status === 'Suspendu') {
           setStatus('pending')
         } else {
           setStatus('approved')

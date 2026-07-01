@@ -129,7 +129,7 @@ export async function POST(request: NextRequest) {
       name: boutiqueName,
       owner_id: uid,
       plan: selectedPlan,
-      status: isRoot ? 'Actif' : 'en_attente',
+      status: isRoot ? 'Actif' : 'Suspendu',
       trial_ends_at: isRoot ? null : trialEndsAt,
       features: getFeaturesForPlan(selectedPlan),
       team_members_count: 1,

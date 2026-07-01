@@ -494,7 +494,7 @@ export default function SaaSAdminPage() {
           { title: "MRR Plans (CFA)", value: formatCurrency(totalMRR), icon: TrendingUp, trend: "Plans", color: "text-green-500" },
           { title: "MRR Modules (CFA)", value: formatCurrency(totalModuleRevenue), icon: Cpu, trend: "Add-ons", color: "text-blue-500" },
           { title: "En attente Paiement", value: pendingPayments.length.toString(), icon: Smartphone, trend: "Mobile Money", color: "text-blue-500" },
-          { title: "En attente Approbation", value: boutiques.filter((b) => b.status === "en_attente").length.toString(), icon: Clock, trend: "Nouvelles", color: "text-purple-500" },
+          { title: "Suspendues (attente)", value: boutiques.filter((b) => b.status === "Suspendu").length.toString(), icon: Clock, trend: "Approbation", color: "text-purple-500" },
         ].map((stat, i) => (
           <Card key={i} className="premium-card">
             <CardContent className="p-8">
@@ -526,8 +526,8 @@ export default function SaaSAdminPage() {
           </TabsTrigger>
           <TabsTrigger value="approvals" className="rounded-xl flex-1 font-bold">
             Approbations{" "}
-            {boutiques.filter((b) => b.status === "en_attente").length > 0 && (
-              <Badge className="ml-2 bg-purple-500 text-white">{boutiques.filter((b) => b.status === "en_attente").length}</Badge>
+            {boutiques.filter((b) => b.status === "Suspendu").length > 0 && (
+              <Badge className="ml-2 bg-purple-500 text-white">{boutiques.filter((b) => b.status === "Suspendu").length}</Badge>
             )}
           </TabsTrigger>
           <TabsTrigger value="modules" className="rounded-xl flex-1 font-bold">
@@ -599,7 +599,7 @@ export default function SaaSAdminPage() {
                             ? "bg-green-50 text-green-600 border-none"
                             : b.status === "Essai"
                               ? "bg-orange-50 text-orange-600 border-none"
-                              : b.status === "en_attente"
+                              : b.status === "Suspendu"
                                 ? "bg-purple-50 text-purple-600 border-none"
                                 : "bg-red-50 text-red-600 border-none"
                         }
@@ -733,14 +733,14 @@ export default function SaaSAdminPage() {
         <TabsContent value="approvals">
           <Card className="premium-card">
             <CardHeader className="p-8 border-b">
-              <CardTitle className="font-headline text-2xl">Boutiques en attente d&apos;approbation</CardTitle>
+              <CardTitle className="font-headline text-2xl">Boutiques suspendues (attente approbation)</CardTitle>
               <CardDescription>Inscriptions récentes en attente de validation manuelle.</CardDescription>
             </CardHeader>
             <CardContent className="p-0">
-              {boutiques.filter((b) => b.status === "en_attente").length > 0 ? (
+              {boutiques.filter((b) => b.status === "Suspendu").length > 0 ? (
                 <div className="divide-y">
                   {boutiques
-                    .filter((b) => b.status === "en_attente")
+                    .filter((b) => b.status === "Suspendu")
                     .map((b) => (
                       <div key={b.id} className="p-8 flex items-center justify-between">
                         <div className="flex gap-4">

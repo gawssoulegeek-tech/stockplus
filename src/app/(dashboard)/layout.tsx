@@ -68,7 +68,7 @@ export default function DashboardLayout({
 
           const boutiqueData = await getBoutique(supabase, profile.boutique_id)
           if (boutiqueData) {
-            if (boutiqueData.status === 'en_attente') {
+            if (boutiqueData.status === 'en_attente' || boutiqueData.status === 'Suspendu') {
               router.push('/pending-approval')
               return
             }
