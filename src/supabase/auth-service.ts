@@ -40,6 +40,7 @@ export interface BoutiqueData {
     chinaImport?: boolean
     advancedReports?: boolean
     multiCart?: boolean
+    supplierInvoiceScan?: boolean
   }
   created_at: string
 }

@@ -13,6 +13,7 @@ export type FeatureKey =
   | 'multiCart'
   | 'stockIncrement'
   | 'historicalMoves'
+  | 'supplierInvoiceScan'
 
 export const ALL_FEATURES: Record<FeatureKey, string> = {
   wholesale: 'Vente en Gros',
@@ -24,6 +25,7 @@ export const ALL_FEATURES: Record<FeatureKey, string> = {
   multiCart: 'Multi-panier',
   stockIncrement: 'Incrément manuel',
   historicalMoves: 'Mouvements historiques',
+  supplierInvoiceScan: 'Scan facture fournisseurs',
 }
 
 export const MAX_GERANTS: Record<string, number> = {
@@ -44,6 +46,7 @@ export const PLAN_FEATURES: Record<string, Record<FeatureKey, boolean>> = {
     multiCart: false,
     stockIncrement: true,
     historicalMoves: false,
+    supplierInvoiceScan: false,
   },
   Basic: {
     wholesale: false,
@@ -55,6 +58,7 @@ export const PLAN_FEATURES: Record<string, Record<FeatureKey, boolean>> = {
     multiCart: false,
     stockIncrement: true,
     historicalMoves: false,
+    supplierInvoiceScan: false,
   },
   Pro: {
     wholesale: true,
@@ -66,6 +70,7 @@ export const PLAN_FEATURES: Record<string, Record<FeatureKey, boolean>> = {
     multiCart: true,
     stockIncrement: true,
     historicalMoves: true,
+    supplierInvoiceScan: true,
   },
 }
 

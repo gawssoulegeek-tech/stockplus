@@ -274,6 +274,7 @@ export default function LandingPage() {
                     "Rapports avancés",
                     "Scan IA des produits",
                     "Import & Export Excel/PDF",
+                    "Scan facture fournisseurs (auto-stock)",
                     "Jusqu'à 20 gérants",
                     "Support prioritaire 7j/7",
                   ] 

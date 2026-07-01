@@ -159,6 +159,7 @@ export interface Boutique {
     stockIncrement: boolean
     historicalMoves: boolean
     importChina: boolean
+    supplierInvoiceScan?: boolean
   }
   
   created_at: string
