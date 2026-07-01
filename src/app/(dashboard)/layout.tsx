@@ -50,22 +50,19 @@ export default function DashboardLayout({
           const profile = await getUserProfile(supabase, session.user.id)
 
           if (!profile) {
-            const newProfile = {
-              uid: session.user.id,
-              email: session.user.email,
-              name: session.user.email?.split('@')[0] || "Utilisateur",
-              role: session.user.email === "root@senestock.ai" ? "superadmin" : "owner",
-              boutique_id: null,
-            }
-            setUserProfile(newProfile)
-            setIsLoading(false)
+            router.push('/pending-approval')
             return
           }
 
           setUserProfile(profile)
 
-          if (profile.role === "superadmin" || !profile.boutique_id) {
+          if (profile.role === "superadmin") {
             setIsLoading(false)
+            return
+          }
+
+          if (!profile.boutique_id) {
+            router.push('/pending-approval')
             return
           }
 
