@@ -68,16 +68,7 @@ export default function LoginPage() {
         return
       }
 
-      const isSuperAdmin = cleanEmail === "root@senestock.ai"
-
-      // Store role for UI, DashboardLayout will sync with Supabase
-      if (isSuperAdmin) {
-        localStorage.setItem("sena_user_role", "Propriétaire SaaS")
-        router.push("/saas")
-      } else {
-        localStorage.setItem("sena_user_role", role)
-        router.push("/dashboard")
-      }
+      router.push("/dashboard")
       
     } catch (error: any) {
       console.error("Auth Error:", error.message)

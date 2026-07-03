@@ -81,9 +81,6 @@ export function AppSidebar() {
   const status = boutique?.status || "Actif"
   const userName = userProfile?.name || "Utilisateur"
 
-  // Check if it's the root user from localStorage (set in login page)
-  const isSaaSUser = typeof window !== 'undefined' && localStorage.getItem("sena_user_role") === "Propriétaire SaaS"
-
   React.useEffect(() => {
     setIsMounted(true)
     fetch(AWA_AVATAR_URL)
@@ -93,9 +90,6 @@ export function AppSidebar() {
   }, [])
 
   const filteredItems = navItems.filter(item => {
-    // If root user, they can see everything or we can show specific SaaS items
-    if (isSaaSUser) return true
-
     const roleMatch = item.roles.includes(role)
     if (!roleMatch) return false
     
@@ -124,7 +118,7 @@ export function AppSidebar() {
         </div>
       </SidebarHeader>
       <SidebarContent className="px-4">
-        {isSaaSUser && (
+        {role === 'superadmin' && (
           <SidebarGroup>
             <SidebarGroupLabel className="px-4 font-black text-primary uppercase text-[8px] tracking-[0.2em] group-data-[collapsible=icon]:hidden mb-4">Administration SaaS</SidebarGroupLabel>
             <SidebarGroupContent>
@@ -167,7 +161,7 @@ export function AppSidebar() {
         </SidebarGroup>
 
         {/* Upgrade Card for Basic Users */}
-        {plan === "Basic" && status !== "Essai" && !isSaaSUser && (
+        {plan === "Basic" && status !== "Essai" && role !== 'superadmin' && (
           <div className="px-4 py-8 group-data-[collapsible=icon]:hidden">
             <div className="rounded-[2.5rem] p-8 bg-gray-900 text-white shadow-2xl relative overflow-hidden group hover:scale-[1.02] transition-transform duration-300">
               <div className="absolute -top-4 -right-4 h-24 w-24 bg-primary/20 rounded-full blur-2xl" />
@@ -183,7 +177,7 @@ export function AppSidebar() {
           </div>
         )}
 
-        {status === "Essai" && !isSaaSUser && (
+        {status === "Essai" && role !== 'superadmin' && (
           <div className="px-4 py-6 group-data-[collapsible=icon]:hidden">
             <div className="rounded-[2rem] p-6 bg-orange-50 border border-orange-100 space-y-4 shadow-inner">
               <div className="flex justify-between items-center">
@@ -216,7 +210,7 @@ export function AppSidebar() {
                     <div className="flex flex-col flex-1 text-left overflow-hidden group-data-[collapsible=icon]:hidden">
                       <span className="text-sm font-bold text-gray-900 truncate">{userName}</span>
                       <Badge variant="outline" className="w-fit h-5 text-[8px] font-black text-primary border-primary/20 uppercase tracking-widest mt-1">
-                        {isSaaSUser ? "SaaS OWNER" : plan}
+                        {role === 'superadmin' ? "SaaS OWNER" : plan}
                       </Badge>
                     </div>
                     <ChevronUp className="h-4 w-4 text-gray-400 group-data-[collapsible=icon]:hidden" />

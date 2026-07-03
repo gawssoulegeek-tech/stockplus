@@ -55,10 +55,7 @@ function RegisterForm() {
         return
       }
 
-      // Success! Store data locally
-      localStorage.setItem("shop_name", formData.boutiqueName)
-      localStorage.setItem("boutique_id", data.user.boutiqueId)
-      localStorage.setItem("sena_user_role", "Administrateur")
+      // Success!
 
       if (data.pending) {
         toast({

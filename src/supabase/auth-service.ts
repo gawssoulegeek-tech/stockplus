@@ -215,7 +215,7 @@ export async function createUserProfile(
   boutiqueId: string
 ): Promise<boolean> {
   try {
-    const role = email === 'root@senestock.ai' ? 'superadmin' : 'owner'
+    const role = 'owner'
 
     console.log('[createUserProfile] Inserting user:', { uid, email: email.toLowerCase(), name, role, boutiqueId })
     const { error } = await supabase.from('users').insert([

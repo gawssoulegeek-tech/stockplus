@@ -67,7 +67,7 @@ export default function SaaSAdminPage() {
   const [showCreateDialog, setShowCreateDialog] = useState(false)
   const [newBoutique, setNewBoutique] = useState({ name: "", ownerName: "", ownerEmail: "", plan: "Essai" })
   const [showConfetti, setShowConfetti] = useState<string | null>(null)
-  const confettiTimer = useRef<ReturnType<typeof setTimeout>>()
+  const confettiTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const supabase = getSupabaseClient()
 
@@ -214,31 +214,14 @@ export default function SaaSAdminPage() {
 
   const activateBoutiqueFromPayment = async (shopName: string, paymentId: string, planToSet?: string) => {
     try {
-      const { data: boutiquesToUpdate } = await supabase.from("boutiques").select("id, plan").eq("name", shopName)
-
-      if (boutiquesToUpdate && boutiquesToUpdate.length > 0) {
-        const finalPlan = planToSet || boutiquesToUpdate[0].plan
-        await supabase.from("boutiques").update({ status: "Actif", plan: finalPlan, features: getFeaturesForPlan(finalPlan) }).eq("name", shopName)
-        await supabase.from("payments").update({ status: "completed" }).eq("id", paymentId)
-        await supabase.from("audit_logs").insert([
-          {
-            boutique_id: boutiquesToUpdate[0].id,
-            action: "payment_activated",
-            entity_type: "boutiques",
-            entity_id: boutiquesToUpdate[0].id,
-            notes: `Paiement validé - Plan ${finalPlan}`,
-            status: "success",
-            created_at: new Date().toISOString(),
-          },
-        ])
-        setPaymentRequests((prev) => prev.filter((p) => p.id !== paymentId))
-        loadData()
-        toast({
-          title: "Paiement validé",
-          description: `La boutique ${shopName} est maintenant active sur le plan ${finalPlan}.`,
-          action: <CheckCircle2 className="h-5 w-5 text-green-500" />,
-        })
-      }
+      await apiPost('activate-payment', { id: paymentId, shopName, paymentId, planToSet })
+      setPaymentRequests((prev) => prev.filter((p) => p.id !== paymentId))
+      loadData()
+      toast({
+        title: "Paiement validé",
+        description: `La boutique ${shopName} est maintenant active sur le plan ${planToSet || 'actuel'}.`,
+        action: <CheckCircle2 className="h-5 w-5 text-green-500" />,
+      })
     } catch (e: any) {
       toast({ variant: "destructive", title: "Erreur", description: e.message })
     }
@@ -248,26 +231,7 @@ export default function SaaSAdminPage() {
     const boutique = boutiques.find((b) => b.id === id)
     if (!boutique) return
     try {
-      await supabase
-        .from("boutiques")
-        .update({
-          status: "Essai",
-          trial_ends_at: new Date(Date.now() + TRIAL_DAYS * 24 * 60 * 60 * 1000).toISOString(),
-          features: getFeaturesForPlan(boutique.plan),
-          team_members_count: MAX_GERANTS[boutique.plan] || 1,
-        })
-        .eq("id", id)
-      await supabase.from("audit_logs").insert([
-        {
-          boutique_id: id,
-          action: "boutique_approved",
-          entity_type: "boutiques",
-          entity_id: id,
-          notes: `Boutique approuvée — Plan ${boutique.plan}`,
-          status: "success",
-          created_at: new Date().toISOString(),
-        },
-      ])
+      await apiPost('approve', { id })
       loadData()
       setShowConfetti(boutique.id)
       if (confettiTimer.current) clearTimeout(confettiTimer.current)
@@ -334,22 +298,8 @@ export default function SaaSAdminPage() {
   }
 
   const toggleBoutiqueStatus = async (id: string) => {
-    const boutique = boutiques.find((b) => b.id === id)
-    if (!boutique) return
-    const newStatus = boutique.status === "Actif" ? "Suspendu" : "Actif"
     try {
-      await supabase.from("boutiques").update({ status: newStatus }).eq("id", id)
-      await supabase.from("audit_logs").insert([
-        {
-          boutique_id: id,
-          action: newStatus === "Suspendu" ? "boutique_suspended" : "boutique_activated",
-          entity_type: "boutiques",
-          entity_id: id,
-          notes: `Statut changé à ${newStatus}`,
-          status: "success",
-          created_at: new Date().toISOString(),
-        },
-      ])
+      await apiPost('toggle-status', { id })
       loadData()
       toast({ title: "Statut de la boutique mis à jour" })
     } catch (e: any) {
@@ -358,30 +308,29 @@ export default function SaaSAdminPage() {
   }
 
   const cyclePlan = async (id: string) => {
-    const boutique = boutiques.find((b) => b.id === id)
-    if (!boutique) return
-    const currentIndex = PAID_PLANS.indexOf(boutique.plan)
-    const newPlan = currentIndex === -1 ? 'Basic' : PAID_PLANS[(currentIndex + 1) % PAID_PLANS.length]
     try {
-      await supabase
-        .from("boutiques")
-        .update({ plan: newPlan, status: boutique.status === "Essai" ? "Actif" : boutique.status, features: getFeaturesForPlan(newPlan) })
-        .eq("id", id)
-      await supabase.from("audit_logs").insert([
-        {
-          boutique_id: id,
-          action: "plan_changed",
-          entity_type: "boutiques",
-          entity_id: id,
-          notes: `Plan changé de ${boutique.plan} à ${newPlan}`,
-          status: "success",
-          created_at: new Date().toISOString(),
-        },
-      ])
+      await apiPost('cycle-plan', { id })
       loadData()
     } catch (e: any) {
       toast({ variant: "destructive", title: "Erreur", description: e.message })
     }
+  }
+
+  const apiPost = async (action: string, body: Record<string, unknown>) => {
+    const { data: { session } } = await supabase.auth.getSession()
+    const res = await fetch('/api/saas/boutiques', {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${session?.access_token || ''}`,
+      },
+      body: JSON.stringify({ ...body, action }),
+    })
+    if (!res.ok) {
+      const err = await res.json()
+      throw new Error(err.error || 'Erreur serveur')
+    }
+    return res.json()
   }
 
   const deleteBoutique = async (id: string) => {
@@ -389,7 +338,7 @@ export default function SaaSAdminPage() {
     if (!boutique) return
     if (!confirm(`Supprimer définitivement la boutique "${boutique.name}" ? Cette action est irréversible.`)) return
     try {
-      await supabase.from("boutiques").delete().eq("id", id)
+      await apiPost('delete', { id })
       loadData()
       toast({ title: "Boutique supprimée", description: `${boutique.name} a été supprimée.` })
     } catch (e: any) {
@@ -781,7 +730,7 @@ export default function SaaSAdminPage() {
                             className="rounded-xl border-red-100 text-red-500 hover:bg-red-50"
                             onClick={async () => {
                               try {
-                                await supabase.from("boutiques").update({ status: "refuse" }).eq("id", b.id)
+                                await apiPost('refuse', { id: b.id })
                                 loadData()
                                 toast({ title: "Demande refusée", description: `${b.name} a été refusée.` })
                               } catch (e: any) {
@@ -863,7 +812,11 @@ export default function SaaSAdminPage() {
                 className="rounded-xl border-red-100 text-red-500 hover:bg-red-50"
                 onClick={async () => {
                   try {
-                    await supabase.from("audit_logs").delete().neq("id", "none")
+                    const { data: { session } } = await supabase.auth.getSession()
+                    await fetch('/api/saas/boutiques?table=audit_logs', {
+                      method: 'DELETE',
+                      headers: { 'Authorization': `Bearer ${session?.access_token || ''}` },
+                    })
                   } catch (_) {}
                   setLogs([])
                 }}

@@ -92,7 +92,8 @@ export async function POST(request: NextRequest) {
     // ---- ÉTAPE 5 : Variables communes ------------------------------------------
     const boutiqueId = `boutique_${Date.now()}`
     const trialEndsAt = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString()
-    const isRoot = email === 'root@senestock.ai'
+    const superadminEmail = process.env.SUPERADMIN_EMAIL?.toLowerCase()
+    const isRoot = superadminEmail ? email.trim().toLowerCase() === superadminEmail : false
     const selectedPlan = isValidPlan(plan) ? plan : 'Basic'
     const permissions = {
       canManageUsers: true, canDeleteSales: true, canManageFeatures: true,
