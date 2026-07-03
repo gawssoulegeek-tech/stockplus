@@ -39,7 +39,7 @@ export default function LottieWrapper({
 
   return (
     <div className={className} style={style}>
-      <Lottie animationData={data} loop={loop} autoplay={autoplay} />
+      <Lottie animationData={data} loop={loop} autoplay={autoplay} style={{ width: '100%', height: '100%' }} />
     </div>
   )
 }

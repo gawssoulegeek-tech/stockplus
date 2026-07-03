@@ -908,7 +908,7 @@ export default function SaaSAdminPage() {
 
       {showConfetti && (
         <div className="fixed inset-0 z-50 pointer-events-none flex items-center justify-center">
-          <LottieWrapper src="confetti" className="w-[400px] h-[400px]" />
+          <LottieWrapper src="confetti" className="w-48 h-48 sm:w-[400px] sm:h-[400px]" />
           <div className="absolute inset-0 bg-black/5" />
         </div>
       )}
