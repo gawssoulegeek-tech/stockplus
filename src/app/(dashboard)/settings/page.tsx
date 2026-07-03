@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import dynamic from "next/dynamic"
 import {
   Store,
   Bell,
@@ -26,6 +27,10 @@ import { getSupabaseClient } from "@/supabase/client"
 import { useRouter } from "next/navigation"
 import { PREMIUM_MODULES, getModuleRevenue } from "@/lib/plan-features"
 
+const Lottie = dynamic(() => import("lottie-react"), { ssr: false })
+const SUCCESS_LOTTIE_URL = "/lottie/Success.json"
+const WARNING_LOTTIE_URL = "/lottie/warning.json"
+
 export default function SettingsPage() {
   const router = useRouter()
   const { toast } = useToast()
@@ -34,12 +39,27 @@ export default function SettingsPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [storeName, setStoreName] = useState("")
   const [flags, setFlags] = useState(features)
+  const [emailReports, setEmailReports] = useState(false)
+  const [togglingEmail, setTogglingEmail] = useState(false)
+  const [successLottieData, setSuccessLottieData] = useState<any>(null)
+  const [warningLottieData, setWarningLottieData] = useState<any>(null)
+  const [showSuccessAnim, setShowSuccessAnim] = useState(false)
 
   useEffect(() => {
     if (boutique) {
       setStoreName(boutique.name)
       setFlags(boutique.features)
+      const notif = (boutique.notifications || {}) as Record<string, unknown>
+      setEmailReports(notif.emailReports === true)
     }
+    fetch(SUCCESS_LOTTIE_URL)
+      .then(res => res.ok && res.json())
+      .then(data => data && setSuccessLottieData(data))
+      .catch(() => {})
+    fetch(WARNING_LOTTIE_URL)
+      .then(res => res.ok && res.json())
+      .then(data => data && setWarningLottieData(data))
+      .catch(() => {})
   }, [boutique])
 
   const handleSave = async () => {
@@ -58,6 +78,8 @@ export default function SettingsPage() {
 
       if (error) throw error
       toast({ title: "Paramètres mis à jour", description: "Les changements ont été appliqués avec succès." })
+      setShowSuccessAnim(true)
+      setTimeout(() => setShowSuccessAnim(false), 3000)
     } catch (e) {
       toast({ variant: "destructive", title: "Erreur" })
     } finally {
@@ -66,9 +88,41 @@ export default function SettingsPage() {
   }
 
   const isAdmin = userProfile?.role === "admin"
+  const isPro = boutique?.plan === "Pro"
+
+  const handleToggleEmailReports = async (value: boolean) => {
+    if (!boutique) return
+    setTogglingEmail(true)
+    setEmailReports(value)
+    try {
+      const res = await fetch('/api/boutique/notifications', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ boutiqueId: boutique.id, emailReports: value }),
+      })
+      if (!res.ok) {
+        setEmailReports(!value)
+        toast({ variant: "destructive", title: "Erreur", description: "Impossible de mettre à jour la préférence." })
+      } else {
+        toast({ title: value ? "Rapports activés" : "Rapports désactivés", description: "Vous recevrez le rapport quotidien par email." })
+      }
+    } catch {
+      setEmailReports(!value)
+      toast({ variant: "destructive", title: "Erreur" })
+    } finally {
+      setTogglingEmail(false)
+    }
+  }
 
   return (
     <div className="max-w-5xl mx-auto space-y-10">
+      {showSuccessAnim && successLottieData && (
+        <div className="fixed inset-0 z-50 pointer-events-none flex items-center justify-center">
+          <div className="w-48 h-48">
+            <Lottie animationData={successLottieData} loop={false} autoplay={true} className="w-full h-full" />
+          </div>
+        </div>
+      )}
       <div className="flex items-center justify-between">
         <h1 className="text-4xl font-headline font-bold">Réglages</h1>
         <Button onClick={handleSave} className="sena-gradient text-white h-12 px-8 rounded-xl font-bold shadow-lg" disabled={isLoading}>
@@ -114,7 +168,13 @@ export default function SettingsPage() {
             <CardContent className="p-8">
               {!isAdmin ? (
                 <div className="bg-orange-50 p-6 rounded-2xl border border-orange-200 flex items-center gap-4 text-orange-700">
-                  <AlertCircle />
+                  {warningLottieData ? (
+                    <div className="h-8 w-8 shrink-0">
+                      <Lottie animationData={warningLottieData} loop={true} className="w-full h-full" />
+                    </div>
+                  ) : (
+                    <AlertCircle />
+                  )}
                   <span className="font-bold">Seul l'administrateur peut modifier les Feature Flags de la boutique.</span>
                 </div>
               ) : (
@@ -241,6 +301,27 @@ export default function SettingsPage() {
                     {boutique?.subscription_ends_at ? new Date(boutique.subscription_ends_at).toLocaleDateString() : "—"}
                   </p>
                 </div>
+              </div>
+              <div className="p-6 rounded-2xl border bg-white flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="text-2xl h-12 w-12 rounded-xl bg-gray-50 flex items-center justify-center">
+                    <Bell />
+                  </div>
+                  <div>
+                    <Label className="font-bold text-lg block mb-1">Rapport quotidien par email</Label>
+                    <p className="text-xs text-gray-500 leading-relaxed">
+                      {isPro
+                        ? "Recevez chaque matin le récapitulatif de la veille (CA, ventes, stocks)."
+                        : "Disponible avec le plan Pro."}
+                    </p>
+                  </div>
+                </div>
+                <Switch
+                  checked={emailReports}
+                  onCheckedChange={handleToggleEmailReports}
+                  disabled={!isPro || togglingEmail}
+                  className="data-[state=checked]:bg-primary"
+                />
               </div>
               <div className="flex justify-end">
                 <Button className="sena-gradient text-white h-12 px-8 rounded-xl font-bold shadow-lg">

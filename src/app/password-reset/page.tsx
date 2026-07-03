@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import dynamic from "next/dynamic"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { Sparkles, ArrowRight, Mail, ArrowLeft, Loader2 } from "lucide-react"
@@ -12,12 +13,23 @@ import { useToast } from "@/hooks/use-toast"
 import { resetPassword } from "@/supabase/auth-service"
 import { getSupabaseClient } from "@/supabase/client"
 
+const Lottie = dynamic(() => import("lottie-react"), { ssr: false })
+const PIN_CODE_URL = "/lottie/Pin code Password Protection, Secure Login animation.json"
+
 export default function PasswordResetPage() {
   const router = useRouter()
   const { toast } = useToast()
   const [isLoading, setIsLoading] = useState(false)
   const [email, setEmail] = useState("")
   const [isSubmitted, setIsSubmitted] = useState(false)
+  const [pinCodeData, setPinCodeData] = useState<any>(null)
+
+  useEffect(() => {
+    fetch(PIN_CODE_URL)
+      .then(res => res.ok && res.json())
+      .then(data => data && setPinCodeData(data))
+      .catch(() => {})
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -69,6 +81,12 @@ export default function PasswordResetPage() {
         <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary rounded-full blur-[120px]" />
         <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-orange-200 rounded-full blur-[120px]" />
       </div>
+
+      {pinCodeData && (
+        <div className="hidden lg:block absolute right-[8%] top-1/2 -translate-y-1/2 w-[350px] h-[350px] opacity-70 pointer-events-none">
+          <Lottie animationData={pinCodeData} loop={true} className="w-full h-full" />
+        </div>
+      )}
 
       <div className="w-full max-w-md space-y-8">
         <Card className="border-gray-100 shadow-2xl rounded-[2.5rem] bg-white overflow-hidden">

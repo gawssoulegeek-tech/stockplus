@@ -20,6 +20,9 @@ import {
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { useEffect, useState } from "react"
+import dynamic from "next/dynamic"
+
+const Lottie = dynamic(() => import("lottie-react"), { ssr: false })
 import { cn } from "@/lib/utils"
 import { PlaceHolderImages } from "@/lib/placeholder-images"
 import ClassyHero from "@/components/ui/classy-hero"
@@ -29,9 +32,29 @@ import GradientMenu from "@/components/ui/gradient-menu"
 
 export default function LandingPage() {
   const [isMounted, setIsMounted] = useState(false)
+  const [referData, setReferData] = useState<any>(null)
+  const [featuresLottieData, setFeaturesLottieData] = useState<any>(null)
+  const [ctaLottieData, setCtaLottieData] = useState<any>(null)
+  const [problemLottieData, setProblemLottieData] = useState<any>(null)
 
   useEffect(() => {
     setIsMounted(true)
+    fetch("/landing-hero.json")
+      .then(res => res.ok && res.json())
+      .then(data => data && setReferData(data))
+      .catch(() => {})
+    fetch("/landing-features.json")
+      .then(res => res.ok && res.json())
+      .then(data => data && setFeaturesLottieData(data))
+      .catch(() => {})
+    fetch("/landing-cta.json")
+      .then(res => res.ok && res.json())
+      .then(data => data && setCtaLottieData(data))
+      .catch(() => {})
+    fetch("/landing-problem.json")
+      .then(res => res.ok && res.json())
+      .then(data => data && setProblemLottieData(data))
+      .catch(() => {})
   }, [])
 
   if (!isMounted) return null
@@ -63,8 +86,13 @@ export default function LandingPage() {
         <ClassyHero />
 
         {/* SECTION 2: LE PROBLÈME */}
-        <section id="problemes" className="py-24 md:py-32 bg-gray-50/50">
-          <div className="container px-6 mx-auto">
+        <section id="problemes" className="py-24 md:py-32 bg-gray-50/50 relative overflow-hidden">
+          {problemLottieData && (
+            <div className="absolute right-0 top-1/2 -translate-y-1/2 w-[500px] h-[500px] opacity-30 pointer-events-none hidden lg:block">
+              <Lottie animationData={problemLottieData} loop={true} className="w-full h-full" />
+            </div>
+          )}
+          <div className="container px-6 mx-auto relative z-10">
             <div className="max-w-3xl mx-auto text-center space-y-8 mb-20">
               <h2 className="text-4xl md:text-5xl font-headline font-bold text-gray-900 tracking-tighter leading-tight">
                 Chaque jour, des boutiques <br />
@@ -150,10 +178,12 @@ export default function LandingPage() {
               </div>
 
               <div className="relative h-[500px] md:h-[650px] bg-orange-50 rounded-[3rem] p-1.5 flex items-center justify-center overflow-hidden shadow-2xl">
-                <div className="relative w-full h-full rounded-[2.8rem] overflow-hidden">
-                  {solutionImage?.imageUrl && (
+                <div className="relative w-full h-full rounded-[2.8rem] overflow-hidden flex items-center justify-center bg-gradient-to-br from-orange-50 to-white">
+                  {featuresLottieData ? (
+                    <Lottie animationData={featuresLottieData} loop={true} className="w-full h-full scale-110" />
+                  ) : solutionImage?.imageUrl ? (
                     <Image src={solutionImage.imageUrl} alt="StockPlus Mobile" fill className="object-cover" />
-                  )}
+                  ) : null}
                   <div className="absolute inset-0 bg-gradient-to-t from-gray-950 via-transparent to-transparent opacity-80" />
                   <div className="absolute bottom-10 left-1/2 -translate-x-1/2 w-full px-8">
                     <div className="glass-card p-8 rounded-[2rem] text-center border-white/20">
@@ -377,11 +407,17 @@ export default function LandingPage() {
                        ))}
                     </div>
                  </div>
-                 <div className="bg-white p-12 rounded-[4rem] shadow-[0_40px_100px_-20px_rgba(0,0,0,0.1)] border-none space-y-10 relative overflow-hidden text-center hover:bg-orange-50/20 transition-colors duration-700 group">
-                    <div className="absolute top-0 left-0 w-full h-3 sena-gradient" />
-                    <div className="h-24 w-28 bg-orange-50 rounded-3xl flex items-center justify-center mx-auto group-hover:scale-110 transition-transform duration-500 shadow-inner">
-                       <Smartphone className="h-12 w-12 text-primary" />
-                    </div>
+                  <div className="bg-white p-12 rounded-[4rem] shadow-[0_40px_100px_-20px_rgba(0,0,0,0.1)] border-none space-y-10 relative overflow-hidden text-center hover:bg-orange-50/20 transition-colors duration-700 group">
+                     <div className="absolute top-0 left-0 w-full h-3 sena-gradient" />
+                     {referData ? (
+                       <div className="h-48 w-48 mx-auto group-hover:scale-110 transition-transform duration-500">
+                         <Lottie animationData={referData} loop={true} className="w-full h-full" />
+                       </div>
+                     ) : (
+                       <div className="h-24 w-28 bg-orange-50 rounded-3xl flex items-center justify-center mx-auto group-hover:scale-110 transition-transform duration-500 shadow-inner">
+                          <Smartphone className="h-12 w-12 text-primary" />
+                       </div>
+                     )}
                     <div className="space-y-4">
                       <h3 className="text-3xl font-headline font-bold text-gray-900 leading-tight">Rejoignez les commerçants qui réussissent.</h3>
                       <p className="text-gray-500 font-medium text-lg leading-relaxed">
@@ -409,6 +445,16 @@ export default function LandingPage() {
         {/* SECTION 8: CTA FINAL */}
         <section className="py-24 md:py-40 bg-white relative overflow-hidden">
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-primary/5 blur-[150px] rounded-full pointer-events-none" />
+          {ctaLottieData && (
+            <div className="absolute left-[5%] top-1/2 -translate-y-1/2 w-48 h-48 opacity-60 pointer-events-none hidden lg:block">
+              <Lottie animationData={ctaLottieData} loop={true} className="w-full h-full" />
+            </div>
+          )}
+          {ctaLottieData && (
+            <div className="absolute right-[5%] top-1/2 -translate-y-1/2 w-48 h-48 opacity-60 pointer-events-none hidden lg:block scale-x-[-1]">
+              <Lottie animationData={ctaLottieData} loop={true} className="w-full h-full" />
+            </div>
+          )}
           <div className="container px-6 mx-auto text-center relative z-10">
             <div className="max-w-4xl mx-auto space-y-12">
               <h2 className="text-6xl md:text-8xl font-headline font-bold text-gray-900 tracking-tighter leading-[0.85]">

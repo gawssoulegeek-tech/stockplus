@@ -1,7 +1,8 @@
 
 "use client"
 
-import { useState, useMemo, useEffect } from "react"
+import { useState, useMemo, useEffect, useRef } from "react"
+import LottieWrapper from "@/components/lottie-wrapper"
 import {
   ShieldCheck,
   TrendingUp,
@@ -65,6 +66,8 @@ export default function SaaSAdminPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [showCreateDialog, setShowCreateDialog] = useState(false)
   const [newBoutique, setNewBoutique] = useState({ name: "", ownerName: "", ownerEmail: "", plan: "Essai" })
+  const [showConfetti, setShowConfetti] = useState<string | null>(null)
+  const confettiTimer = useRef<ReturnType<typeof setTimeout>>()
 
   const supabase = getSupabaseClient()
 
@@ -266,6 +269,9 @@ export default function SaaSAdminPage() {
         },
       ])
       loadData()
+      setShowConfetti(boutique.id)
+      if (confettiTimer.current) clearTimeout(confettiTimer.current)
+      confettiTimer.current = setTimeout(() => setShowConfetti(null), 2600)
       toast({ title: "Boutique approuvée", description: `${boutique.name} est maintenant en essai.` })
     } catch (e: any) {
       toast({ variant: "destructive", title: "Erreur", description: e.message })
@@ -450,8 +456,9 @@ export default function SaaSAdminPage() {
 
   if (!isMounted) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="h-10 w-10 text-primary animate-spin" />
+      <div className="min-h-screen flex flex-col items-center justify-center gap-6">
+        <LottieWrapper src="edit-document" className="w-32 h-32 opacity-50" />
+        <Loader2 className="h-6 w-6 text-primary animate-spin" />
       </div>
     )
   }
@@ -459,16 +466,19 @@ export default function SaaSAdminPage() {
   return (
     <div className="space-y-12 max-w-7xl mx-auto pb-20">
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-        <div className="space-y-1">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="h-8 w-8 rounded-lg sena-gradient flex items-center justify-center">
-              <ShieldCheck className="h-5 w-5 text-white" />
+          <div className="space-y-1 flex-1">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="h-8 w-8 rounded-lg sena-gradient flex items-center justify-center">
+                <ShieldCheck className="h-5 w-5 text-white" />
+              </div>
+              <span className="text-xs font-bold text-primary uppercase tracking-widest">SaaS OWNER PANEL</span>
             </div>
-            <span className="text-xs font-bold text-primary uppercase tracking-widest">SaaS OWNER PANEL</span>
+            <h1 className="text-5xl font-headline font-bold text-gray-900 tracking-tight">Gestion StockPlus</h1>
+            <p className="text-gray-400 text-lg font-medium">Contrôle des abonnements et des accès commerçants.</p>
           </div>
-          <h1 className="text-5xl font-headline font-bold text-gray-900 tracking-tight">Gestion StockPlus</h1>
-          <p className="text-gray-400 text-lg font-medium">Contrôle des abonnements et des accès commerçants.</p>
-        </div>
+          <div className="hidden lg:block">
+            <LottieWrapper src="checkmark" className="w-24 h-24 opacity-60" />
+          </div>
         <div className="flex gap-3">
           <Button
             variant="outline"
@@ -725,7 +735,10 @@ export default function SaaSAdminPage() {
                   ))}
                 </div>
               ) : (
-                <div className="p-20 text-center text-gray-400 font-medium italic">Aucun paiement en attente.</div>
+                <div className="p-16 text-center flex flex-col items-center gap-4">
+                  <LottieWrapper src="document" className="w-32 h-32 opacity-70" />
+                  <p className="text-gray-400 font-medium italic">Aucun paiement en attente.</p>
+                </div>
               )}
             </CardContent>
           </Card>
@@ -792,8 +805,9 @@ export default function SaaSAdminPage() {
                     ))}
                 </div>
               ) : (
-                <div className="p-20 text-center text-gray-400 font-medium italic">
-                  Aucune boutique en attente d&apos;approbation.
+                <div className="p-16 text-center flex flex-col items-center gap-4">
+                  <LottieWrapper src="checkmark" className="w-32 h-32 opacity-70" />
+                  <p className="text-gray-400 font-medium italic">Aucune boutique en attente d&apos;approbation.</p>
                 </div>
               )}
             </CardContent>
@@ -938,6 +952,13 @@ export default function SaaSAdminPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {showConfetti && (
+        <div className="fixed inset-0 z-50 pointer-events-none flex items-center justify-center">
+          <LottieWrapper src="confetti" className="w-[400px] h-[400px]" />
+          <div className="absolute inset-0 bg-black/5" />
+        </div>
+      )}
     </div>
   )
 }

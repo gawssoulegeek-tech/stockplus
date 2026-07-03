@@ -23,6 +23,7 @@ import { useToast } from "@/hooks/use-toast"
 
 const Lottie = dynamic(() => import("lottie-react"), { ssr: false })
 const LOADING_CUBE_URL = "/loading-cube.json"
+const LOGIN_LOTTIE_URL = "/lottie/Login.json"
 
 export default function LoginPage() {
   const router = useRouter()
@@ -33,12 +34,17 @@ export default function LoginPage() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [loadingData, setLoadingData] = useState<any>(null)
+  const [loginLottieData, setLoginLottieData] = useState<any>(null)
 
   useEffect(() => {
     fetch(LOADING_CUBE_URL)
       .then(res => res.ok && res.json())
       .then(data => data && setLoadingData(data))
       .catch(err => console.warn("Lottie Load error", err))
+    fetch(LOGIN_LOTTIE_URL)
+      .then(res => res.ok && res.json())
+      .then(data => data && setLoginLottieData(data))
+      .catch(err => console.warn("Login Lottie Load error", err))
   }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -99,6 +105,12 @@ export default function LoginPage() {
         <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary rounded-full blur-[120px]" />
         <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-orange-200 rounded-full blur-[120px]" />
       </div>
+
+      {loginLottieData && (
+        <div className="hidden lg:block absolute left-[8%] top-1/2 -translate-y-1/2 w-[400px] h-[400px] opacity-80 pointer-events-none">
+          <Lottie animationData={loginLottieData} loop={true} className="w-full h-full" />
+        </div>
+      )}
 
       <div className="w-full max-w-md space-y-8">
         <Card className="border-gray-100 shadow-2xl rounded-[2.5rem] bg-white overflow-hidden">

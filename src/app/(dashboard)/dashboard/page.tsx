@@ -34,6 +34,7 @@ import { productService } from "@/services/productService"
 
 const Lottie = dynamic(() => import("lottie-react"), { ssr: false })
 const AWA_AVATAR_URL = "/awa-avatar.json"
+const FINANCE_LOTTIE_URL = "/lottie/Finance.json"
 
 export default function DashboardPage() {
   const { boutique } = useBoutique()
@@ -42,6 +43,7 @@ export default function DashboardPage() {
   const [products, setProducts] = useState<any[]>([])
   const [isMounted, setIsMounted] = useState(false)
   const [awaData, setAwaData] = useState<any>(null)
+  const [financeData, setFinanceData] = useState<any>(null)
 
   useEffect(() => {
     setIsMounted(true)
@@ -49,6 +51,10 @@ export default function DashboardPage() {
       .then(res => res.ok && res.json())
       .then(data => data && setAwaData(data))
       .catch(err => console.warn("Lottie Dashboard Load Warn", err))
+    fetch(FINANCE_LOTTIE_URL)
+      .then(res => res.ok && res.json())
+      .then(data => data && setFinanceData(data))
+      .catch(() => {})
   }, [])
 
   useEffect(() => {
@@ -109,6 +115,11 @@ export default function DashboardPage() {
           </h1>
           <p className="text-gray-400 text-lg font-medium">L'IA Awa a analysé vos ventes. Tout est sous contrôle.</p>
         </div>
+        {financeData && (
+          <div className="hidden lg:block w-32 h-32 opacity-60">
+            <Lottie animationData={financeData} loop={true} className="w-full h-full" />
+          </div>
+        )}
         <div className="flex gap-4">
           <Button variant="outline" className="rounded-[1.5rem] h-16 px-8 font-bold border-gray-200 hover:bg-orange-50 hover:text-primary transition-all text-lg shadow-sm" asChild>
             <Link href="/inventory"><Package className="h-5 w-5 mr-3" /> Inventaire</Link>

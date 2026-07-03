@@ -62,6 +62,8 @@ import { StockMoveType } from "@/types/supabase"
 
 const Lottie = dynamic(() => import("lottie-react"), { ssr: false })
 const LOADING_CUBE_URL = "/loading-cube.json"
+const EMPTY_BOX_URL = "/lottie/Empty Box Animation.json"
+const EXCLAMATION_URL = "/lottie/exclamation_start.json"
 
 export default function InventoryPage() {
   const { toast } = useToast()
@@ -74,6 +76,8 @@ export default function InventoryPage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [isFromScan, setIsFromScan] = useState(false)
   const [loadingData, setLoadingData] = useState<any>(null)
+  const [emptyBoxData, setEmptyBoxData] = useState<any>(null)
+  const [exclamationData, setExclamationData] = useState<any>(null)
 
   const [newProduct, setNewProduct] = useState({
     name: "",
@@ -100,6 +104,14 @@ export default function InventoryPage() {
       .then(res => res.json())
       .then(data => setLoadingData(data))
       .catch(err => console.warn("Lottie error", err))
+    fetch(EMPTY_BOX_URL)
+      .then(res => res.ok && res.json())
+      .then(data => data && setEmptyBoxData(data))
+      .catch(() => {})
+    fetch(EXCLAMATION_URL)
+      .then(res => res.ok && res.json())
+      .then(data => data && setExclamationData(data))
+      .catch(() => {})
   }, [])
 
   useEffect(() => {
@@ -256,7 +268,13 @@ export default function InventoryPage() {
     <div className="space-y-8">
       {lowStockProducts.length > 0 && (
         <div className="bg-red-50 border border-red-200 rounded-2xl p-5 flex items-center gap-4">
-          <AlertTriangle className="h-6 w-6 text-red-500 shrink-0" />
+          {exclamationData ? (
+            <div className="h-10 w-10 shrink-0">
+              <Lottie animationData={exclamationData} loop={true} className="w-full h-full" />
+            </div>
+          ) : (
+            <AlertTriangle className="h-6 w-6 text-red-500 shrink-0" />
+          )}
           <div className="flex-1">
             <p className="font-bold text-red-800">Alerte Stock Bas</p>
             <p className="text-sm text-red-600">{lowStockProducts.length} produit(s) ont un stock inférieur au seuil minimum.</p>
@@ -468,7 +486,13 @@ export default function InventoryPage() {
                 {filteredProducts.length === 0 && (
                   <TableRow>
                     <TableCell colSpan={features.units ? 5 : 4} className="text-center py-16 text-gray-400 font-medium">
-                      <Package className="h-12 w-12 mx-auto mb-3 text-gray-300" />
+                      {emptyBoxData ? (
+                        <div className="w-24 h-24 mx-auto mb-3 opacity-60">
+                          <Lottie animationData={emptyBoxData} loop={true} className="w-full h-full" />
+                        </div>
+                      ) : (
+                        <Package className="h-12 w-12 mx-auto mb-3 text-gray-300" />
+                      )}
                       Aucun produit trouvé
                     </TableCell>
                   </TableRow>

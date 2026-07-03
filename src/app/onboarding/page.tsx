@@ -27,6 +27,7 @@ import { cn } from "@/lib/utils"
 
 const Lottie = dynamic(() => import("lottie-react"), { ssr: false })
 const AWA_AVATAR_URL = "/awa-avatar.json"
+const WELCOME_LOTTIE_URL = "/lottie/Welcome.json"
 
 export default function OnboardingPage() {
   const router = useRouter()
@@ -40,11 +41,16 @@ export default function OnboardingPage() {
     teamSize: "",
     expectation: ""
   })
+  const [welcomeLottieData, setWelcomeLottieData] = useState<any>(null)
 
   useEffect(() => {
     setIsMounted(true)
     setShopName(localStorage.getItem("shop_name") || "votre boutique")
     setSelectedPlan(localStorage.getItem("selected_plan") || "Basic")
+    fetch(WELCOME_LOTTIE_URL)
+      .then(res => res.ok && res.json())
+      .then(data => data && setWelcomeLottieData(data))
+      .catch(() => {})
   }, [])
 
   const handleNextStep = () => {
@@ -181,15 +187,20 @@ export default function OnboardingPage() {
 
             <div className="space-y-6">
                <Card className="bg-gray-900 text-white p-10 rounded-[4rem] space-y-6 border-none shadow-2xl relative overflow-hidden">
-                  <h3 className="text-2xl font-headline font-bold tracking-tight">Le saviez-vous ?</h3>
-                  <p className="text-gray-400 text-sm font-medium leading-relaxed">
-                    Les boutiques utilisant StockPlus économisent en moyenne 15 heures par semaine sur leurs inventaires.
-                  </p>
-                  <div className="pt-4 flex items-center gap-2">
-                    <div className="h-1.5 w-1.5 rounded-full bg-green-500 animate-pulse" />
-                    <span className="text-[10px] font-black uppercase tracking-widest text-green-500">Optimisation active</span>
-                  </div>
-               </Card>
+                   {welcomeLottieData && (
+                     <div className="h-40 w-40 mx-auto opacity-90">
+                       <Lottie animationData={welcomeLottieData} loop={true} className="w-full h-full" />
+                     </div>
+                   )}
+                   <h3 className="text-2xl font-headline font-bold tracking-tight">Le saviez-vous ?</h3>
+                   <p className="text-gray-400 text-sm font-medium leading-relaxed">
+                     Les boutiques utilisant StockPlus économisent en moyenne 15 heures par semaine sur leurs inventaires.
+                   </p>
+                   <div className="pt-4 flex items-center gap-2">
+                     <div className="h-1.5 w-1.5 rounded-full bg-green-500 animate-pulse" />
+                     <span className="text-[10px] font-black uppercase tracking-widest text-green-500">Optimisation active</span>
+                   </div>
+                </Card>
             </div>
           </div>
         )}
