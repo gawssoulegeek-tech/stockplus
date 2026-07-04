@@ -7,15 +7,23 @@
 -- ═══════════════════════════════════════════════════════════════════════════
 
 -- ───────────────────────────────────────────────────────────────────────────
--- 1. FIX RLS : permettre à un utilisateur de lire sa propre ligne
+-- 1. FIX RLS : remplacer la politique récursive par une version sans boucle
 -- ───────────────────────────────────────────────────────────────────────────
--- L'ancienne politique "users_select_boutique_members" nécessite un
--- boutique_id non-null pour lire son profil. Sans cette politique, les
--- utilisateurs avec boutique_id=NULL sont bloqués sur pending-approval.
+-- L'ancienne politique "users_select_boutique_members" faisait une
+-- sous-requête sur public.users, causant une récursion infinie détectée
+-- par PostgreSQL (42P17).
+-- La nouvelle politique utilise les helpers SECURITY DEFINER qui bypassent
+-- RLS, éliminant la récursion.
 -- ───────────────────────────────────────────────────────────────────────────
+DROP POLICY IF EXISTS "users_select_boutique_members" ON public.users;
 DROP POLICY IF EXISTS "users_select_own" ON public.users;
-CREATE POLICY "users_select_own" ON public.users
-  FOR SELECT USING (uid = auth.uid());
+
+CREATE POLICY "users_select" ON public.users
+  FOR SELECT USING (
+    uid = auth.uid()
+    OR public.is_superadmin()
+    OR boutique_id = public.get_current_boutique_id()
+  );
 
 -- ───────────────────────────────────────────────────────────────────────────
 -- 2. FIX COMPTE SUPERADMIN root@senestock221
