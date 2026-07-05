@@ -4,7 +4,7 @@ import React, { useEffect, useRef, useState } from "react";
 import gsap from "gsap";
 import { CustomEase } from "gsap/CustomEase";
 import { Sparkles } from "lucide-react";
-import { Link } from "wouter";
+import { Link } from "@/lib/compat/wouter";
 
 if (typeof window !== "undefined") {
   gsap.registerPlugin(CustomEase);

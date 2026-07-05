@@ -1,0 +1,1 @@
+- [StockPlus Next.js migration](stockplus-nextjs-migration.md) — Vite+React+Express → Next.js 15 App Router; key pitfalls and fixes for this monorepo.

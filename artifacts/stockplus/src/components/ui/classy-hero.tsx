@@ -1,7 +1,7 @@
 'use client'
 import React, { useState, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Link } from 'wouter'
+import { Link } from '@/lib/compat/wouter'
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
 import { 

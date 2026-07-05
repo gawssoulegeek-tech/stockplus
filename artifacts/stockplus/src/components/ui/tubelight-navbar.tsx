@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react"
 import { motion } from "framer-motion"
-import { Link } from "wouter"
+import { Link } from "@/lib/compat/wouter"
 import { LucideIcon } from "lucide-react"
 import { cn } from "@/lib/utils"
 

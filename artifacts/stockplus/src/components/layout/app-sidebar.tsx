@@ -34,7 +34,7 @@ import {
   SidebarGroupContent,
   SidebarGroupLabel,
 } from "@/components/ui/sidebar"
-import { Link, useLocation } from "wouter"
+import { Link, useLocation } from "@/lib/compat/wouter"
 import Lottie from "lottie-react"
 import {
   DropdownMenu,
