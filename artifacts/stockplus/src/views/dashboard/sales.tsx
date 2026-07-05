@@ -37,7 +37,7 @@ import {
 } from "@/components/ui/select"
 import { Label } from "@/components/ui/label"
 import { useToast } from "@/hooks/use-toast"
-import { useBoutique } from "@/pages/dashboard/layout"
+import { useBoutique } from "@/views/dashboard/layout"
 import { getSupabaseClient } from "@/supabase/client"
 import { saleService } from "@/services/saleService"
 

@@ -26,7 +26,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { useToast } from "@/hooks/use-toast"
-import { useBoutique } from "@/pages/dashboard/layout"
+import { useBoutique } from "@/views/dashboard/layout"
 import { getSupabaseClient } from "@/supabase/client"
 import { stockService } from "@/services/stockService"
 import { StockMoveType } from "@/types/supabase"

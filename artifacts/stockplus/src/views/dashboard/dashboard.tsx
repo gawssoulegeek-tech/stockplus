@@ -25,7 +25,7 @@ import {
 } from "recharts"
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
-import { useBoutique } from "@/pages/dashboard/layout"
+import { useBoutique } from "@/views/dashboard/layout"
 import { getSupabaseClient } from "@/supabase/client"
 import { saleService } from "@/services/saleService"
 import { productService } from "@/services/productService"

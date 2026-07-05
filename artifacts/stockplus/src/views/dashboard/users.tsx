@@ -41,7 +41,7 @@ import {
 import { Switch } from "@/components/ui/switch"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { useToast } from "@/hooks/use-toast"
-import { useBoutique } from "@/pages/dashboard/layout"
+import { useBoutique } from "@/views/dashboard/layout"
 import { getSupabaseClient } from "@/supabase/client"
 import { invitationService } from "@/services/invitationService"
 import { hasPermission, formatRole, getDefaultPermissions } from "@/lib/auth-helpers"

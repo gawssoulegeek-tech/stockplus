@@ -46,7 +46,7 @@ import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
 import { cn } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
-import { useBoutique } from "@/pages/dashboard/layout"
+import { useBoutique } from "@/views/dashboard/layout"
 
 const AWA_AVATAR_URL = "/awa-avatar.json"
 
