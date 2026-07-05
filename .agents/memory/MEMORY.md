@@ -1,0 +1,2 @@
+- [Supabase client-side session after server-side signup](supabase-server-signup-session.md) — if signup/user-creation runs via an admin/service-role client on the server, the browser has no session; must sign in client-side after success or client-only auth guards will bounce users to /login.
+- [Supabase RLS self-referencing policy recursion](supabase-rls-recursion.md) — a SELECT policy on a table must not run a raw subquery against that same table; use a SECURITY DEFINER helper function instead or Postgres throws 42P17 infinite recursion.
