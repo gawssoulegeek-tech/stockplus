@@ -38,19 +38,34 @@ router.post("/auth/signup", async (req, res) => {
 
     const normalizedEmail = String(email).trim().toLowerCase();
 
+    // IMPORTANT: use the Admin API (auth.admin.createUser) rather than
+    // auth.signUp() to create the account. adminClient is a shared singleton
+    // scoped to the service-role key for all table access below. GoTrue's
+    // signUp() automatically saves the newly-created session onto whatever
+    // client instance made the call (even without an explicit setSession
+    // call) — that silently swaps this client's Authorization header from
+    // the service-role key to the new user's own JWT. Every subsequent
+    // `.from(...)` call below then runs as that "authenticated" user and is
+    // subject to RLS. This slipped by unnoticed for role="owner" because the
+    // insert policy happens to allow `auth.uid() = uid AND role IN (owner,
+    // manager, staff)`, but it hard-fails for role="superadmin" (42501).
+    // auth.admin.createUser() creates the account without ever touching the
+    // client's session, so the service-role bypass stays intact.
     LOG("Création Auth user...", { email: normalizedEmail });
-    const { data: authData, error: authError } = await adminClient.auth.signUp({
+    const { data: authData, error: authError } = await adminClient.auth.admin.createUser({
       email: normalizedEmail,
       password,
-      options: { data: { name: ownerName } },
+      email_confirm: true,
+      user_metadata: { name: ownerName },
     });
 
     if (authError) {
-      LOG("ÉCHEC Auth.signUp", { message: authError.message, code: (authError as { code?: string }).code });
-      return res.status((authError as { status?: number }).status ?? 400).json({
-        error: authError.message,
-        code: (authError as { code?: string }).code,
-      });
+      LOG("ÉCHEC Auth.createUser", { message: authError.message, code: (authError as { code?: string }).code });
+      const status = (authError as { status?: number }).status ?? 400;
+      const code =
+        (authError as { code?: string }).code ??
+        (/already.*registered|already.*exists/i.test(authError.message) ? "user_already_exists" : undefined);
+      return res.status(status).json({ error: authError.message, code });
     }
 
     if (!authData.user) {
@@ -59,11 +74,6 @@ router.post("/auth/signup", async (req, res) => {
 
     const uid = authData.user.id;
     LOG("Auth user créé", { uid });
-
-    if (authData.session) {
-      const { error: sessionError } = await adminClient.auth.setSession(authData.session);
-      if (sessionError) LOG("AVERTISSEMENT setSession", sessionError);
-    }
 
     const boutiqueId = `boutique_${Date.now()}`;
     const trialEndsAt = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString();
