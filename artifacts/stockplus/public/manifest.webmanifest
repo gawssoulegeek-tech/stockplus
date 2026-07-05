@@ -1,0 +1,16 @@
+{
+  "name": "StockPlus",
+  "short_name": "StockPlus",
+  "description": "Inventaire Intelligent & Point de Vente assisté par Awa IA. Solution par Keur'Geek Digital.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#FF8800",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "192x192",
+      "type": "image/x-icon"
+    }
+  ]
+}

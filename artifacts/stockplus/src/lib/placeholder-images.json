@@ -1,0 +1,34 @@
+{
+  "placeholderImages": [
+    {
+      "id": "hero-dashboard",
+      "description": "Senestock AI Dashboard Preview",
+      "imageUrl": "https://picsum.photos/seed/sena1/1200/800",
+      "imageHint": "dashboard retail"
+    },
+    {
+      "id": "product-fabric",
+      "description": "Colorful wax fabric roll",
+      "imageUrl": "https://picsum.photos/seed/fab1/400/400",
+      "imageHint": "colorful fabric"
+    },
+    {
+      "id": "product-cosmetic",
+      "description": "Organic skincare product",
+      "imageUrl": "https://picsum.photos/seed/cos1/400/400",
+      "imageHint": "skincare product"
+    },
+    {
+      "id": "pwa-icon-192",
+      "description": "App Icon 192x192",
+      "imageUrl": "https://picsum.photos/seed/sena-icon/192/192",
+      "imageHint": "app icon"
+    },
+    {
+      "id": "pwa-icon-512",
+      "description": "App Icon 512x512",
+      "imageUrl": "https://picsum.photos/seed/sena-icon/512/512",
+      "imageHint": "app icon large"
+    }
+  ]
+}
