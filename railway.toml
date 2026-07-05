@@ -1,0 +1,12 @@
+[build]
+builder = "nixpacks"
+buildCommand = "pnpm install && pnpm run railway:build"
+
+[deploy]
+startCommand = "pnpm run railway:start"
+restartPolicyType = "on_failure"
+restartPolicyMaxRetries = 3
+
+[[deploy.healthcheck]]
+type = "http"
+path = "/api/healthz"
