@@ -1,6 +1,13 @@
 import { Router, type IRouter, type Response } from "express";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { getSupabaseAdminClient } from "../lib/supabase";
+import { sendBoutiqueApprovedEmail, sendBoutiqueRefusedEmail, sendBoutiqueStatusChangedEmail } from "../lib/email";
+
+async function getOwnerEmail(adminClient: SupabaseClient, ownerId: string | null | undefined): Promise<string | null> {
+  if (!ownerId) return null;
+  const { data: owner } = await adminClient.from("users").select("email").eq("uid", ownerId).single();
+  return (owner as { email?: string } | null)?.email || null;
+}
 
 const router: IRouter = Router();
 
@@ -46,21 +53,32 @@ router.patch("/saas/boutiques", async (req, res) => {
 
     switch (action) {
       case "approve": {
-        const { data: bout } = await adminClient.from("boutiques").select("plan").eq("id", id).single();
+        const { data: bout } = await adminClient.from("boutiques").select("plan, name, owner_id").eq("id", id).single();
         if (!bout) return res.status(404).json({ error: "Boutique introuvable" });
+        const b = bout as { plan: string; name: string; owner_id: string | null };
+        const trialEndsAt = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString();
         await adminClient.from("boutiques").update({
           status: "Essai",
-          trial_ends_at: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(),
+          trial_ends_at: trialEndsAt,
           team_members_count: 1,
           is_active: true,
         }).eq("id", id);
+
+        const ownerEmail = await getOwnerEmail(adminClient, b.owner_id);
+        if (ownerEmail) void sendBoutiqueApprovedEmail(ownerEmail, b.name, trialEndsAt);
+
         return res.json({ ok: true });
       }
       case "toggle-status": {
-        const { data: boutique } = await adminClient.from("boutiques").select("status").eq("id", id).single();
+        const { data: boutique } = await adminClient.from("boutiques").select("status, name, owner_id").eq("id", id).single();
         if (!boutique) return res.status(404).json({ error: "Boutique introuvable" });
-        const newStatus = (boutique as { status: string }).status === "Actif" ? "Suspendu" : "Actif";
+        const b = boutique as { status: string; name: string; owner_id: string | null };
+        const newStatus = b.status === "Actif" ? "Suspendu" : "Actif";
         await adminClient.from("boutiques").update({ status: newStatus }).eq("id", id);
+
+        const ownerEmail = await getOwnerEmail(adminClient, b.owner_id);
+        if (ownerEmail) void sendBoutiqueStatusChangedEmail(ownerEmail, b.name, newStatus);
+
         return res.json({ ok: true, status: newStatus });
       }
       case "delete": {
@@ -68,7 +86,15 @@ router.patch("/saas/boutiques", async (req, res) => {
         return res.json({ ok: true });
       }
       case "refuse": {
+        const { data: bout } = await adminClient.from("boutiques").select("name, owner_id").eq("id", id).single();
         await adminClient.from("boutiques").update({ status: "refuse" }).eq("id", id);
+
+        if (bout) {
+          const b = bout as { name: string; owner_id: string | null };
+          const ownerEmail = await getOwnerEmail(adminClient, b.owner_id);
+          if (ownerEmail) void sendBoutiqueRefusedEmail(ownerEmail, b.name);
+        }
+
         return res.json({ ok: true });
       }
       case "cycle-plan": {
