@@ -37,7 +37,7 @@ function RegisterForm() {
           password: formData.password,
           ownerName: formData.ownerName,
           boutiqueName: formData.boutiqueName,
-          plan: searchParams[0].get('plan') || 'Basic',
+          plan: searchParams.get('plan') || 'Basic',
         }),
       })
 

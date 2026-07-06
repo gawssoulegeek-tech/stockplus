@@ -164,10 +164,10 @@ export const stockService = {
     from_date?: string,
     to_date?: string
   ): Promise<{
-    purchases: number;
-    sales: number;
-    adjustments: number;
-    returns: number;
+    purchase: number;
+    sale: number;
+    adjustment: number;
+    return: number;
     damage: number;
   }> {
     let query = supabase
@@ -182,16 +182,20 @@ export const stockService = {
 
     if (error) throw new Error(`Failed to get stock stats: ${error.message}`);
 
+    // Clés alignées sur les valeurs d'enum StockMoveType (singulier)
     const stats = {
-      purchases: 0,
-      sales: 0,
-      adjustments: 0,
-      returns: 0,
+      purchase: 0,
+      sale: 0,
+      adjustment: 0,
+      return: 0,
       damage: 0,
     };
 
     (moves || []).forEach(move => {
-      stats[move.move_type as keyof typeof stats]++;
+      const key = move.move_type as keyof typeof stats;
+      if (key in stats) {
+        stats[key]++;
+      }
     });
 
     return stats;

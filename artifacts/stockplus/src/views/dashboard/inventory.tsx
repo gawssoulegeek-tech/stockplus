@@ -157,7 +157,7 @@ export default function InventoryPage() {
       const product = await productService.createProduct(supabase, boutique.id, {
         name: newProduct.name,
         category: newProduct.category || "Général",
-        sku: `SKU-${Math.floor(Math.random() * 10000)}`,
+        sku: `SKU-${Date.now().toString(36).toUpperCase()}-${Math.floor(Math.random() * 9999).toString().padStart(4, '0')}`,
         price_retail: parseInt(newProduct.price),
         quantity_in_stock: stockVal,
         unit_of_measure: features.units ? newProduct.unit : "pcs",

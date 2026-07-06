@@ -59,6 +59,7 @@
   --font-sans: var(--app-font-sans);
   --font-serif: var(--app-font-serif);
   --font-mono: var(--app-font-mono);
+  --font-headline: var(--app-font-sans);
 
   --text-xs: 0.75rem;
   --text-xs--line-height: calc(1 / 0.75);

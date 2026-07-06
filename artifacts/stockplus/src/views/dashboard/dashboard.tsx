@@ -74,7 +74,20 @@ export default function DashboardPage() {
     const todayRevenue = todaySales.reduce((acc, s) => acc + (s.total_amount || 0), 0)
     const totalRevenue = sales.reduce((acc, s) => acc + (s.total_amount || 0), 0)
     const lowStockCount = products.filter(p => p.quantity_in_stock <= 5).length
-    const totalProfit = totalRevenue * 0.25
+    // Calcul du bénéfice basé sur le cost_price réel des produits vendus
+    // (fallback : si cost_price absent, on estime à 25% du CA)
+    const totalProfit = sales.reduce((acc, s) => {
+      const saleRevenue = s.total_amount || 0
+      // Si on n'a pas les items détaillés, fallback 25%
+      if (!s.sale_items || !Array.isArray(s.sale_items)) {
+        return acc + saleRevenue * 0.25
+      }
+      const cost = s.sale_items.reduce((c: number, item: any) => {
+        const prod = products.find(p => p.id === item.product_id)
+        return c + (prod?.cost_price || 0) * (item.quantity || 0)
+      }, 0)
+      return acc + Math.max(0, saleRevenue - cost)
+    }, 0)
     return { todayRevenue, totalProfit, totalProducts: products.length, lowStockCount, totalRevenue }
   }, [sales, products])
 

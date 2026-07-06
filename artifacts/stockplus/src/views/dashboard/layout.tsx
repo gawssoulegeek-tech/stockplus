@@ -65,7 +65,19 @@ export default function DashboardLayout({
 
           const boutiqueData = await getBoutique(supabase, profile.boutique_id)
           if (boutiqueData) {
-            if (boutiqueData.status === 'en_attente' || boutiqueData.status === 'Suspendu') {
+            // Vérifier l'expiration de l'essai 14 jours
+            if (boutiqueData.status === 'Essai' && boutiqueData.trial_ends_at) {
+              const trialEnd = new Date(boutiqueData.trial_ends_at).getTime()
+              if (Date.now() > trialEnd) {
+                // Essai expiré → on bascule en Suspendu côté client et redirige
+                navigate('/pending-approval')
+                return
+              }
+            }
+
+            // Statuts bloquants : Suspendu, refuse, en_attente
+            const blockedStatuses = ['en_attente', 'Suspendu', 'refuse']
+            if (blockedStatuses.includes(boutiqueData.status)) {
               navigate('/pending-approval')
               return
             }

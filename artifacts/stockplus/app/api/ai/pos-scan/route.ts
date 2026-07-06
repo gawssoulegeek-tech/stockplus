@@ -1,4 +1,5 @@
 import { NextRequest } from 'next/server'
+import { requireUser } from '@/lib/api-auth'
 
 const GEMINI_MODEL = 'gemini-2.5-flash'
 
@@ -36,12 +37,16 @@ async function generateJson(parts: unknown[], responseSchema: unknown) {
 
 export async function POST(req: NextRequest) {
   try {
+    // 🔐 Authentification obligatoire
+    const auth = await requireUser(req)
+    if (!auth.ok) return Response.json({ error: auth.error }, { status: auth.status })
+
     const body = await req.json().catch(() => ({}))
     const { photoDataUri } = body ?? {}
     if (!photoDataUri) return Response.json({ error: 'photoDataUri requis' }, { status: 400 })
 
     const { mimeType, data } = parseDataUri(photoDataUri)
-    const prompt = `Tu es Awa, l'assistante de caisse intelligente de Senestock.
+    const prompt = `Tu es Awa, l'assistante de caisse intelligente de StockPlus.
 Analyse cette photo de vente.
 
 1. Identifie le produit principal.

@@ -6,7 +6,7 @@
 
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { getSupabaseClient } from './client';
 import type { User } from '@supabase/supabase-js';
 
@@ -216,32 +216,43 @@ export function useSupabaseQuery<T>(
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
+  // ⚠️ Fix : buildQuery est recréée à chaque rendu par l'appelant →
+  // on la stocke dans une ref pour éviter la boucle infinie d'effet.
+  const buildQueryRef = useRef(buildQuery);
   useEffect(() => {
+    buildQueryRef.current = buildQuery;
+  });
+
+  useEffect(() => {
+    let cancelled = false;
     const fetchData = async () => {
       try {
+        setLoading(true);
         const supabase = getSupabaseClient();
         let query = supabase.from(table).select('*');
 
-        if (buildQuery) {
-          query = buildQuery(query);
+        if (buildQueryRef.current) {
+          query = buildQueryRef.current(query);
         }
 
         const { data, error: queryError } = await query;
 
+        if (cancelled) return;
         if (queryError) {
           setError(queryError);
         } else {
           setData(data as T[]);
         }
       } catch (err) {
-        setError(err instanceof Error ? err : new Error(String(err)));
+        if (!cancelled) setError(err instanceof Error ? err : new Error(String(err)));
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     };
 
     fetchData();
-  }, [table, buildQuery]);
+    return () => { cancelled = true; };
+  }, [table]);
 
   return { data, loading, error };
 }

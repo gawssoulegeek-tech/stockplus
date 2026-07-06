@@ -1,4 +1,4 @@
-const FROM_ADDRESS = 'StockPlus <notifications@senestock.ai>'
+const FROM_ADDRESS = 'StockPlus <notifications@stockplus.app>'
 
 async function sendEmail(to: string, subject: string, html: string): Promise<void> {
   const RESEND_API_KEY = process.env.RESEND_API_KEY

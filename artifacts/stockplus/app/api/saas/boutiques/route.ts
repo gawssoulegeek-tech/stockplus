@@ -70,7 +70,9 @@ export async function PATCH(req: NextRequest) {
       }
       case 'refuse': {
         const { data: bout } = await adminClient.from('boutiques').select('name, owner_id').eq('id', id).single()
-        await adminClient.from('boutiques').update({ status: 'refuse' }).eq('id', id)
+        // ✅ On garde 'refuse' comme valeur, qui est maintenant dans l'enum boutique_status
+        // (voir supabase/migrations/000_complete_schema.sql)
+        await adminClient.from('boutiques').update({ status: 'refuse', is_active: false }).eq('id', id)
         if (bout) {
           const b = bout as { name: string; owner_id: string | null }
           const ownerEmail = await getOwnerEmail(adminClient, b.owner_id)

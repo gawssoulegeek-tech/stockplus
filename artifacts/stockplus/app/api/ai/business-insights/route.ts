@@ -1,4 +1,5 @@
 import { NextRequest } from 'next/server'
+import { requireUser } from '@/lib/api-auth'
 
 const GEMINI_MODEL = 'gemini-2.5-flash'
 
@@ -30,13 +31,17 @@ async function generateJson(parts: unknown[], responseSchema: unknown) {
 
 export async function POST(req: NextRequest) {
   try {
+    // 🔐 Authentification obligatoire
+    const auth = await requireUser(req)
+    if (!auth.ok) return Response.json({ error: auth.error }, { status: auth.status })
+
     const body = await req.json().catch(() => ({}))
     const { products, salesRecords, lowStockThreshold, analysisPeriod } = body ?? {}
     if (!Array.isArray(products) || !Array.isArray(salesRecords) || typeof lowStockThreshold !== 'number') {
       return Response.json({ error: 'products, salesRecords et lowStockThreshold sont requis' }, { status: 400 })
     }
 
-    const prompt = `You are Awa, an expert business analyst for Senestock AI. Analyze the provided product and sales data for a retail store and generate actionable business insights.
+    const prompt = `You are Awa, an expert business analyst for StockPlus. Analyze the provided product and sales data for a retail store and generate actionable business insights.
 
 Products:
 ${JSON.stringify(products)}

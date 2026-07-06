@@ -47,11 +47,11 @@ export async function GET(req: NextRequest) {
     const startOfDay = `${dateStr}T00:00:00.000Z`
     const endOfDay = `${dateStr}T23:59:59.999Z`
 
-    const { data: sales } = await supabase.from('sales').select('total, created_at').eq('boutique_id', boutique.id).gte('created_at', startOfDay).lte('created_at', endOfDay)
-    const totalRevenue = ((sales as { total: number }[]) || []).reduce((sum, s) => sum + (s.total || 0), 0)
+    const { data: sales } = await supabase.from('sales').select('total_amount, sale_date').eq('boutique_id', boutique.id).gte('sale_date', startOfDay).lte('sale_date', endOfDay)
+    const totalRevenue = ((sales as { total_amount: number }[]) || []).reduce((sum, s) => sum + (s.total_amount || 0), 0)
     const salesCount = (sales || []).length
 
-    const { data: lowStock } = await supabase.from('products').select('name').eq('boutique_id', boutique.id).lte('stock', 5)
+    const { data: lowStock } = await supabase.from('products').select('name').eq('boutique_id', boutique.id).lte('quantity_in_stock', 5)
     const lowStockCount = (lowStock || []).length
 
     const html = `<!DOCTYPE html><html><head><meta charset="utf-8"></head>
@@ -84,7 +84,7 @@ export async function GET(req: NextRequest) {
         method: 'POST',
         headers: { Authorization: `Bearer ${RESEND_API_KEY}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          from: 'StockPlus <rapport@senestock.ai>',
+          from: 'StockPlus <rapport@stockplus.app>',
           to: ownerEmail,
           subject: `Rapport ${boutique.name} — ${dateStr}`,
           html,

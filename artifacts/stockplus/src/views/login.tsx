@@ -1,17 +1,10 @@
 import { useState, useEffect } from "react"
 import { Link, useLocation } from "@/lib/compat/wouter"
-import { Sparkles, ArrowRight, Mail, Lock, UserCircle, Eye, EyeOff, Store } from "lucide-react"
+import { Sparkles, ArrowRight, Mail, Lock, Eye, EyeOff, Store } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
 import { signInUser } from "@/supabase/auth-service"
 import { getSupabaseClient } from "@/supabase/client"
 import { useToast } from "@/hooks/use-toast"
@@ -24,7 +17,6 @@ export default function LoginPage() {
   const [, navigate] = useLocation()
   const { toast } = useToast()
   const [isLoading, setIsLoading] = useState(false)
-  const [role, setRole] = useState("Administrateur")
   const [showPassword, setShowPassword] = useState(false)
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
@@ -111,22 +103,6 @@ export default function LoginPage() {
           </CardHeader>
           <CardContent className="p-10 pt-4">
             <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="space-y-2">
-                <Label className="text-sm font-bold text-gray-700 ml-1">Rôle</Label>
-                <Select value={role} onValueChange={setRole}>
-                  <SelectTrigger className="h-12 rounded-xl border-gray-200 pl-4 bg-white">
-                    <div className="flex items-center gap-3">
-                      <UserCircle className="h-5 w-5 text-gray-400" />
-                      <SelectValue placeholder="Rôle" />
-                    </div>
-                  </SelectTrigger>
-                  <SelectContent className="rounded-xl">
-                    <SelectItem value="Administrateur">Propriétaire Boutique</SelectItem>
-                    <SelectItem value="Manager">Manager / Gérant</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
               <div className="space-y-2">
                 <Label htmlFor="email" className="text-sm font-bold text-gray-700 ml-1">Email</Label>
                 <div className="relative">

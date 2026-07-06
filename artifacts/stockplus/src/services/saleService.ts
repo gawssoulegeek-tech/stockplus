@@ -106,6 +106,47 @@ export const saleService = {
 
       if (itemError) continue;
       items.push(saleItem);
+
+      // ✅ Déduction du stock + enregistrement du mouvement
+      // ⚠️ On capture le stock AVANT/APRÈS l'insertion du sale_item pour détecter
+      // un éventuel trigger DB qui aurait déjà décrémenté le stock.
+      // (Évite le double-décrément)
+      try {
+        const { data: prodAfter } = await supabase
+          .from('products')
+          .select('quantity_in_stock')
+          .eq('id', item.product_id)
+          .single();
+
+        const stockAfterItem = (prodAfter as { quantity_in_stock?: number } | null)?.quantity_in_stock ?? 0;
+
+        // Si le stock n'a pas bougé (pas de trigger), on le décrémente manuellement
+        if (stockAfterItem === (prod?.quantity_in_stock ?? 0)) {
+          // Pas de trigger → décrémenter manuellement
+          const newStock = Math.max(0, stockAfterItem - item.quantity);
+          await supabase
+            .from('products')
+            .update({ quantity_in_stock: newStock })
+            .eq('id', item.product_id);
+        }
+        // Si un trigger a déjà décrémenté, on ne fait rien (stock déjà à jour)
+
+        // Créer un mouvement de stock tracé (audit, ne modifie pas le stock)
+        await supabase.from('stock_moves').insert({
+          boutique_id,
+          product_id: item.product_id,
+          move_type: 'sale',
+          quantity_change: -item.quantity,
+          reference_type: 'sale',
+          reference_id: sale.id,
+          reason: `Vente ${sale.invoice_number || sale.id}`,
+          notes: `Vente enregistrée - ${item.quantity} unité(s)`,
+          move_date: new Date().toISOString(),
+          created_at: new Date().toISOString(),
+        });
+      } catch (stockErr) {
+        console.error(`Stock update failed for product ${item.product_id}:`, stockErr);
+      }
     }
 
     return { sale, items };

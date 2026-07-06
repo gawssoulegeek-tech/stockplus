@@ -1,4 +1,5 @@
 import { NextRequest } from 'next/server'
+import { requireUser } from '@/lib/api-auth'
 
 const GEMINI_MODEL = 'gemini-2.5-flash'
 
@@ -36,12 +37,16 @@ async function generateJson(parts: unknown[], responseSchema: unknown) {
 
 export async function POST(req: NextRequest) {
   try {
+    // 🔐 Authentification obligatoire
+    const auth = await requireUser(req)
+    if (!auth.ok) return Response.json({ error: auth.error }, { status: auth.status })
+
     const body = await req.json().catch(() => ({}))
     const { invoiceDataUri } = body ?? {}
     if (!invoiceDataUri) return Response.json({ error: 'invoiceDataUri requis' }, { status: 400 })
 
     const { mimeType, data } = parseDataUri(invoiceDataUri)
-    const prompt = `You are Awa, an expert assistant for Senestock designed to extract product information from supplier invoices.
+    const prompt = `You are Awa, an expert assistant for StockPlus designed to extract product information from supplier invoices.
 
 Carefully analyze the provided invoice and extract the product name, quantity, and purchase price for each line item.
 Only extract information for physical products. Do not include taxes, shipping fees, or service charges.
