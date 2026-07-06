@@ -1,0 +1,16 @@
+{
+  "buildCommand": "cd artifacts/stockplus && pnpm exec next build",
+  "outputDirectory": "artifacts/stockplus/.next",
+  "installCommand": "pnpm install",
+  "framework": "nextjs",
+  "crons": [
+    {
+      "path": "/api/cron/expire-trials",
+      "schedule": "0 2 * * *"
+    },
+    {
+      "path": "/api/cron/daily-report",
+      "schedule": "0 8 * * *"
+    }
+  ]
+}
