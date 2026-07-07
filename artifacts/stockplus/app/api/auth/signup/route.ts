@@ -112,14 +112,15 @@ export async function POST(req: NextRequest) {
     await adminClient.from('users').update({ boutique_id: boutiqueId }).eq('uid', uid)
 
     // ✅ Notifier le superadmin qu'une nouvelle boutique est en attente d'approbation
+    // ⚠️ Non-bloquant : si la table notifications n'existe pas, on continue quand même
     if (!isRoot) {
-      await notifySuperadmins(adminClient, {
+      void notifySuperadmins(adminClient, {
         type: 'new_signup',
         title: 'Nouvelle inscription à approuver',
         message: `Boutique "${boutiqueName}" (propriétaire: ${ownerName}, email: ${normalizedEmail}) attend votre approbation.`,
         boutique_id: boutiqueId,
         metadata: { boutiqueId, ownerName, email: normalizedEmail, plan: selectedPlan },
-      })
+      }).catch(e => console.warn('[notifySuperadmins] silent fail:', e))
     }
 
     LOG('Inscription terminée avec succès', { uid, boutiqueId })

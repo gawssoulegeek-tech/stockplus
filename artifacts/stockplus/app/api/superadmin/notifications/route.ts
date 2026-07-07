@@ -37,19 +37,30 @@ export async function GET(req: NextRequest) {
 
   const { data, error } = await query
 
+  // ⚠️ Si la table notifications n'existe pas, on retourne une liste vide
   if (error) {
+    if (error.message.includes('does not exist') || error.message.includes('Could not find the table') || error.code === '42P01' || error.code === 'PGRST106') {
+      return Response.json({
+        notifications: [],
+        unread_count: 0,
+        warning: 'Table notifications inexistante. Exécutez la migration 002_create_notifications_table.sql',
+      })
+    }
     return Response.json({ error: 'Erreur lors de la récupération', details: error.message }, { status: 500 })
   }
 
   // Compter les non lues
-  const { count: unreadCount } = await adminClient
+  const { count: unreadCount, error: countErr } = await adminClient
     .from('notifications')
     .select('*', { count: 'exact', head: true })
     .eq('is_read', false)
 
+  // Si erreur de count (table inexistante), on retourne 0
+  const finalUnreadCount = countErr ? 0 : (unreadCount || 0)
+
   return Response.json({
     notifications: data || [],
-    unread_count: unreadCount || 0,
+    unread_count: finalUnreadCount,
   })
 }
 
@@ -76,7 +87,13 @@ export async function PATCH(req: NextRequest) {
       .from('notifications')
       .update({ is_read: true })
       .eq('is_read', false)
-    if (error) return Response.json({ error: error.message }, { status: 500 })
+    if (error) {
+      // Table inexistante → on renvoie OK quand même (pas de notifications = rien à marquer)
+      if (error.message.includes('does not exist') || error.code === '42P01' || error.code === 'PGRST106') {
+        return Response.json({ ok: true, marked: 'all', warning: 'Table inexistante' })
+      }
+      return Response.json({ error: error.message }, { status: 500 })
+    }
     return Response.json({ ok: true, marked: 'all' })
   }
 
@@ -85,7 +102,12 @@ export async function PATCH(req: NextRequest) {
       .from('notifications')
       .update({ is_read: true })
       .eq('id', body.id)
-    if (error) return Response.json({ error: error.message }, { status: 500 })
+    if (error) {
+      if (error.message.includes('does not exist') || error.code === '42P01' || error.code === 'PGRST106') {
+        return Response.json({ ok: true, marked: body.id, warning: 'Table inexistante' })
+      }
+      return Response.json({ error: error.message }, { status: 500 })
+    }
     return Response.json({ ok: true, marked: body.id })
   }
 
