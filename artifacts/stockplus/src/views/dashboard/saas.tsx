@@ -22,6 +22,13 @@ import {
   ExternalLink,
   Loader2,
   Users,
+  FileText,
+  Lock,
+  Unlock,
+  Key,
+  CreditCard,
+  Download,
+  Crown,
 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -374,6 +381,69 @@ export default function SaaSAdminPage() {
     }
   }
 
+  // 🔑 Réinitialiser le mot de passe du propriétaire d'une boutique
+  const resetUserPassword = async (boutiqueId: string) => {
+    const boutique = boutiques.find((b) => b.id === boutiqueId)
+    if (!boutique) return
+    if (!confirm(`Envoyer un email de réinitialisation de mot de passe au propriétaire de "${boutique.name}" ?`)) return
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      // L'API superadmin n'existe pas encore, on utilise Supabase directement
+      // via le client admin (côté serveur). Ici on appelle une route dédiée.
+      const res = await fetch('/api/superadmin/reset-password', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${session?.access_token || ''}`,
+        },
+        body: JSON.stringify({ boutique_id: boutiqueId }),
+      })
+      if (!res.ok) {
+        const err = await res.json()
+        throw new Error(err.error || 'Erreur')
+      }
+      toast({
+        title: "Email envoyé",
+        description: `Un email de réinitialisation a été envoyé au propriétaire de ${boutique.name}.`,
+      })
+    } catch (e: any) {
+      toast({ variant: "destructive", title: "Erreur", description: e.message })
+    }
+  }
+
+  // 📄 Ouvrir le rapport PDF mensuel dans un nouvel onglet
+  const openMonthlyReport = () => {
+    const now = new Date()
+    const month = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
+    // Ouvrir dans un nouvel onglet avec le token dans l'URL (le rapport vérifie le header Authorization)
+    // On utilise un formulaire POST ou on ouvre avec le token en query param
+    const url = `/api/superadmin/monthly-report?month=${month}`
+    // Le rapport utilise requireSuperadmin qui lit le header Authorization
+    // Comme on ne peut pas mettre de header dans un window.open, on va fetch puis ouvrir
+    openReportInNewTab(url)
+  }
+
+  const openReportInNewTab = async (url: string) => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      const res = await fetch(url, {
+        headers: { Authorization: `Bearer ${session?.access_token || ''}` },
+      })
+      if (!res.ok) {
+        toast({ variant: "destructive", title: "Erreur", description: "Impossible de générer le rapport" })
+        return
+      }
+      const html = await res.text()
+      const blob = new Blob([html], { type: 'text/html' })
+      const blobUrl = URL.createObjectURL(blob)
+      window.open(blobUrl, '_blank')
+      // Nettoyer après un délai
+      setTimeout(() => URL.revokeObjectURL(blobUrl), 60000)
+    } catch (e: any) {
+      toast({ variant: "destructive", title: "Erreur", description: e.message })
+    }
+  }
+
   const handleCreateBoutique = async () => {
     if (!newBoutique.name || !newBoutique.ownerName || !newBoutique.ownerEmail) {
       toast({ variant: "destructive", title: "Champs requis", description: "Remplissez tous les champs." })
@@ -459,6 +529,15 @@ export default function SaaSAdminPage() {
         <div className="flex gap-3">
           <Button
             variant="outline"
+            className="h-14 rounded-2xl border-gray-200 font-bold px-6 hover:bg-gray-50"
+            onClick={openMonthlyReport}
+            title="Générer un rapport PDF mensuel imprimable"
+          >
+            <FileText className="h-4 w-4 mr-2" />
+            Rapport PDF
+          </Button>
+          <Button
+            variant="outline"
             className="h-14 rounded-2xl border-gray-200 font-bold px-8 hover:bg-orange-50"
             onClick={() => loadData()}
             disabled={isLoading}
@@ -502,30 +581,35 @@ export default function SaaSAdminPage() {
       </div>
 
       <Tabs defaultValue="boutiques" className="space-y-8">
-        <TabsList className="bg-gray-100 p-1.5 h-14 rounded-2xl w-full max-w-2xl">
+        <TabsList className="bg-gray-100 p-1.5 h-14 rounded-2xl w-full max-w-3xl flex-wrap">
           <TabsTrigger value="boutiques" className="rounded-xl flex-1 font-bold">
-            Liste des Clients
+            Clients
+          </TabsTrigger>
+          <TabsTrigger value="finances" className="rounded-xl flex-1 font-bold">
+            <DollarSign className="h-3 w-3 mr-1 inline" />
+            Finances
           </TabsTrigger>
           <TabsTrigger value="payments" className="rounded-xl flex-1 font-bold">
-            Paiements Mobile Money{" "}
+            Paiements
             {pendingPayments.length > 0 && (
               <Badge className="ml-2 bg-primary text-white">{pendingPayments.length}</Badge>
             )}
           </TabsTrigger>
           <TabsTrigger value="approvals" className="rounded-xl flex-1 font-bold">
-            Approbations{" "}
+            <Clock className="h-3 w-3 mr-1 inline" />
+            Approbations
             {boutiques.filter((b) => b.status === "en_attente" || b.status === "Suspendu").length > 0 && (
               <Badge className="ml-2 bg-purple-500 text-white">{boutiques.filter((b) => b.status === "en_attente" || b.status === "Suspendu").length}</Badge>
             )}
           </TabsTrigger>
           <TabsTrigger value="modules" className="rounded-xl flex-1 font-bold">
-            Modules Premium{" "}
+            Modules
             {PREMIUM_MODULES.filter(m => m.implemented).length > 0 && (
               <Badge className="ml-2 bg-blue-500 text-white">{PREMIUM_MODULES.length}</Badge>
             )}
           </TabsTrigger>
           <TabsTrigger value="logs" className="rounded-xl flex-1 font-bold">
-            Logs Système
+            Logs
           </TabsTrigger>
         </TabsList>
 
@@ -640,6 +724,15 @@ export default function SaaSAdminPage() {
                         <Button
                           variant="ghost"
                           size="icon"
+                          className="h-10 w-10 rounded-xl hover:bg-blue-50 hover:text-blue-500 transition-colors"
+                          onClick={() => resetUserPassword(b.id)}
+                          title="Réinitialiser mot de passe"
+                        >
+                          <Key className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
                           className="h-10 w-10 rounded-xl hover:bg-red-50 hover:text-red-500 transition-colors"
                           onClick={() => deleteBoutique(b.id)}
                           title="Supprimer"
@@ -653,6 +746,138 @@ export default function SaaSAdminPage() {
               </TableBody>
             </Table>
           </Card>
+        </TabsContent>
+
+        {/* 🆕 Onglet Finances */}
+        <TabsContent value="finances">
+          <div className="space-y-8">
+            {/* MRR par plan */}
+            <Card className="premium-card p-8">
+              <h3 className="text-xl font-headline font-bold mb-6 flex items-center gap-2">
+                <BarChart3 className="h-5 w-5 text-primary" />
+                Revenus par plan (MRR mensuel)
+              </h3>
+              <div className="grid gap-4 md:grid-cols-4">
+                {['Basic', 'Pro', 'Premium', 'Essai'].map(plan => {
+                  const count = boutiques.filter(b => b.plan === plan).length
+                  const active = boutiques.filter(b => b.plan === plan && b.status === 'Actif').length
+                  const revenue = active * ((PLAN_PRICES as any)[plan] || 0)
+                  return (
+                    <div key={plan} className="bg-gray-50 rounded-2xl p-6">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="font-bold text-gray-900">{plan}</span>
+                        {plan === 'Premium' && <Crown className="h-4 w-4 text-amber-500" />}
+                      </div>
+                      <div className="text-2xl font-headline font-bold text-gray-900">
+                        {formatCurrency(revenue)}
+                      </div>
+                      <div className="text-xs text-gray-500 mt-1">
+                        {active} actives / {count} total
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </Card>
+
+            {/* Stats financières */}
+            <div className="grid gap-6 md:grid-cols-3">
+              <Card className="premium-card p-8">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="h-12 w-12 rounded-2xl bg-green-50 flex items-center justify-center">
+                    <DollarSign className="h-6 w-6 text-green-500" />
+                  </div>
+                  <Badge variant="outline" className="font-bold border-gray-100">MRR</Badge>
+                </div>
+                <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Revenu mensuel récurrent</div>
+                <h3 className="text-3xl font-headline font-bold text-gray-900">{formatCurrency(totalMRR)}</h3>
+              </Card>
+
+              <Card className="premium-card p-8">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="h-12 w-12 rounded-2xl bg-blue-50 flex items-center justify-center">
+                    <Cpu className="h-6 w-6 text-blue-500" />
+                  </div>
+                  <Badge variant="outline" className="font-bold border-gray-100">Add-ons</Badge>
+                </div>
+                <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">MRR Modules Premium</div>
+                <h3 className="text-3xl font-headline font-bold text-gray-900">{formatCurrency(totalModuleRevenue)}</h3>
+              </Card>
+
+              <Card className="premium-card p-8">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="h-12 w-12 rounded-2xl bg-purple-50 flex items-center justify-center">
+                    <TrendingUp className="h-6 w-6 text-purple-500" />
+                  </div>
+                  <Badge variant="outline" className="font-bold border-gray-100">Total</Badge>
+                </div>
+                <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Revenu total mensuel</div>
+                <h3 className="text-3xl font-headline font-bold text-gray-900">{formatCurrency(totalMRR + totalModuleRevenue)}</h3>
+              </Card>
+            </div>
+
+            {/* Top 5 boutiques par revenu */}
+            <Card className="premium-card p-8">
+              <h3 className="text-xl font-headline font-bold mb-6 flex items-center gap-2">
+                <Crown className="h-5 w-5 text-amber-500" />
+                Top 5 boutiques par plan
+              </h3>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>#</TableHead>
+                    <TableHead>Boutique</TableHead>
+                    <TableHead>Plan</TableHead>
+                    <TableHead>Statut</TableHead>
+                    <TableHead className="text-right">Revenu/mois</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {boutiques
+                    .filter(b => b.status === 'Actif')
+                    .sort((a, b) => b.revenue - a.revenue)
+                    .slice(0, 5)
+                    .map((b, i) => (
+                      <TableRow key={b.id}>
+                        <TableCell><span className="font-bold text-primary">#{i + 1}</span></TableCell>
+                        <TableCell><strong>{b.name}</strong></TableCell>
+                        <TableCell>
+                          <Badge className="bg-orange-50 text-primary">{b.plan}</Badge>
+                        </TableCell>
+                        <TableCell>
+                          <Badge className="bg-green-50 text-green-600">{b.status}</Badge>
+                        </TableCell>
+                        <TableCell className="text-right font-bold">{formatCurrency(b.revenue)}</TableCell>
+                      </TableRow>
+                    ))}
+                  {boutiques.filter(b => b.status === 'Actif').length === 0 && (
+                    <TableRow>
+                      <TableCell colSpan={5} className="text-center text-gray-400 py-12">
+                        Aucune boutique active pour le moment
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </Card>
+
+            {/* Lien rapide vers le rapport PDF */}
+            <Card className="premium-card p-8 bg-gradient-to-r from-orange-50 to-amber-50">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-xl font-headline font-bold mb-2">📄 Rapport PDF mensuel</h3>
+                  <p className="text-gray-600">Génère un rapport complet imprimable (CA, boutiques, paiements, top clients).</p>
+                </div>
+                <Button
+                  className="h-14 rounded-2xl sena-gradient text-white font-bold px-8"
+                  onClick={openMonthlyReport}
+                >
+                  <Download className="h-4 w-4 mr-2" />
+                  Générer
+                </Button>
+              </div>
+            </Card>
+          </div>
         </TabsContent>
 
         <TabsContent value="payments">

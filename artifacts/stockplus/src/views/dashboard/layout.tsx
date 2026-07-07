@@ -14,6 +14,7 @@ import {
 import { useLocation } from "@/lib/compat/wouter"
 import { getSupabaseClient } from "@/supabase/client"
 import { getUserProfile, getBoutique } from "@/supabase/auth-service"
+import { SuperadminNotifications } from "@/components/superadmin/notifications-bell"
 
 const BoutiqueContext = createContext<any>(null)
 export const useBoutique = () => useContext(BoutiqueContext)
@@ -167,6 +168,9 @@ export default function DashboardLayout({
                 <span className="text-sm font-bold text-gray-900">{boutique?.name || (userProfile.role === 'superadmin' ? 'Supervision SaaS' : 'Ma Boutique')}</span>
                 <span className="text-[10px] font-black text-primary uppercase tracking-widest">{userProfile?.role}</span>
               </div>
+
+              {/* 🔔 Cloche notifications (superadmin uniquement) */}
+              {userProfile?.role === 'superadmin' && <SuperadminNotifications />}
 
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>

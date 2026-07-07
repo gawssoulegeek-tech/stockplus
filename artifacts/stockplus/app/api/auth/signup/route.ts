@@ -1,6 +1,7 @@
 import { NextRequest } from 'next/server'
 import { getSupabaseAdminClient } from '@/lib/supabase-server'
 import { getFeaturesForPlan, isValidPlan, MAX_GERANTS } from '@/lib/plan-features'
+import { notifySuperadmins } from '@/lib/superadmin-notifications'
 
 export async function POST(req: NextRequest) {
   const LOG = (step: string, data?: unknown) => console.info(`[SIGNUP] ${step}`, data ?? '')
@@ -109,6 +110,17 @@ export async function POST(req: NextRequest) {
     }
 
     await adminClient.from('users').update({ boutique_id: boutiqueId }).eq('uid', uid)
+
+    // ✅ Notifier le superadmin qu'une nouvelle boutique est en attente d'approbation
+    if (!isRoot) {
+      await notifySuperadmins(adminClient, {
+        type: 'new_signup',
+        title: 'Nouvelle inscription à approuver',
+        message: `Boutique "${boutiqueName}" (propriétaire: ${ownerName}, email: ${normalizedEmail}) attend votre approbation.`,
+        boutique_id: boutiqueId,
+        metadata: { boutiqueId, ownerName, email: normalizedEmail, plan: selectedPlan },
+      })
+    }
 
     LOG('Inscription terminée avec succès', { uid, boutiqueId })
     return Response.json(
