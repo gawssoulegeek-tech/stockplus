@@ -257,6 +257,19 @@ export default function SaaSAdminPage() {
     }
   }
 
+  const refuseBoutique = async (id: string) => {
+    const boutique = boutiques.find((b) => b.id === id)
+    if (!boutique) return
+    if (!confirm(`Refuser la boutique "${boutique.name}" ? L'utilisateur ne pourra pas accéder à StockPlus.`)) return
+    try {
+      await apiPost('refuse', { id })
+      loadData()
+      toast({ title: "Boutique refusée", description: `${boutique.name} a été refusée.` })
+    } catch (e: any) {
+      toast({ variant: "destructive", title: "Erreur", description: e.message })
+    }
+  }
+
   const activateTrial = async (id: string) => {
     const boutique = boutiques.find((b) => b.id === id)
     if (!boutique) return
@@ -469,7 +482,7 @@ export default function SaaSAdminPage() {
           { title: "MRR Plans (CFA)", value: formatCurrency(totalMRR), icon: TrendingUp, trend: "Plans", color: "text-green-500" },
           { title: "MRR Modules (CFA)", value: formatCurrency(totalModuleRevenue), icon: Cpu, trend: "Add-ons", color: "text-blue-500" },
           { title: "En attente Paiement", value: pendingPayments.length.toString(), icon: Smartphone, trend: "Mobile Money", color: "text-blue-500" },
-          { title: "Suspendues (attente)", value: boutiques.filter((b) => b.status === "Suspendu").length.toString(), icon: Clock, trend: "Approbation", color: "text-purple-500" },
+          { title: "En attente", value: boutiques.filter((b) => b.status === "en_attente" || b.status === "Suspendu").length.toString(), icon: Clock, trend: "Approbation", color: "text-purple-500" },
         ].map((stat, i) => (
           <Card key={i} className="premium-card">
             <CardContent className="p-8">
@@ -501,8 +514,8 @@ export default function SaaSAdminPage() {
           </TabsTrigger>
           <TabsTrigger value="approvals" className="rounded-xl flex-1 font-bold">
             Approbations{" "}
-            {boutiques.filter((b) => b.status === "Suspendu").length > 0 && (
-              <Badge className="ml-2 bg-purple-500 text-white">{boutiques.filter((b) => b.status === "Suspendu").length}</Badge>
+            {boutiques.filter((b) => b.status === "en_attente" || b.status === "Suspendu").length > 0 && (
+              <Badge className="ml-2 bg-purple-500 text-white">{boutiques.filter((b) => b.status === "en_attente" || b.status === "Suspendu").length}</Badge>
             )}
           </TabsTrigger>
           <TabsTrigger value="modules" className="rounded-xl flex-1 font-bold">
@@ -576,10 +589,12 @@ export default function SaaSAdminPage() {
                               ? "bg-orange-50 text-orange-600 border-none"
                               : b.status === "Suspendu"
                                 ? "bg-purple-50 text-purple-600 border-none"
-                                : "bg-red-50 text-red-600 border-none"
+                                : b.status === "en_attente"
+                                  ? "bg-yellow-50 text-yellow-600 border-none"
+                                  : "bg-red-50 text-red-600 border-none"
                         }
                       >
-                        {b.status}
+                        {b.status === "en_attente" ? "En attente" : b.status}
                       </Badge>
                     </TableCell>
                     <TableCell>
@@ -681,7 +696,7 @@ export default function SaaSAdminPage() {
         <TabsContent value="approvals">
           <div className="grid gap-6 md:grid-cols-2">
             {boutiques
-              .filter((b) => b.status === "Suspendu")
+              .filter((b) => b.status === "en_attente" || b.status === "Suspendu")
               .map((b) => (
                 <Card key={b.id} className="premium-card p-8 flex items-center justify-between">
                   <div className="flex items-center gap-6">
@@ -701,6 +716,13 @@ export default function SaaSAdminPage() {
                     >
                       Approuver
                     </Button>
+                    <Button
+                      variant="outline"
+                      className="h-12 px-6 rounded-xl font-bold border-red-200 text-red-600 hover:bg-red-50"
+                      onClick={() => refuseBoutique(b.id)}
+                    >
+                      Refuser
+                    </Button>
                     {showConfetti === b.id && (
                       <div className="absolute inset-0 z-50 pointer-events-none">
                         <LottieWrapper src="confetti" className="w-full h-full" />
@@ -709,7 +731,7 @@ export default function SaaSAdminPage() {
                   </div>
                 </Card>
               ))}
-            {boutiques.filter((b) => b.status === "Suspendu").length === 0 && (
+            {boutiques.filter((b) => b.status === "en_attente" || b.status === "Suspendu").length === 0 && (
               <div className="col-span-full py-20 text-center bg-gray-50 rounded-[2.5rem] border border-dashed border-gray-200">
                 <CheckCircle2 className="h-12 w-12 text-gray-200 mx-auto mb-4" />
                 <p className="font-bold text-gray-400">Toutes les boutiques ont été traitées.</p>

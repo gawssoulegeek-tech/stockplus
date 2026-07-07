@@ -91,7 +91,10 @@ export async function POST(req: NextRequest) {
       name: boutiqueName,
       owner_id: uid,
       plan: selectedPlan,
-      status: isRoot ? 'Actif' : 'Essai',
+      // ✅ Workflow d'approbation : les nouvelles boutiques sont 'en_attente'
+      // Le superadmin doit les approuver via /saas → action 'approve'
+      // (qui passe le statut à 'Essai' pour 14 jours)
+      status: isRoot ? 'Actif' : 'en_attente',
       trial_ends_at: isRoot ? null : trialEndsAt,
       features: getFeaturesForPlan(selectedPlan),
       team_members_count: MAX_GERANTS[selectedPlan] || 1,
