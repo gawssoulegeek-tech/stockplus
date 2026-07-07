@@ -6,7 +6,6 @@ export async function middleware(request: NextRequest) {
   const protectedPrefixes = ['/dashboard','/pos','/inventory','/sales','/saas','/reports','/users','/quotations','/credit','/settings','/ai','/setup-status']
   const isProtected = protectedPrefixes.some((p) => pathname.startsWith(p))
 
-  // Vérifier n'importe quel cookie Supabase (sb-xxx-auth-token)
   const hasSession = request.cookies.getAll().some(c => c.name.startsWith('sb-'))
 
   if (isProtected && !hasSession) {
@@ -27,5 +26,7 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/((?!_next/static|_next/image|favicon.ico|robots.txt|manifest.webmanifest|api|.*\.(?:svg|png|jpg|jpeg|gif|webp|json|ico)$).*)'],
+  matcher: [
+    '/((?!_next/static|_next/image|favicon.ico|robots.txt|manifest.webmanifest|api|.*\\.(?:svg|png|jpg|jpeg|gif|webp|json|ico)$).*)'
+  ],
 }
