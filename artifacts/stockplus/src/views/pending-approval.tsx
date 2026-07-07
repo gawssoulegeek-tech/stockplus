@@ -17,20 +17,31 @@ export default function PendingApprovalPage() {
         navigate('/login')
         return
       }
-      const { data: profile } = await supabase
+
+      // ⚠️ Fix : utiliser maybeSingle() au lieu de single() pour éviter
+      // l'erreur quand le profil n'existe pas encore
+      const { data: profile, error } = await supabase
         .from('users')
-        .select('boutique_id')
+        .select('boutique_id, role')
         .eq('uid', session.user.id)
-        .single()
+        .maybeSingle()
+
+      // Si l'utilisateur est superadmin (ou n'a pas encore de profil mais
+      // est authentifié), on le laisse accéder au dashboard
+      if (profile?.role === 'superadmin') {
+        navigate('/dashboard')
+        return
+      }
+
       if (profile?.boutique_id) {
-        const { data: boutique, error } = await supabase
+        const { data: boutique, error: bErr } = await supabase
           .from('boutiques')
           .select('status')
           .eq('id', profile.boutique_id)
           .maybeSingle()
-        if (error || !boutique) {
+        if (bErr || !boutique) {
           setStatus('pending')
-        } else if (boutique.status === 'en_attente' || boutique.status === 'Suspendu') {
+        } else if (boutique.status === 'en_attente' || boutique.status === 'Suspendu' || boutique.status === 'refuse') {
           setStatus('pending')
         } else {
           setStatus('approved')
