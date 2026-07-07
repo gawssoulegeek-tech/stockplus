@@ -83,19 +83,32 @@ export default function SaaSAdminPage() {
     return new Date(dateStr).toLocaleDateString("fr-FR", { day: "2-digit", month: "short", year: "numeric" })
   }
 
-  const loadData = async () => {
-    setIsLoading(true)
+  const loadData = async (showLoader = true) => {
+    if (showLoader) setIsLoading(true)
     try {
-      const { data: boutiquesData, error: boutiquesError } = await supabase
-        .from("boutiques")
-        .select("*, owner:owner_id(name, email)")
-        .order("created_at", { ascending: false })
+      const [boutiquesRes, logsRes, paymentsRes] = await Promise.all([
+        supabase
+          .from("boutiques")
+          .select("*, owner:owner_id(name, email)")
+          .order("created_at", { ascending: false })
+          .limit(100),
+        supabase
+          .from("audit_logs")
+          .select("*")
+          .order("created_at", { ascending: false })
+          .limit(50),
+        supabase
+          .from("payments")
+          .select("*, boutique:boutiques!boutique_id(name)")
+          .eq("status", "pending")
+          .order("created_at", { ascending: false }),
+      ])
 
-      if (boutiquesError) throw boutiquesError
+      if (boutiquesRes.error) throw boutiquesRes.error
 
-      if (boutiquesData) {
+      if (boutiquesRes.data) {
         setBoutiques(
-          boutiquesData.map((b: any) => ({
+          boutiquesRes.data.map((b: any) => ({
             id: b.id,
             name: b.name,
             owner: b.owner?.name || b.owner_id?.slice(0, 8) || "N/A",
@@ -115,15 +128,9 @@ export default function SaaSAdminPage() {
         )
       }
 
-      const { data: logsData, error: logsError } = await supabase
-        .from("audit_logs")
-        .select("*")
-        .order("created_at", { ascending: false })
-        .limit(50)
-
-      if (!logsError && logsData) {
+      if (!logsRes.error && logsRes.data) {
         setLogs(
-          logsData.map((l: any) => ({
+          logsRes.data.map((l: any) => ({
             id: l.id,
             type:
               l.status === "failure"
@@ -144,15 +151,9 @@ export default function SaaSAdminPage() {
         )
       }
 
-      const { data: paymentsData, error: paymentsError } = await supabase
-        .from("payments")
-        .select("*, boutique:boutiques!boutique_id(name)")
-        .eq("status", "pending")
-        .order("created_at", { ascending: false })
-
-      if (!paymentsError && paymentsData) {
+      if (!paymentsRes.error && paymentsRes.data) {
         setPaymentRequests(
-          paymentsData.map((p: any) => ({
+          paymentsRes.data.map((p: any) => ({
             id: p.id,
             type: "Paiement",
             module: "Mobile Money",
@@ -168,7 +169,7 @@ export default function SaaSAdminPage() {
       console.error("Error loading SaaS data:", e)
       toast({ variant: "destructive", title: "Erreur", description: "Impossible de charger les données." })
     }
-    setIsLoading(false)
+    if (showLoader) setIsLoading(false)
   }
 
   useEffect(() => {
@@ -431,7 +432,7 @@ export default function SaaSAdminPage() {
           <Button
             variant="outline"
             className="h-14 rounded-2xl border-gray-200 font-bold px-8 hover:bg-orange-50"
-            onClick={loadData}
+            onClick={() => loadData()}
             disabled={isLoading}
           >
             {isLoading ? <RefreshCw className="h-4 w-4 mr-2 animate-spin" /> : <RefreshCw className="h-4 w-4 mr-2" />}
