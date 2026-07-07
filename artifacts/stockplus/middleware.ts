@@ -6,7 +6,8 @@ export async function middleware(request: NextRequest) {
   const protectedPrefixes = ['/dashboard','/pos','/inventory','/sales','/saas','/reports','/users','/quotations','/credit','/settings','/ai','/setup-status']
   const isProtected = protectedPrefixes.some((p) => pathname.startsWith(p))
 
-  const hasSession = request.cookies.has('sb-access-token') || request.cookies.has('supabase-auth-token')
+  // Vérifier n'importe quel cookie Supabase (sb-xxx-auth-token)
+  const hasSession = request.cookies.getAll().some(c => c.name.startsWith('sb-'))
 
   if (isProtected && !hasSession) {
     const url = request.nextUrl.clone()
