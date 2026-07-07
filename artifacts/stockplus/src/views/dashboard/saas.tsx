@@ -61,7 +61,8 @@ export default function SaaSAdminPage() {
   const [paymentRequests, setPaymentRequests] = useState<any[]>([])
   const [searchTerm, setSearchTerm] = useState("")
   const [isMounted, setIsMounted] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
+  const [loadError, setLoadError] = useState(false)
   const [showCreateDialog, setShowCreateDialog] = useState(false)
   const [newBoutique, setNewBoutique] = useState({ name: "", ownerName: "", ownerEmail: "", plan: "Essai" })
   const [showConfetti, setShowConfetti] = useState<string | null>(null)
@@ -84,24 +85,34 @@ export default function SaaSAdminPage() {
   }
 
   const loadData = async (showLoader = true) => {
-    if (showLoader) setIsLoading(true)
+    if (showLoader) {
+      setIsLoading(true)
+      setLoadError(false)
+    }
     try {
-      const [boutiquesRes, logsRes, paymentsRes] = await Promise.all([
-        supabase
-          .from("boutiques")
-          .select("*, owner:owner_id(name, email)")
-          .order("created_at", { ascending: false })
-          .limit(100),
-        supabase
-          .from("audit_logs")
-          .select("*")
-          .order("created_at", { ascending: false })
-          .limit(50),
-        supabase
-          .from("payments")
-          .select("*, boutique:boutiques!boutique_id(name)")
-          .eq("status", "pending")
-          .order("created_at", { ascending: false }),
+      const timeoutPromise = new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error('Timeout: chargement trop long')), 15000)
+      )
+
+      const [boutiquesRes, logsRes, paymentsRes] = await Promise.race([
+        Promise.all([
+          supabase
+            .from("boutiques")
+            .select("*, owner:owner_id(name, email)")
+            .order("created_at", { ascending: false })
+            .limit(100),
+          supabase
+            .from("audit_logs")
+            .select("*")
+            .order("created_at", { ascending: false })
+            .limit(50),
+          supabase
+            .from("payments")
+            .select("*, boutique:boutiques!boutique_id(name)")
+            .eq("status", "pending")
+            .order("created_at", { ascending: false }),
+        ]),
+        timeoutPromise,
       ])
 
       if (boutiquesRes.error) throw boutiquesRes.error
@@ -167,9 +178,13 @@ export default function SaaSAdminPage() {
       }
     } catch (e: any) {
       console.error("Error loading SaaS data:", e)
-      toast({ variant: "destructive", title: "Erreur", description: "Impossible de charger les données." })
+      setLoadError(true)
+      if (showLoader) {
+        toast({ variant: "destructive", title: "Erreur", description: "Impossible de charger les données. Cliquez sur Rafraîchir pour réessayer." })
+      }
+    } finally {
+      if (showLoader) setIsLoading(false)
     }
-    if (showLoader) setIsLoading(false)
   }
 
   useEffect(() => {
@@ -403,7 +418,7 @@ export default function SaaSAdminPage() {
 
   const pendingPayments = paymentRequests
 
-  if (!isMounted) {
+  if (!isMounted || (isLoading && boutiques.length === 0 && !loadError)) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center gap-6">
         <LottieWrapper src="edit-document" className="w-32 h-32 opacity-50" />

@@ -35,63 +35,88 @@ export default function DashboardLayout({
     setIsMounted(true)
     const supabase = getSupabaseClient()
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (_event: string, session: any) => {
+    let isCancelled = false
+
+    const initAuth = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession()
+
         if (!session?.user) {
-          setIsLoading(false)
-          navigate("/login")
+          if (!isCancelled) {
+            setIsLoading(false)
+            navigate("/login")
+          }
           return
         }
 
-        try {
-          const profile = await getUserProfile(supabase, session.user.id)
+        const profile = await getUserProfile(supabase, session.user.id)
 
-          if (!profile) {
-            navigate('/pending-approval')
-            return
-          }
-
-          setUserProfile(profile)
-
-          if (profile.role === "superadmin") {
+        if (!profile) {
+          if (!isCancelled) {
             setIsLoading(false)
-            return
-          }
-
-          if (!profile.boutique_id) {
             navigate('/pending-approval')
-            return
           }
+          return
+        }
 
-          const boutiqueData = await getBoutique(supabase, profile.boutique_id)
-          if (boutiqueData) {
-            // Vérifier l'expiration de l'essai 14 jours
-            if (boutiqueData.status === 'Essai' && boutiqueData.trial_ends_at) {
-              const trialEnd = new Date(boutiqueData.trial_ends_at).getTime()
-              if (Date.now() > trialEnd) {
-                // Essai expiré → on bascule en Suspendu côté client et redirige
-                navigate('/pending-approval')
-                return
-              }
-            }
+        if (isCancelled) return
 
-            // Statuts bloquants : Suspendu, refuse, en_attente
-            const blockedStatuses = ['en_attente', 'Suspendu', 'refuse']
-            if (blockedStatuses.includes(boutiqueData.status)) {
+        setUserProfile(profile)
+
+        if (profile.role === "superadmin") {
+          setIsLoading(false)
+          return
+        }
+
+        if (!profile.boutique_id) {
+          setIsLoading(false)
+          navigate('/pending-approval')
+          return
+        }
+
+        const boutiqueData = await getBoutique(supabase, profile.boutique_id)
+        if (isCancelled) return
+
+        if (boutiqueData) {
+          // Vérifier l'expiration de l'essai 14 jours
+          if (boutiqueData.status === 'Essai' && boutiqueData.trial_ends_at) {
+            const trialEnd = new Date(boutiqueData.trial_ends_at).getTime()
+            if (Date.now() > trialEnd) {
+              setIsLoading(false)
               navigate('/pending-approval')
               return
             }
-            setBoutique(boutiqueData)
           }
+
+          // Statuts bloquants : Suspendu, refuse, en_attente
+          const blockedStatuses = ['en_attente', 'Suspendu', 'refuse']
+          if (blockedStatuses.includes(boutiqueData.status)) {
+            setIsLoading(false)
+            navigate('/pending-approval')
+            return
+          }
+          setBoutique(boutiqueData)
+        }
+        setIsLoading(false)
+      } catch (e: any) {
+        console.error("Critical Profile Load Error:", e)
+        setIsLoading(false)
+      }
+    }
+
+    initAuth()
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (_event: string, session: any) => {
+        if (_event === 'SIGNED_OUT' || (!session?.user && _event !== 'INITIAL_SESSION')) {
           setIsLoading(false)
-        } catch (e: any) {
-          console.error("Critical Profile Load Error:", e)
-          setIsLoading(false)
+          navigate("/login")
         }
       }
     )
 
     return () => {
+      isCancelled = true
       subscription?.unsubscribe()
     }
   }, [navigate])
