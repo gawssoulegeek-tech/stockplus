@@ -3,7 +3,7 @@ import { createServerClient } from '@supabase/ssr'
 
 /**
  * Middleware Supabase :
- * 1. Rafraîchit la session côté serveur (jetons JWT)
+ * 1. Vérifie la session via le cookie (rapide, pas de requête réseau)
  * 2. Protège les routes /dashboard, /saas, /pos, etc.
  * 3. Redirige les utilisateurs non authentifiés vers /login
  */
@@ -31,10 +31,11 @@ export async function middleware(request: NextRequest) {
     },
   })
 
-  // Rafraîchir la session (important pour les jetons expirés)
+  // Vérifier la session via le cookie (rapide, pas de requête réseau)
   const {
-    data: { user },
-  } = await supabase.auth.getUser()
+    data: { session },
+  } = await supabase.auth.getSession()
+  const user = session?.user ?? null
 
   const pathname = request.nextUrl.pathname
 
@@ -55,10 +56,6 @@ export async function middleware(request: NextRequest) {
   ]
 
   const isProtected = protectedPrefixes.some((p) => pathname.startsWith(p))
-
-  // Routes publiques : connexion, inscription, landing, reset, accept-invite
-  const publicRoutes = ['/', '/login', '/register', '/password-reset', '/onboarding', '/pending-approval', '/accept-invite']
-  const isPublic = publicRoutes.includes(pathname)
 
   if (isProtected && !user) {
     const url = request.nextUrl.clone()

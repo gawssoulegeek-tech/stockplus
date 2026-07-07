@@ -35,34 +35,27 @@ export default function DashboardLayout({
     setIsMounted(true)
     const supabase = getSupabaseClient()
 
-    let isCancelled = false
-
     const initAuth = async () => {
       try {
         const { data: { session } } = await supabase.auth.getSession()
 
         if (!session?.user) {
-          if (!isCancelled) {
-            setIsLoading(false)
-            navigate("/login")
-          }
+          setIsLoading(false)
+          navigate("/login")
           return
         }
 
         const profile = await getUserProfile(supabase, session.user.id)
 
         if (!profile) {
-          if (!isCancelled) {
-            setIsLoading(false)
-            navigate('/pending-approval')
-          }
+          setIsLoading(false)
+          navigate('/pending-approval')
           return
         }
 
-        if (isCancelled) return
-
         setUserProfile(profile)
 
+        // Superadmin: pas besoin de charger une boutique
         if (profile.role === "superadmin") {
           setIsLoading(false)
           return
@@ -75,10 +68,9 @@ export default function DashboardLayout({
         }
 
         const boutiqueData = await getBoutique(supabase, profile.boutique_id)
-        if (isCancelled) return
 
         if (boutiqueData) {
-          // Vérifier l'expiration de l'essai 14 jours
+          // Vérifier l'expiration de l'essai
           if (boutiqueData.status === 'Essai' && boutiqueData.trial_ends_at) {
             const trialEnd = new Date(boutiqueData.trial_ends_at).getTime()
             if (Date.now() > trialEnd) {
@@ -88,7 +80,7 @@ export default function DashboardLayout({
             }
           }
 
-          // Statuts bloquants : Suspendu, refuse, en_attente
+          // Statuts bloquants
           const blockedStatuses = ['en_attente', 'Suspendu', 'refuse']
           if (blockedStatuses.includes(boutiqueData.status)) {
             setIsLoading(false)
@@ -106,17 +98,18 @@ export default function DashboardLayout({
 
     initAuth()
 
+    // Écouter uniquement la déconnexion
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event: string, session: any) => {
-        if (_event === 'SIGNED_OUT' || (!session?.user && _event !== 'INITIAL_SESSION')) {
-          setIsLoading(false)
+      (event: string) => {
+        if (event === 'SIGNED_OUT') {
+          setUserProfile(null)
+          setBoutique(null)
           navigate("/login")
         }
       }
     )
 
     return () => {
-      isCancelled = true
       subscription?.unsubscribe()
     }
   }, [navigate])
