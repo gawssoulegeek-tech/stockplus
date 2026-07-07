@@ -38,11 +38,11 @@ export default function LoginPage() {
     e.preventDefault()
 
     setIsLoading(true)
-    
+
     try {
       const cleanEmail = email.trim().toLowerCase()
       const supabase = getSupabaseClient()
-      
+
       const result = await signInUser(supabase, cleanEmail, password)
 
       if (!result.success) {
@@ -55,8 +55,13 @@ export default function LoginPage() {
         return
       }
 
+      // ✅ Important : ne pas faire setIsLoading(false) avant la navigation
+      // pour garder le loader visible pendant la transition.
+      // Mais on utilise un timeout de sécurité au cas où la navigation échouerait.
+      setTimeout(() => setIsLoading(false), 3000)
+
       navigate("/dashboard")
-      
+
     } catch (error: any) {
       console.error("Auth Error:", error.message)
       toast({

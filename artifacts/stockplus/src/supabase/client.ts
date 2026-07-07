@@ -1,12 +1,16 @@
 /**
  * Supabase Client Helper
  * Client-side Supabase client instance for browser usage
+ *
+ * ⚠️ Utilise @supabase/ssr pour que la session soit stockée dans des cookies
+ * (et non dans localStorage). Cela permet au middleware Next.js de voir la
+ * session et de protéger les routes /dashboard, /saas, etc.
  */
 
-import { createClient } from '@supabase/supabase-js';
+import { createBrowserClient } from '@supabase/ssr';
 import { supabaseConfig, validateSupabaseConfig } from './config';
 
-let supabaseClient: ReturnType<typeof createClient> | null = null;
+let supabaseClient: ReturnType<typeof createBrowserClient> | null = null;
 
 /**
  * Get or create Supabase browser client
@@ -20,7 +24,7 @@ export function getSupabaseClient() {
   if (!supabaseClient) {
     validateSupabaseConfig();
 
-    supabaseClient = createClient(
+    supabaseClient = createBrowserClient(
       supabaseConfig.url,
       supabaseConfig.anonKey
     );
@@ -38,4 +42,4 @@ export const supabase = new Proxy(
   {
     get: (_target, prop) => (getSupabaseClient() as Record<string | symbol, unknown>)[prop],
   }
-) as ReturnType<typeof createClient>;
+) as ReturnType<typeof createBrowserClient>;

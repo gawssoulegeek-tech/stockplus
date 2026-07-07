@@ -1,15 +1,42 @@
 import { NextResponse, type NextRequest } from 'next/server'
+import { createServerClient } from '@supabase/ssr'
 
 /**
- * Middleware simplifié :
- * - Protège les routes /dashboard, /saas, etc. en vérifiant la présence
- *   d'un cookie de session Supabase (sb-*).
- * - NE fait PAS d'appel réseau (pas de getUser()) → rapide, pas de boucle.
- * - NE redirige PAS les users connectés depuis /login vers /dashboard
- *   (cela causait des boucles quand le profil users était manquant).
- *   Le layout dashboard gère lui-même cette redirection côté client.
+ * Middleware Supabase avec @supabase/ssr
+ *
+ * - Rafraîchit la session côté serveur (jetons JWT expirés)
+ * - Propage les cookies vers le navigateur
+ * - Protège les routes /dashboard, /saas, etc.
  */
 export async function middleware(request: NextRequest) {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY
+
+  // Si config manquante, on laisse passer
+  if (!supabaseUrl || !supabaseAnonKey) {
+    return NextResponse.next()
+  }
+
+  const response = NextResponse.next({ request })
+
+  const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
+    cookies: {
+      getAll() {
+        return request.cookies.getAll()
+      },
+      setAll(cookiesToSet: { name: string; value: string; options?: Record<string, unknown> }[]) {
+        cookiesToSet.forEach(({ name, value, options }) => {
+          response.cookies.set(name, value, options as any)
+        })
+      },
+    },
+  })
+
+  // Rafraîchir la session (important pour les jetons expirés)
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
   const pathname = request.nextUrl.pathname
 
   const protectedPrefixes = [
@@ -28,22 +55,23 @@ export async function middleware(request: NextRequest) {
   ]
   const isProtected = protectedPrefixes.some((p) => pathname.startsWith(p))
 
-  // Vérifie la présence d'un cookie Supabase (sb-...)
-  const hasSession = request.cookies.getAll().some((c) => c.name.startsWith('sb-'))
-
-  // Si route protégée sans session → rediriger vers /login
-  if (isProtected && !hasSession) {
+  // Si route protégée sans user → rediriger vers /login
+  if (isProtected && !user) {
     const url = request.nextUrl.clone()
     url.pathname = '/login'
     url.searchParams.set('redirect', pathname)
     return NextResponse.redirect(url)
   }
 
-  // ⚠️ On NE redirige PAS /login → /dashboard côté serveur.
-  // C'est le client (login.tsx) qui gère la navigation après login réussi.
-  // Cela évite les boucles de redirection quand le profil est manquant.
+  // Si user connecté et sur /login ou /register → rediriger vers /dashboard
+  if (user && (pathname === '/login' || pathname === '/register')) {
+    const url = request.nextUrl.clone()
+    url.pathname = '/dashboard'
+    url.search = ''
+    return NextResponse.redirect(url)
+  }
 
-  return NextResponse.next()
+  return response
 }
 
 export const config = {
