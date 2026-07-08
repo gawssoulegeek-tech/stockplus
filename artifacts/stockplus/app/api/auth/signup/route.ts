@@ -22,9 +22,13 @@ export async function POST(req: NextRequest) {
     let adminClient
     try {
       adminClient = getSupabaseAdminClient()
-    } catch {
-      LOG('ÉCHEC : variables d\'environnement manquantes')
-      return Response.json({ error: 'Server configuration error' }, { status: 500 })
+    } catch (e: any) {
+      LOG('ÉCHEC : variables d\'environnement manquantes', e?.message)
+      return Response.json({
+        error: 'Server configuration error',
+        details: e?.message || 'Variables Supabase manquantes côté serveur',
+        hint: 'Vérifiez que SUPABASE_URL et SUPABASE_SERVICE_ROLE_KEY sont configurées sur Vercel (Settings → Environment Variables)',
+      }, { status: 500 })
     }
 
     const normalizedEmail = String(email).trim().toLowerCase()
