@@ -450,40 +450,21 @@ export default function SaaSAdminPage() {
       return
     }
     try {
-      const boutiqueId = `boutique_${Date.now()}`
-      const now = new Date()
-      const { error: bError } = await supabase.from("boutiques").insert([
-        {
-          id: boutiqueId,
-          name: newBoutique.name,
-          owner_id: "",
-          plan: newBoutique.plan,
-          status: newBoutique.plan === "Essai" ? "Essai" : "Actif",
-          trial_ends_at:
-            newBoutique.plan === "Essai" ? new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000).toISOString() : null,
-          subscription_ends_at: new Date(now.getTime() + 365 * 24 * 60 * 60 * 1000).toISOString(),
-          features: getFeaturesForPlan(newBoutique.plan),
-          team_members_count: MAX_GERANTS[newBoutique.plan] || 1,
-          created_at: now.toISOString(),
-        },
-      ])
-      if (bError) throw bError
-      await supabase.from("audit_logs").insert([
-        {
-          boutique_id: boutiqueId,
-          action: "boutique_created",
-          entity_type: "boutiques",
-          entity_id: boutiqueId,
-          notes: `Boutique créée par superadmin : ${newBoutique.name}`,
-          status: "success",
-          created_at: now.toISOString(),
-        },
-      ])
+      const result = await apiPost('create', {
+        name: newBoutique.name,
+        ownerName: newBoutique.ownerName,
+        ownerEmail: newBoutique.ownerEmail,
+        plan: newBoutique.plan,
+      })
       setShowCreateDialog(false)
       setNewBoutique({ name: "", ownerName: "", ownerEmail: "", plan: "Essai" })
       loadData()
-      toast({ title: "Boutique créée", description: `${newBoutique.name} a été ajoutée.` })
+      toast({
+        title: "Boutique créée",
+        description: `${newBoutique.name} a été ajoutée avec son propriétaire.`,
+      })
     } catch (e: any) {
+      console.error('[handleCreateBoutique] Erreur:', e)
       toast({ variant: "destructive", title: "Erreur", description: e.message })
     }
   }

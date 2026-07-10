@@ -1,6 +1,6 @@
 import { NextRequest } from 'next/server'
 import { getSupabaseAdminClient } from '@/lib/supabase-server'
-import { getFeaturesForPlan, isValidPlan, MAX_GERANTS } from '@/lib/plan-features'
+import { getFeaturesForPlan, MAX_GERANTS } from '@/lib/plan-features'
 import { notifySuperadmins } from '@/lib/superadmin-notifications'
 
 export async function POST(req: NextRequest) {
@@ -61,7 +61,8 @@ export async function POST(req: NextRequest) {
     const trialEndsAt = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString()
     const superadminEmail = process.env.SUPERADMIN_EMAIL?.toLowerCase()
     const isRoot = superadminEmail ? normalizedEmail === superadminEmail : false
-    const selectedPlan = isValidPlan(plan) ? plan : 'Basic'
+    const VALID_PLANS = ['Essai', 'Basic', 'Pro'] as const
+    const selectedPlan = VALID_PLANS.includes(plan) ? plan : 'Basic'
     const permissions = {
       canManageUsers: true,
       canDeleteSales: true,
