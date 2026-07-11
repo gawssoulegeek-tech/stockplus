@@ -73,11 +73,11 @@ export async function POST(req: NextRequest) {
   // Note : Supabase envoie automatiquement l'email de réinitialisation
   // si "Recovery" email template est activé dans Auth → Email Templates.
 
-  // Logger dans audit_logs
+  // Logger dans audit_logs (utilise actor_id/actor_email, pas user_id/user_email)
   await adminClient.from('audit_logs').insert({
     boutique_id,
-    user_id: auth.user?.id,
-    user_email: auth.user?.email,
+    actor_id: auth.user?.id,
+    actor_email: auth.user?.email,
     action: 'update',
     status: 'success',
     entity_type: 'users',

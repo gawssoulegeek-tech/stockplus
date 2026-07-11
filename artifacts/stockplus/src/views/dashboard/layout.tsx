@@ -95,8 +95,11 @@ export default function DashboardLayout({
 
           // ✅ Vérifier que l'onboarding est complété
           // (sauf si on est déjà sur /onboarding pour éviter la boucle)
-          const currentPath = window.location.pathname
-          if (!profile.onboarding_completed && currentPath !== '/onboarding') {
+          // ⚠️ Résilient : si la colonne onboarding_completed n'existe pas (migration 004 non exécutée),
+          // on considère l'onboarding comme complété (pas de blocage)
+          const currentPath = typeof window !== 'undefined' ? window.location.pathname : ''
+          const onboardingDone = (profile as any)?.onboarding_completed ?? true  // fallback true si colonne inexistante
+          if (!onboardingDone && currentPath !== '/onboarding') {
             setIsLoading(false)
             navigate('/onboarding')
             return

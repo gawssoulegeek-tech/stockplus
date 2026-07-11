@@ -200,15 +200,15 @@ export default function OnboardingPage() {
         })
         .eq("uid", uid)
 
-      if (error) throw error
+      if (error) {
+        console.warn("[onboarding] Save questionnaire error (non-bloquant):", error.message)
+        // Si erreur de colonne manquante, on continue quand même vers le didacticiel
+      }
       setStep(2)
     } catch (e: any) {
       console.error("Save questionnaire error:", e)
-      toast({
-        variant: "destructive",
-        title: "Erreur",
-        description: "Impossible de sauvegarder vos réponses. Vérifiez que la migration 004 a été exécutée.",
-      })
+      // Non-bloquant : on continue vers le didacticiel même si la sauvegarde échoue
+      setStep(2)
     } finally {
       setIsSaving(false)
     }
@@ -227,7 +227,9 @@ export default function OnboardingPage() {
         })
         .eq("uid", uid)
 
-      if (error) throw error
+      if (error) {
+        console.warn("[onboarding] Complete error (non-bloquant):", error.message)
+      }
 
       toast({
         title: "Bienvenue sur StockPlus ! 🎉",
@@ -237,11 +239,8 @@ export default function OnboardingPage() {
       navigate("/dashboard")
     } catch (e: any) {
       console.error("Complete onboarding error:", e)
-      toast({
-        variant: "destructive",
-        title: "Erreur",
-        description: "Impossible de finaliser l'onboarding.",
-      })
+      // Non-bloquant : on va au dashboard même si la sauvegarde échoue
+      navigate("/dashboard")
     } finally {
       setIsSaving(false)
     }
