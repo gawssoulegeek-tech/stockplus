@@ -33,6 +33,7 @@ import { getSupabaseClient } from "@/supabase/client"
 import { useToast } from "@/hooks/use-toast"
 
 const AWA_AVATAR_URL = "/awa-avatar.json"
+const TUTORIAL_LOTTIE_URL = "https://lottie.host/c129ab85-a847-4276-bafc-f20aec6c1c7a/uRCLJDkr2t.json"
 
 interface BusinessInfo {
   sector: string
@@ -394,6 +395,13 @@ export default function OnboardingPage() {
                   const SlideIcon = slide.icon
                   return (
                     <div className="space-y-8">
+                      {/* Lottie animation */}
+                      <div className="flex justify-center">
+                        <div className="h-40 w-40 md:h-48 md:w-48">
+                          <Lottie path={TUTORIAL_LOTTIE_URL} loop={true} className="w-full h-full" />
+                        </div>
+                      </div>
+
                       <div className="flex items-center gap-4">
                         <div className={cn("h-14 w-14 rounded-2xl flex items-center justify-center", slide.color)}>
                           <SlideIcon className="h-7 w-7" />
