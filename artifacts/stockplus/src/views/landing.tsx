@@ -31,6 +31,7 @@ export default function LandingPage() {
   const [featuresLottieData, setFeaturesLottieData] = useState<any>(null)
   const [ctaLottieData, setCtaLottieData] = useState<any>(null)
   const [problemLottieData, setProblemLottieData] = useState<any>(null)
+  const [solutionLottieData, setSolutionLottieData] = useState<any>(null)
 
   useEffect(() => {
     setIsMounted(true)
@@ -49,6 +50,11 @@ export default function LandingPage() {
     fetch("/landing-problem.json")
       .then(res => res.ok && res.json())
       .then(data => data && setProblemLottieData(data))
+      .catch(() => {})
+    // Nouveau Lottie pour la section Solution
+    fetch("https://lottie.host/05c4e044-e2ad-4888-9795-6bd248d68a56/FtRsfbmGYZ.json")
+      .then(res => res.ok && res.json())
+      .then(data => data && setSolutionLottieData(data))
       .catch(() => {})
   }, [])
 
@@ -82,9 +88,9 @@ export default function LandingPage() {
         <ClassyHero />
 
         {/* SECTION 2: LE PROBLÈME */}
-        <section id="problemes" className="py-24 md:py-32 bg-gray-50/50 relative overflow-hidden">
+        <section id="problemes" className="py-16 md:py-24 lg:py-32 bg-gray-50/50 relative overflow-hidden">
           {problemLottieData && (
-            <div className="absolute right-0 top-1/2 -translate-y-1/2 w-[500px] h-[500px] opacity-30 pointer-events-none hidden lg:block">
+            <div className="absolute right-0 top-1/2 -translate-y-1/2 w-[280px] h-[280px] sm:w-[400px] sm:h-[400px] lg:w-[500px] lg:h-[500px] opacity-20 sm:opacity-30 pointer-events-none">
               <Lottie animationData={problemLottieData} loop={true} className="w-full h-full" />
             </div>
           )}
@@ -173,20 +179,22 @@ export default function LandingPage() {
                 </div>
               </div>
 
-              <div className="relative h-[500px] md:h-[650px] bg-orange-50 rounded-[3rem] p-1.5 flex items-center justify-center overflow-hidden shadow-2xl">
-                <div className="relative w-full h-full rounded-[2.8rem] overflow-hidden flex items-center justify-center bg-gradient-to-br from-orange-50 to-white">
-                  {featuresLottieData ? (
-                    <Lottie animationData={featuresLottieData} loop={true} className="w-full h-full scale-110" />
+              <div className="relative h-[400px] sm:h-[500px] md:h-[650px] bg-orange-50 rounded-[2rem] md:rounded-[3rem] p-1.5 flex items-center justify-center overflow-hidden shadow-2xl">
+                <div className="relative w-full h-full rounded-[1.8rem] md:rounded-[2.8rem] overflow-hidden flex items-center justify-center bg-gradient-to-br from-orange-50 to-white">
+                  {solutionLottieData ? (
+                    <Lottie animationData={solutionLottieData} loop={true} className="w-full h-full p-4 md:p-8" />
+                  ) : featuresLottieData ? (
+                    <Lottie animationData={featuresLottieData} loop={true} className="w-full h-full p-4 md:p-8" />
                   ) : solutionImage?.imageUrl ? (
                     <img src={solutionImage.imageUrl} alt="StockPlus Mobile" className="object-cover" />
                   ) : null}
                   <div className="absolute inset-0 bg-gradient-to-t from-gray-950 via-transparent to-transparent opacity-80" />
-                  <div className="absolute bottom-10 left-1/2 -translate-x-1/2 w-full px-8">
-                    <div className="glass-card p-8 rounded-[2rem] text-center border-white/20">
-                      <div className="h-14 w-14 bg-primary rounded-xl flex items-center justify-center mx-auto mb-4 shadow-2xl shadow-orange-500/50">
-                        <ShieldCheck className="h-7 w-7 text-white" />
+                  <div className="absolute bottom-6 md:bottom-10 left-1/2 -translate-x-1/2 w-full px-4 md:px-8">
+                    <div className="glass-card p-4 md:p-8 rounded-[1.5rem] md:rounded-[2rem] text-center border-white/20">
+                      <div className="h-10 w-10 md:h-14 md:w-14 bg-primary rounded-xl flex items-center justify-center mx-auto mb-3 md:mb-4 shadow-2xl shadow-orange-500/50">
+                        <ShieldCheck className="h-5 w-5 md:h-7 md:w-7 text-white" />
                       </div>
-                      <p className="text-2xl font-headline font-bold text-gray-900 leading-tight">
+                      <p className="text-lg md:text-2xl font-headline font-bold text-gray-900 leading-tight">
                         "Reprenez le contrôle total de vos profits."
                       </p>
                     </div>
@@ -403,24 +411,24 @@ export default function LandingPage() {
                        ))}
                     </div>
                  </div>
-                  <div className="bg-white p-12 rounded-[4rem] shadow-[0_40px_100px_-20px_rgba(0,0,0,0.1)] border-none space-y-10 relative overflow-hidden text-center hover:bg-orange-50/20 transition-colors duration-700 group">
+                  <div className="bg-white p-6 sm:p-10 md:p-12 rounded-[2rem] md:rounded-[4rem] shadow-[0_40px_100px_-20px_rgba(0,0,0,0.1)] border-none space-y-8 md:space-y-10 relative overflow-hidden text-center hover:bg-orange-50/20 transition-colors duration-700 group">
                      <div className="absolute top-0 left-0 w-full h-3 sena-gradient" />
                      {referData ? (
-                       <div className="h-48 w-48 mx-auto group-hover:scale-110 transition-transform duration-500">
+                       <div className="h-32 w-32 sm:h-40 sm:w-40 md:h-48 md:w-48 mx-auto group-hover:scale-110 transition-transform duration-500">
                          <Lottie animationData={referData} loop={true} className="w-full h-full" />
                        </div>
                      ) : (
-                       <div className="h-24 w-28 bg-orange-50 rounded-3xl flex items-center justify-center mx-auto group-hover:scale-110 transition-transform duration-500 shadow-inner">
-                          <Smartphone className="h-12 w-12 text-primary" />
+                       <div className="h-20 w-24 sm:h-24 sm:w-28 bg-orange-50 rounded-3xl flex items-center justify-center mx-auto group-hover:scale-110 transition-transform duration-500 shadow-inner">
+                          <Smartphone className="h-10 w-10 sm:h-12 sm:w-12 text-primary" />
                        </div>
                      )}
-                    <div className="space-y-4">
-                      <h3 className="text-3xl font-headline font-bold text-gray-900 leading-tight">Rejoignez les commerçants qui réussissent.</h3>
-                      <p className="text-gray-500 font-medium text-lg leading-relaxed">
+                    <div className="space-y-3 md:space-y-4">
+                      <h3 className="text-2xl md:text-3xl font-headline font-bold text-gray-900 leading-tight">Rejoignez les commerçants qui réussissent.</h3>
+                      <p className="text-gray-500 font-medium text-base md:text-lg leading-relaxed">
                         Plus qu'un simple logiciel, StockPlus est l'allié digital de votre boutique pour maximiser vos profits.
                       </p>
                     </div>
-                    <Button size="lg" className="h-20 px-12 rounded-full sena-gradient text-white w-full font-bold text-xl shadow-2xl shadow-orange-500/30 hover:scale-[1.03] transition-transform duration-300" asChild>
+                    <Button size="lg" className="h-16 md:h-20 px-8 md:px-12 rounded-full sena-gradient text-white w-full font-bold text-lg md:text-xl shadow-2xl shadow-orange-500/30 hover:scale-[1.03] transition-transform duration-300" asChild>
                       <Link href="/register">Essayer Gratuitement</Link>
                     </Button>
                   </div>
