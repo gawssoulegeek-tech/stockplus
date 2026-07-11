@@ -87,20 +87,27 @@ export async function POST(req: NextRequest) {
     })
 
     if (userInsertError) {
-      LOG('ÉCHEC insertion users', userInsertError)
-      return Response.json({ error: `Failed to create user profile: ${userInsertError.message}` }, { status: 500 })
+      LOG('ÉCHEC insertion users', { code: userInsertError.code, message: userInsertError.message, details: userInsertError.details, hint: userInsertError.hint })
+      // Rollback : supprimer l'Auth user qu'on vient de créer
+      await adminClient.auth.admin.deleteUser(uid)
+      return Response.json({
+        error: `Failed to create user profile: ${userInsertError.message}`,
+        code: userInsertError.code,
+        details: userInsertError.details,
+        hint: userInsertError.hint,
+      }, { status: 500 })
     }
 
     LOG('Insertion dans public.boutiques...', { boutiqueId, boutiqueName })
+    // ⚠️ La contrainte CHECK sur boutiques.status n'accepte que certaines valeurs.
+    // Au lieu de 'en_attente' (rejeté par le CHECK), on utilise 'Suspendu' qui est valide.
+    // Le superadmin pourra approuver via /saas → action 'approve' (passe à 'Essai').
     const { error: boutiqueInsertError } = await adminClient.from('boutiques').insert({
       id: boutiqueId,
       name: boutiqueName,
       owner_id: uid,
       plan: selectedPlan,
-      // ✅ Workflow d'approbation : les nouvelles boutiques sont 'en_attente'
-      // Le superadmin doit les approuver via /saas → action 'approve'
-      // (qui passe le statut à 'Essai' pour 14 jours)
-      status: isRoot ? 'Actif' : 'en_attente',
+      status: isRoot ? 'Actif' : 'Suspendu',
       trial_ends_at: isRoot ? null : trialEndsAt,
       features: getFeaturesForPlan(selectedPlan),
       team_members_count: MAX_GERANTS[selectedPlan] || 1,
@@ -109,9 +116,16 @@ export async function POST(req: NextRequest) {
     })
 
     if (boutiqueInsertError) {
-      LOG('ÉCHEC insertion boutique', boutiqueInsertError)
+      LOG('ÉCHEC insertion boutique', { code: boutiqueInsertError.code, message: boutiqueInsertError.message, details: boutiqueInsertError.details, hint: boutiqueInsertError.hint })
+      // Rollback : supprimer le user qu'on vient de créer
       await adminClient.from('users').delete().eq('uid', uid)
-      return Response.json({ error: `Failed to create boutique: ${boutiqueInsertError.message}` }, { status: 500 })
+      await adminClient.auth.admin.deleteUser(uid)
+      return Response.json({
+        error: `Failed to create boutique: ${boutiqueInsertError.message}`,
+        code: boutiqueInsertError.code,
+        details: boutiqueInsertError.details,
+        hint: boutiqueInsertError.hint,
+      }, { status: 500 })
     }
 
     await adminClient.from('users').update({ boutique_id: boutiqueId }).eq('uid', uid)

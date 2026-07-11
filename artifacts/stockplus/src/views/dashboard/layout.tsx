@@ -48,23 +48,12 @@ export default function DashboardLayout({
 
         const profile = await getUserProfile(supabase, session.user.id)
 
-        // ⚠️ Fix : Si pas de profil dans la table users, on crée un profil
-        // minimal à partir des données Auth pour éviter la boucle de redirection.
-        // Le superadmin sans profil aura quand même accès au dashboard.
+        // ⚠️ Si pas de profil dans la table users → rediriger vers pending-approval
+        // (au lieu de donner un rôle superadmin par défaut qui était un bug de sécurité)
         if (!profile) {
-          // Profil minimal basé sur les données Auth
-          const fallbackProfile = {
-            uid: session.user.id,
-            email: session.user.email || '',
-            name: session.user.user_metadata?.name || 'Utilisateur',
-            role: 'superadmin' as const,  // fallback : on suppose superadmin
-            boutique_id: undefined,
-            created_at: new Date().toISOString(),
-          }
-          setUserProfile(fallbackProfile)
+          console.warn('[Layout] Profil users manquant pour', session.user.email, '- redirection vers pending-approval')
           setIsLoading(false)
-          // ⚠️ Log pour diagnostic
-          console.warn('[Layout] Profil users manquant pour', session.user.email, '- utilisation du profil fallback. Créez le profil dans Supabase.')
+          navigate('/pending-approval')
           return
         }
 
@@ -76,6 +65,7 @@ export default function DashboardLayout({
           return
         }
 
+        // Owner/manager sans boutique → page d'attente
         if (!profile.boutique_id) {
           setIsLoading(false)
           navigate('/pending-approval')
@@ -95,8 +85,8 @@ export default function DashboardLayout({
             }
           }
 
-          // Statuts bloquants
-          const blockedStatuses = ['en_attente', 'Suspendu', 'refuse']
+          // Statuts bloquants (la contrainte CHECK Supabase n'accepte que ces valeurs)
+          const blockedStatuses = ['Suspendu', 'refuse']
           if (blockedStatuses.includes(boutiqueData.status)) {
             setIsLoading(false)
             navigate('/pending-approval')
