@@ -59,7 +59,7 @@ export default function DashboardLayout({
 
         setUserProfile(profile)
 
-        // Superadmin: pas besoin de charger une boutique
+        // Superadmin: pas besoin de charger une boutique ni onboarding
         if (profile.role === "superadmin") {
           setIsLoading(false)
           return
@@ -92,6 +92,16 @@ export default function DashboardLayout({
             navigate('/pending-approval')
             return
           }
+
+          // ✅ Vérifier que l'onboarding est complété
+          // (sauf si on est déjà sur /onboarding pour éviter la boucle)
+          const currentPath = window.location.pathname
+          if (!profile.onboarding_completed && currentPath !== '/onboarding') {
+            setIsLoading(false)
+            navigate('/onboarding')
+            return
+          }
+
           setBoutique(boutiqueData)
         }
         setIsLoading(false)

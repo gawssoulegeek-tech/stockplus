@@ -1,4 +1,4 @@
-// File: /home/runner/workspace/artifacts/stockplus/app/(public)/page.tsx
+// File: /home/z/my-project/stockplus-debug/artifacts/stockplus/app/(public)/page.tsx
 import * as entry from '../../../../app/(public)/page.js'
 import type { ResolvingMetadata, ResolvingViewport } from 'next/dist/lib/metadata/types/metadata-interface.js'
 

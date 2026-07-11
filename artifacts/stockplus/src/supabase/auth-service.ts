@@ -20,6 +20,9 @@ export interface UserProfile {
   role: 'owner' | 'manager' | 'superadmin'
   boutique_id?: string
   created_at: string
+  onboarding_completed?: boolean
+  business_sector?: string
+  business_team_size?: string
 }
 
 export interface BoutiqueData {
@@ -170,6 +173,9 @@ export async function getUserProfile(
       role: data.role,
       boutique_id: data.boutique_id,
       created_at: data.created_at,
+      onboarding_completed: (data as any).onboarding_completed ?? false,
+      business_sector: (data as any).business_sector,
+      business_team_size: (data as any).business_team_size,
     }
   } catch (error: any) {
     console.error('Error fetching user profile:', error)
