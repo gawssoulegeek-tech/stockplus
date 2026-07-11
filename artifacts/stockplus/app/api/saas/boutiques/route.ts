@@ -55,7 +55,7 @@ export async function PATCH(req: NextRequest) {
       case 'create': {
         LOG('=== Création boutique par admin ===')
         const { name, ownerName, ownerEmail, plan } = data as {
-          name?: string; ownerName?: string; ownerEmail?: string; plan?: string
+          name: string; ownerName: string; ownerEmail: string; plan?: string
         }
         LOG('Données reçues', { name, ownerName, ownerEmail, plan })
 
@@ -142,12 +142,12 @@ export async function PATCH(req: NextRequest) {
         if (boutiqueInsertError) {
           LOG('ÉCHEC Étape 3 (insert boutique)', boutiqueInsertError)
           // Nettoyage
-          await adminClient.from('users').delete().eq('uid', uid).catch(e =>
+          try { await adminClient.from('users').delete().eq('uid', uid) } catch (e) {
             LOG('Cleanup : échec suppression users', e)
-          )
-          await adminClient.auth.admin.deleteUser(uid).catch(e =>
+          }
+          try { await adminClient.auth.admin.deleteUser(uid) } catch (e) {
             LOG('Cleanup : échec suppression auth user', e)
-          )
+          }
           return Response.json({
             error: `Erreur création boutique: ${boutiqueInsertError.message}`,
             code: boutiqueInsertError.code,
