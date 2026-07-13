@@ -14,6 +14,10 @@ import {
   Minus,
   Eye,
   X,
+  Image as ImageIcon,
+  Loader2,
+  ScanLine,
+  FileText,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -84,6 +88,16 @@ export default function InventoryPage() {
     unit: "pièce",
     imageUrl: ""
   })
+
+  // Upload image (plan Basic)
+  const [imageUploading, setImageUploading] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
+  // Scan facture fournisseur (plan Pro)
+  const [scanDialogOpen, setScanDialogOpen] = useState(false)
+  const [scanLoading, setScanLoading] = useState(false)
+  const [scannedProducts, setScannedProducts] = useState<any[]>([])
+  const scanFileRef = useRef<HTMLInputElement>(null)
 
   const [stockDialog, setStockDialog] = useState<{ open: boolean; productId: string; productName: string; currentStock: number }>({ open: false, productId: '', productName: '', currentStock: 0 })
   const [stockQty, setStockQty] = useState("")
@@ -178,6 +192,153 @@ export default function InventoryPage() {
     } catch (e: any) {
       toast({ variant: "destructive", title: "Erreur", description: e.message })
     }
+  }
+
+  // 📸 Upload image produit (plan Basic)
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file || !boutique) return
+
+    // Validation
+    if (file.size > 2 * 1024 * 1024) {
+      toast({ variant: "destructive", title: "Image trop lourde", description: "Maximum 2 Mo." })
+      return
+    }
+    if (!file.type.startsWith('image/')) {
+      toast({ variant: "destructive", title: "Format invalide", description: "Choisissez une image (PNG, JPG, WebP)." })
+      return
+    }
+
+    setImageUploading(true)
+    try {
+      const supabase = getSupabaseClient()
+      const ext = file.name.split('.').pop()?.toLowerCase() || 'jpg'
+      const fileName = `${boutique.id}/products/${Date.now()}.${ext}`
+
+      const { error: uploadErr } = await supabase.storage
+        .from('products')
+        .upload(fileName, file, { cacheControl: '3600', upsert: false })
+
+      if (uploadErr) throw uploadErr
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('products')
+        .getPublicUrl(fileName)
+
+      setNewProduct(prev => ({ ...prev, imageUrl: publicUrl }))
+      toast({ title: "Image uploadée", description: "L'image du produit a été ajoutée." })
+    } catch (e: any) {
+      console.error('Image upload error:', e)
+      // Fallback : utiliser l'URL externe ou un placeholder
+      toast({
+        variant: "destructive",
+        title: "Upload échoué",
+        description: "Le bucket Storage 'products' n'existe pas. Créez-le dans Supabase → Storage."
+      })
+    } finally {
+      setImageUploading(false)
+      if (fileInputRef.current) fileInputRef.current.value = ''
+    }
+  }
+
+  // 📄 Scan facture fournisseur (plan Pro) via Gemini IA
+  const handleScanInvoice = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file || !boutique) return
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast({ variant: "destructive", title: "Fichier trop lourd", description: "Maximum 5 Mo." })
+      return
+    }
+
+    setScanLoading(true)
+    setScannedProducts([])
+    setScanDialogOpen(true)
+
+    try {
+      // Convertir en base64
+      const base64 = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader()
+        reader.onload = () => {
+          const result = reader.result as string
+          const base64Data = result.split(',')[1]
+          resolve(base64Data)
+        }
+        reader.onerror = reject
+        reader.readAsDataURL(file)
+      })
+
+      // Appeler l'API IA d'extraction de facture
+      const { data: { session } } = await getSupabaseClient().auth.getSession()
+      const res = await fetch('/api/ai/invoice-extract', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${session?.access_token || ''}`,
+        },
+        body: JSON.stringify({
+          invoiceDataUri: `data:${file.type};base64,${base64}`,
+        }),
+      })
+
+      if (!res.ok) {
+        const err = await res.json()
+        throw new Error(err.error || 'Erreur lors du scan')
+      }
+
+      const data = await res.json()
+      const extracted = data.products || []
+      setScannedProducts(extracted)
+
+      if (extracted.length === 0) {
+        toast({ variant: "destructive", title: "Aucun produit détecté", description: "L'IA n'a pas trouvé de produits sur cette facture." })
+      } else {
+        toast({ title: "Facture scannée", description: `${extracted.length} produits détectés. Vérifiez et validez.` })
+      }
+    } catch (e: any) {
+      console.error('Scan invoice error:', e)
+      toast({ variant: "destructive", title: "Erreur scan", description: e.message })
+    } finally {
+      setScanLoading(false)
+      if (scanFileRef.current) scanFileRef.current.value = ''
+    }
+  }
+
+  // Importer en stock les produits scannés
+  const importScannedProducts = async () => {
+    if (!boutique || scannedProducts.length === 0) return
+    const supabase = getSupabaseClient()
+    let imported = 0
+
+    for (const p of scannedProducts) {
+      try {
+        const product = await productService.createProduct(supabase, boutique.id, {
+          name: p.name,
+          sku: `SKU-${Date.now().toString(36).toUpperCase()}-${imported}`,
+          cost_price: Math.round(p.purchasePrice || 0),
+          price_retail: Math.round((p.purchasePrice || 0) * 1.3), // +30% marge par défaut
+          quantity_in_stock: p.quantity || 0,
+          category: 'Importé',
+          is_active: true,
+        })
+
+        if ((p.quantity || 0) > 0) {
+          await stockService.createStockMove(supabase, boutique.id, product.id, StockMoveType.PURCHASE, p.quantity, {
+            reason: `Import facture (${p.name})`,
+            recorded_by: userProfile?.name,
+          })
+        }
+        imported++
+      } catch (e) {
+        console.error('Import product error:', e)
+      }
+    }
+
+    // Refresh products list
+    refreshProducts()
+    setScanDialogOpen(false)
+    setScannedProducts([])
+    toast({ title: "Import terminé", description: `${imported} produit(s) ajouté(s) au stock.` })
   }
 
   const handleStockAdd = async () => {
@@ -297,6 +458,26 @@ export default function InventoryPage() {
             <Upload className="h-4 w-4 mr-2" />
             Importer
           </Button>
+          {/* 🔍 Scan facture fournisseur (plan Pro uniquement) */}
+          {features.supplierInvoiceScan && (
+            <>
+              <input
+                ref={scanFileRef}
+                type="file"
+                accept="image/*,application/pdf"
+                onChange={handleScanInvoice}
+                className="hidden"
+              />
+              <Button
+                variant="outline"
+                onClick={() => scanFileRef.current?.click()}
+                className="h-12 px-6 rounded-xl border-primary text-primary font-bold hover:bg-orange-50"
+              >
+                <ScanLine className="h-4 w-4 mr-2" />
+                Scanner Facture
+              </Button>
+            </>
+          )}
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
               <Button className="sena-gradient text-white border-none rounded-xl h-12 px-6 font-bold shadow-lg">
@@ -309,6 +490,52 @@ export default function InventoryPage() {
                 <DialogTitle className="text-2xl font-headline">Ajouter au Catalogue</DialogTitle>
               </DialogHeader>
               <form onSubmit={handleAddProduct} className="space-y-4 py-4">
+                {/* 📸 Upload image produit */}
+                <div className="space-y-2">
+                  <Label>Image du produit</Label>
+                  <div className="flex items-center gap-4">
+                    {newProduct.imageUrl ? (
+                      <div className="relative h-20 w-20 rounded-2xl overflow-hidden border-2 border-gray-100">
+                        <img src={newProduct.imageUrl} alt="Aperçu" className="w-full h-full object-cover" />
+                        <button
+                          type="button"
+                          onClick={() => setNewProduct({ ...newProduct, imageUrl: "" })}
+                          className="absolute top-1 right-1 h-6 w-6 rounded-full bg-red-500 text-white flex items-center justify-center hover:bg-red-600"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="h-20 w-20 rounded-2xl bg-gray-50 border-2 border-dashed border-gray-200 flex items-center justify-center">
+                        <ImageIcon className="h-8 w-8 text-gray-300" />
+                      </div>
+                    )}
+                    <div className="flex-1">
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept="image/*"
+                        onChange={handleImageUpload}
+                        className="hidden"
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => fileInputRef.current?.click()}
+                        disabled={imageUploading}
+                        className="h-11 rounded-xl font-bold border-gray-200 w-full"
+                      >
+                        {imageUploading ? (
+                          <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Upload...</>
+                        ) : (
+                          <><Upload className="h-4 w-4 mr-2" /> {newProduct.imageUrl ? "Changer" : "Upload"}</>
+                        )}
+                      </Button>
+                      <p className="text-[10px] text-gray-400 mt-1">PNG, JPG, WebP — max 2 Mo</p>
+                    </div>
+                  </div>
+                </div>
+
                 <div className="space-y-2">
                   <Label>Nom du produit</Label>
                   <Input
@@ -601,6 +828,76 @@ export default function InventoryPage() {
                   )}
                 </div>
               </ScrollArea>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* 📄 Dialogue scan facture fournisseur */}
+      <Dialog open={scanDialogOpen} onOpenChange={setScanDialogOpen}>
+        <DialogContent className="sm:max-w-[600px] rounded-[2.5rem] p-8">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-headline flex items-center gap-2">
+              <FileText className="h-6 w-6 text-primary" />
+              Scan Facture Fournisseur
+            </DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            {scanLoading ? (
+              <div className="flex flex-col items-center justify-center py-16 gap-4">
+                <Loader2 className="h-12 w-12 text-primary animate-spin" />
+                <p className="text-gray-500 font-medium">Analyse de la facture en cours...</p>
+                <p className="text-xs text-gray-400">L'IA Awa détecte les produits automatiquement.</p>
+              </div>
+            ) : scannedProducts.length > 0 ? (
+              <div className="space-y-4">
+                <p className="text-sm text-gray-500">
+                  {scannedProducts.length} produit(s) détecté(s). Vérifiez et cliquez sur "Importer".
+                </p>
+                <div className="max-h-80 overflow-y-auto space-y-2">
+                  {scannedProducts.map((p, i) => (
+                    <div key={i} className="flex items-center justify-between p-3 rounded-xl bg-gray-50">
+                      <div className="flex-1">
+                        <p className="font-bold text-gray-900">{p.name}</p>
+                        <p className="text-xs text-gray-500">
+                          Qté: {p.quantity} • Prix achat: {(p.purchasePrice || 0).toLocaleString()} CFA
+                        </p>
+                      </div>
+                      <Badge className="bg-orange-50 text-primary">
+                        Prix vente: {Math.round((p.purchasePrice || 0) * 1.3).toLocaleString()} CFA
+                      </Badge>
+                    </div>
+                  ))}
+                </div>
+                <div className="flex gap-3 pt-2">
+                  <Button
+                    variant="outline"
+                    onClick={() => { setScanDialogOpen(false); setScannedProducts([]) }}
+                    className="flex-1 h-12 rounded-xl font-bold"
+                  >
+                    Annuler
+                  </Button>
+                  <Button
+                    onClick={importScannedProducts}
+                    className="flex-1 h-12 sena-gradient text-white rounded-xl font-bold"
+                  >
+                    <Upload className="h-4 w-4 mr-2" />
+                    Importer ({scannedProducts.length})
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <div className="text-center py-10">
+                <p className="text-gray-400">Aucun produit détecté.</p>
+                <Button
+                  variant="outline"
+                  onClick={() => scanFileRef.current?.click()}
+                  className="mt-4 h-12 rounded-xl font-bold"
+                >
+                  <ScanLine className="h-4 w-4 mr-2" />
+                  Réessayer
+                </Button>
+              </div>
             )}
           </div>
         </DialogContent>
