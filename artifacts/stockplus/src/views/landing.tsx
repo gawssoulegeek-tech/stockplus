@@ -381,37 +381,37 @@ export default function LandingPage() {
               </div>
             </div>
 
-            {/* Modules Premium */}
-            <div className="mt-24 max-w-4xl mx-auto">
+            {/* Types de boutiques compatibles */}
+            <div className="mt-24 max-w-5xl mx-auto">
               <div className="text-center mb-12">
-                <Badge className="bg-blue-50 text-blue-600 border-none px-6 py-2 rounded-full font-black text-xs tracking-widest uppercase mb-4">Modules Premium</Badge>
+                <Badge className="bg-blue-50 text-blue-600 border-none px-6 py-2 rounded-full font-black text-xs tracking-widest uppercase mb-4">Boutiques compatibles</Badge>
                 <h3 className="text-3xl md:text-4xl font-headline font-bold text-gray-900 tracking-tighter">
-                  Personnalisez votre boutique
+                  StockPlus s'adapte à votre commerce
                 </h3>
                 <p className="text-lg text-gray-500 font-medium mt-3">
-                  Ajoutez des fonctionnalités à la carte, quel que soit votre plan.
+                  Conçu pour tous les types de boutiques au Sénégal et en Afrique de l'Ouest.
                 </p>
               </div>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 {[
-                  { name: "Import Chine", price: "2 500", emoji: "🌍" },
-                  { name: "Unités de mesure", price: "2 500", emoji: "📏" },
-                  { name: "Multi-panier", price: "2 500", emoji: "🛒" },
-                  { name: "Rapports avancés", price: "2 500", emoji: "📊" },
-                  { name: "Fidélité", price: "2 500", emoji: "⭐" },
-                  { name: "WhatsApp Business", price: "2 500", emoji: "💬" },
-                  { name: "Restaurant", price: "5 000", emoji: "🍽️" },
-                  { name: "Multi-boutiques", price: "10 000", emoji: "🏪" },
-                ].map((mod, i) => (
-                  <div key={i} className="p-6 rounded-2xl border border-gray-100 bg-white hover:border-blue-200 transition-all text-center group">
-                    <div className="text-3xl mb-3 group-hover:scale-110 transition-transform">{mod.emoji}</div>
-                    <p className="font-bold text-gray-900 text-sm mb-1">{mod.name}</p>
-                    <p className="text-primary font-headline font-bold text-lg">{mod.price} <span className="text-[10px] text-gray-400 uppercase tracking-widest">CFA</span></p>
+                  { name: "Épicerie & Alimentation", emoji: "🛒", desc: "Gestion du stock, péremption, ventes en gros & détail" },
+                  { name: "Textile & Wax", emoji: "🧵", desc: "Vente au mètre, lots, gestion des coloris et tailles" },
+                  { name: "Cosmétiques & Beauté", emoji: "💄", desc: "Catalogue produit, fidélité clients, ventes à crédit" },
+                  { name: "Électronique & Téléphonie", emoji: "📱", desc: "Numéros de série, garantie, accessoires" },
+                  { name: "Restaurant & Restauration", emoji: "🍽️", desc: "Menu, caisse rapide, gestion des tables" },
+                  { name: "Quincaillerie & Bricolage", emoji: "🔨", desc: "Vente au kilo, au mètre, stock en gros" },
+                  { name: "Pharmacie & Santé", emoji: "💊", desc: "Lots, dates de péremption, ordonnances" },
+                  { name: "Boutique générale", emoji: "🏪", desc: "Multi-catégories, tout type de produits" },
+                ].map((shop, i) => (
+                  <div key={i} className="p-6 rounded-2xl border border-gray-100 bg-white hover:border-orange-200 hover:shadow-lg transition-all text-center group">
+                    <div className="text-4xl mb-3 group-hover:scale-110 transition-transform">{shop.emoji}</div>
+                    <p className="font-bold text-gray-900 text-sm mb-2">{shop.name}</p>
+                    <p className="text-xs text-gray-400 font-medium leading-relaxed">{shop.desc}</p>
                   </div>
                 ))}
               </div>
               <p className="text-center text-sm text-gray-400 font-medium mt-8">
-                + Scanner code-barres, Paiement Wave, Orange Money, SMS, Pharmacie, Balance, Étiquettes...
+                + Boutiques de chaussures, librairie, pièces auto, accessoires mode, et bien d'autres...
               </p>
             </div>
           </div>
