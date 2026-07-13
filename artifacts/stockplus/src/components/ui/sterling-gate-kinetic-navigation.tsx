@@ -115,9 +115,7 @@ export function KineticNavigation() {
         <header className="w-full py-2 px-6 pointer-events-auto transition-all">
           <div className="max-w-7xl mx-auto flex items-center justify-between h-12">
             <Link href="/" className="flex items-center gap-2 group">
-              <div className="h-6 w-6 md:h-8 md:w-8 rounded-lg sena-gradient flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
-                <Sparkles className="h-3 w-3 md:h-4 md:w-4 text-white" />
-              </div>
+              <img src="/logo.png" alt="StockPlus" className="h-6 w-6 md:h-8 md:w-8 rounded-lg object-contain group-hover:scale-110 transition-transform" />
               <span className="font-headline font-bold text-sm md:text-base tracking-tighter text-white drop-shadow-md">StockPlus</span>
             </Link>
             <div className="flex items-center gap-3">

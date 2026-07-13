@@ -98,8 +98,8 @@ export default function LoginPage() {
       <div className="w-full max-w-md space-y-8">
         <Card className="border-gray-100 shadow-2xl rounded-[2.5rem] bg-white overflow-hidden">
           <CardHeader className="space-y-4 pt-12 text-center">
-            <div className="mx-auto h-16 w-16 rounded-2xl sena-gradient flex items-center justify-center shadow-xl shadow-orange-500/20 mb-4">
-              <Sparkles className="h-10 w-10 text-white" />
+            <div className="mx-auto h-16 w-16 rounded-2xl flex items-center justify-center mb-4">
+              <img src="/logo.png" alt="StockPlus" className="h-16 w-16 object-contain" />
             </div>
             <CardTitle className="text-4xl font-headline font-bold text-primary tracking-tight">Espace Client</CardTitle>
             <CardDescription className="text-gray-500 font-medium text-lg">

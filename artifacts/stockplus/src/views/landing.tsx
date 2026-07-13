@@ -476,9 +476,7 @@ export default function LandingPage() {
               <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-16">
                  <div className="space-y-8 col-span-1 lg:col-span-1">
                     <div className="flex items-center gap-3">
-                       <div className="h-12 w-12 rounded-2xl sena-gradient flex items-center justify-center shadow-lg shadow-orange-500/20">
-                          <Sparkles className="h-7 w-7 text-white" />
-                       </div>
+                       <img src="/logo.png" alt="StockPlus" className="h-12 w-12 object-contain" />
                        <span className="text-3xl font-headline font-bold text-gray-900 tracking-tighter">StockPlus</span>
                     </div>
                     <p className="text-gray-400 font-medium text-lg leading-relaxed">

@@ -103,8 +103,8 @@ function RegisterForm() {
     <Card className="border-gray-100 shadow-2xl rounded-[3rem] bg-white overflow-hidden relative">
       <div className="absolute top-0 left-0 w-full h-2 sena-gradient" />
       <CardHeader className="space-y-4 pt-16 text-center">
-        <div className="mx-auto h-20 w-20 rounded-3xl sena-gradient flex items-center justify-center shadow-2xl shadow-orange-500/20 mb-4">
-          <Sparkles className="h-10 w-10 text-white" />
+        <div className="mx-auto h-20 w-20 rounded-3xl flex items-center justify-center mb-4">
+          <img src="/logo.png" alt="StockPlus" className="h-20 w-20 object-contain" />
         </div>
         <CardTitle className="text-4xl font-headline font-bold text-gray-900 tracking-tighter">Lancez votre boutique</CardTitle>
         <CardDescription className="text-gray-500 font-medium text-lg">

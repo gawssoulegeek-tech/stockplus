@@ -120,9 +120,7 @@ export function AppSidebar() {
     <Sidebar collapsible="icon" className="border-r border-gray-100 bg-white">
       <SidebarHeader className="px-4 py-6">
         <div className="flex items-center gap-3">
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl sena-gradient shadow-lg shadow-orange-500/20 shrink-0">
-            <Sparkles className="h-5 w-5 text-white" />
-          </div>
+          <img src="/logo.png" alt="StockPlus" className="h-9 w-9 rounded-xl object-contain shrink-0" />
           <div className="flex flex-col group-data-[collapsible=icon]:hidden overflow-hidden">
             <span className="font-headline font-bold text-xl tracking-tight text-gray-900 uppercase">StockPlus</span>
           </div>

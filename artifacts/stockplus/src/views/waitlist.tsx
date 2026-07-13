@@ -171,8 +171,8 @@ export default function WaitlistPage() {
             </div>
 
             <div className="space-y-4 text-center">
-              <div className="mx-auto h-16 w-16 rounded-3xl sena-gradient flex items-center justify-center shadow-2xl shadow-orange-500/20">
-                <Sparkles className="h-8 w-8 text-white" />
+              <div className="mx-auto h-16 w-16 rounded-2xl flex items-center justify-center">
+                <img src="/logo.png" alt="StockPlus" className="h-16 w-16 object-contain" />
               </div>
               <div>
                 <h1 className="text-3xl font-headline font-bold text-gray-900 tracking-tighter">

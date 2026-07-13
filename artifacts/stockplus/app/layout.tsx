@@ -5,6 +5,10 @@ import '@/index.css'
 export const metadata: Metadata = {
   title: 'StockPlus — Gestion de boutique',
   description: 'Gérez votre inventaire, vos ventes et votre boutique avec StockPlus.',
+  icons: {
+    icon: '/logo.png',
+    apple: '/logo.png',
+  },
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
