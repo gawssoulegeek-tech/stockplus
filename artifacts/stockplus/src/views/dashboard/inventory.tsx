@@ -88,6 +88,7 @@ export default function InventoryPage() {
     price: "",
     stock: "",
     unit: "pièce",
+    unitContent: "",  // nombre d'unités de base par unité (ex: 1 carton = 24 pièces)
     imageUrl: ""
   })
 
@@ -173,6 +174,10 @@ export default function InventoryPage() {
     if (!newProduct.name || !newProduct.price || !boutique) return
 
     const stockVal = parseInt(newProduct.stock) || 0
+    const unitContent = parseInt(newProduct.unitContent) || 1  // défaut 1 (ex: 1 pièce = 1 pièce)
+    // Stock total en unités de base (pièces) = nombre d'unités × contenu par unité
+    // Ex: 10 cartons × 24 pièces = 240 pièces
+    const totalStockInPieces = stockVal * unitContent
     const supabase = getSupabaseClient()
 
     try {
@@ -181,21 +186,32 @@ export default function InventoryPage() {
         category: newProduct.category || "Général",
         sku: `SKU-${Date.now().toString(36).toUpperCase()}-${Math.floor(Math.random() * 9999).toString().padStart(4, '0')}`,
         price_retail: parseInt(newProduct.price),
-        quantity_in_stock: stockVal,
-        unit_of_measure: features.units ? newProduct.unit : "pcs",
+        quantity_in_stock: totalStockInPieces,  // stock total en unités de base
+        unit_of_measure: newProduct.unit,
+        // unit_content stocké dans metadata ou colonne dédiée (migration 007)
         image_url: newProduct.imageUrl || "https://picsum.photos/seed/placeholder/400/400",
       })
 
-      if (stockVal > 0) {
-        await stockService.createStockMove(supabase, boutique.id, product.id, StockMoveType.PURCHASE, stockVal, {
-          reason: "Initialisation stock",
+      // Mettre à jour unit_content si la colonne existe
+      if (unitContent > 1) {
+        await supabase
+          .from('products')
+          .update({ unit_content: unitContent } as any)
+          .eq('id', product.id)
+          .then(() => {})
+          .catch(() => {})  // non-bloquant si colonne inexistante
+      }
+
+      if (totalStockInPieces > 0) {
+        await stockService.createStockMove(supabase, boutique.id, product.id, StockMoveType.PURCHASE, totalStockInPieces, {
+          reason: `Initialisation stock (${stockVal} ${newProduct.unit}${stockVal > 1 ? 's' : ''} × ${unitContent})`,
           recorded_by: userProfile?.name,
         })
       }
 
-      setProducts(prev => [product, ...prev])
+      setProducts(prev => [{ ...product, unit_content: unitContent } as any, ...prev])
       setIsDialogOpen(false)
-      setNewProduct({ name: "", category: "", price: "", stock: "", unit: "pièce", imageUrl: "" })
+      setNewProduct({ name: "", category: "", price: "", stock: "", unit: "pièce", unitContent: "", imageUrl: "" })
       toast({ title: "Produit ajouté", description: "L'inventaire a été mis à jour." })
     } catch (e: any) {
       toast({ variant: "destructive", title: "Erreur", description: e.message })
@@ -684,20 +700,25 @@ export default function InventoryPage() {
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
+                    <Label>Stock initial</Label>
+                    <div className="relative">
+                      <Input
+                        type="number"
+                        value={newProduct.stock}
+                        onChange={e => setNewProduct({...newProduct, stock: e.target.value})}
+                        className="h-12 rounded-xl pr-16" required
+                      />
+                      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-gray-400">
+                        {newProduct.unit}{(parseInt(newProduct.stock) || 0) > 1 ? 's' : ''}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="space-y-2">
                     <Label>Prix (CFA)</Label>
                     <Input
                       type="number"
                       value={newProduct.price}
                       onChange={e => setNewProduct({...newProduct, price: e.target.value})}
-                      className="h-12 rounded-xl" required
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Stock initial</Label>
-                    <Input
-                      type="number"
-                      value={newProduct.stock}
-                      onChange={e => setNewProduct({...newProduct, stock: e.target.value})}
                       className="h-12 rounded-xl" required
                     />
                   </div>
@@ -726,6 +747,34 @@ export default function InventoryPage() {
                     </SelectContent>
                   </Select>
                 </div>
+
+                {/* Contenu par unité (quantité d'unités de base par unité) */}
+                {newProduct.unit !== "pièce" && (
+                  <div className="space-y-2">
+                    <Label>
+                      Contenu par unité <span className="text-gray-400 font-normal">(nombre de pièces par {newProduct.unit})</span>
+                    </Label>
+                    <div className="flex items-center gap-3">
+                      <Input
+                        type="number"
+                        value={newProduct.unitContent}
+                        onChange={e => setNewProduct({...newProduct, unitContent: e.target.value})}
+                        placeholder="Ex: 24"
+                        className="h-12 rounded-xl"
+                        min="1"
+                      />
+                      <span className="text-xs text-gray-500 whitespace-nowrap">
+                        = 1 {newProduct.unit}
+                      </span>
+                    </div>
+                    {newProduct.unitContent && parseInt(newProduct.unitContent) > 0 && newProduct.stock && (
+                      <p className="text-xs text-primary font-bold">
+                        → Stock total : {parseInt(newProduct.stock) * parseInt(newProduct.unitContent)} pièces
+                        ({newProduct.stock} {newProduct.unit}s × {newProduct.unitContent})
+                      </p>
+                    )}
+                  </div>
+                )}
 
                 <Button type="submit" className="w-full sena-gradient text-white h-14 rounded-2xl font-bold text-lg shadow-xl shadow-orange-500/20">
                   Enregistrer
