@@ -171,44 +171,43 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
 
-        {/* Upgrade Card for Basic Users */}
+        {/* Upgrade Card for Basic Users — compact */}
         {plan === "Basic" && status !== "Essai" && role !== 'superadmin' && (
-          <div className="px-4 py-8 group-data-[collapsible=icon]:hidden">
-            <div className="rounded-[2.5rem] p-8 bg-gray-900 text-white shadow-2xl relative overflow-hidden group hover:scale-[1.02] transition-transform duration-300">
-              <div className="absolute -top-4 -right-4 h-24 w-24 bg-primary/20 rounded-full blur-2xl" />
-              <div className="relative z-10 space-y-4">
+          <div className="px-3 py-3 group-data-[collapsible=icon]:hidden">
+            <div className="rounded-xl p-4 bg-gray-900 text-white shadow-lg relative overflow-hidden">
+              <div className="relative z-10 space-y-2">
                 <div className="flex items-center gap-2">
-                  <Star className="h-4 w-4 text-primary fill-primary" />
-                  <span className="text-xs font-black text-primary uppercase tracking-widest">Plan Pro — 25K</span>
+                  <Star className="h-3 w-3 text-primary fill-primary" />
+                  <span className="text-[10px] font-black text-primary uppercase tracking-widest">Plan Pro — 25K</span>
                 </div>
-                <p className="text-[11px] text-gray-400 font-bold leading-relaxed">Débloquez l'IA Awa complète, le multi-panier et les rapports financiers.</p>
-                <Button size="sm" className="w-full h-11 text-[10px] font-black uppercase tracking-widest sena-gradient border-none rounded-xl">Mettre à niveau</Button>
+                <p className="text-[10px] text-gray-400 font-medium leading-tight">Débloquez l'IA Awa et les rapports avancés.</p>
+                <Button size="sm" className="w-full h-9 text-[9px] font-black uppercase tracking-widest sena-gradient border-none rounded-lg">Mettre à niveau</Button>
               </div>
             </div>
           </div>
         )}
 
         {status === "Essai" && role !== 'superadmin' && (
-          <div className="px-4 py-6 group-data-[collapsible=icon]:hidden">
-            <div className="rounded-[2rem] p-6 bg-orange-50 border border-orange-100 space-y-4 shadow-inner">
+          <div className="px-3 py-3 group-data-[collapsible=icon]:hidden">
+            <div className="rounded-xl p-3 bg-orange-50 border border-orange-100 space-y-2 shadow-inner">
               <div className="flex justify-between items-center">
-                 <div className="h-10 w-10">
+                 <div className="h-8 w-8">
                    {awaData && <Lottie animationData={awaData} loop={true} className="w-full h-full" />}
                  </div>
-                 <Badge className="bg-primary text-white border-none font-black text-[8px] uppercase tracking-widest px-3">Essai Pro</Badge>
+                 <Badge className="bg-primary text-white border-none font-black text-[8px] uppercase tracking-widest px-2">Essai</Badge>
               </div>
-              <div className="space-y-2">
-                <div className="flex justify-between items-center text-[9px] font-black text-gray-400 uppercase tracking-widest">
-                  <span>Usage IA</span>
+              <div className="space-y-1">
+                <div className="flex justify-between items-center text-[8px] font-black text-gray-400 uppercase tracking-widest">
+                  <span>IA</span>
                   <span>4 / {DAILY_TRIAL_LIMIT}</span>
                 </div>
-                <Progress value={80} className="h-1.5 bg-orange-100" />
+                <Progress value={80} className="h-1 bg-orange-100" />
               </div>
             </div>
           </div>
         )}
       </SidebarContent>
-      <SidebarFooter className="p-4 border-t border-gray-50">
+      <SidebarFooter className="p-3 border-t border-gray-50">
         <SidebarMenu>
           <SidebarMenuItem>
             <DropdownMenu>
