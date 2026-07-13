@@ -486,39 +486,76 @@ export default function POSPage() {
 
       <Dialog open={isInvoiceOpen} onOpenChange={setIsInvoiceOpen}>
         <DialogContent className="sm:max-w-[550px] p-0 rounded-[3rem] border-none">
-          <div className="bg-white p-10 space-y-8">
-            <div className="flex justify-between items-center">
-              <div className="h-16 w-16 rounded-2xl sena-gradient flex items-center justify-center shadow-lg"><Store className="text-white" /></div>
-              <div className="text-right">
-                <h2 className="text-2xl font-headline font-bold">{lastSale?.invoiceNumber || `#${lastSale?.id?.slice(-6)}`}</h2>
-                <p className="text-xs text-gray-400">{new Date(lastSale?.date || '').toLocaleString()}</p>
+          <div className="bg-white p-8 space-y-6 invoice-print">
+            {/* En-tête facture */}
+            <div className="text-center space-y-3 pb-4 border-b-2 border-dashed border-gray-200">
+              <div className="h-14 w-14 rounded-2xl sena-gradient flex items-center justify-center shadow-lg mx-auto"><Store className="text-white h-7 w-7" /></div>
+              <div>
+                <h2 className="text-xl font-headline font-bold text-gray-900">{boutique?.name || 'Ma Boutique'}</h2>
+                {boutique?.phone_number && <p className="text-xs text-gray-500">Tél : {boutique.phone_number}</p>}
+                {boutique?.location && <p className="text-xs text-gray-500">{boutique.location}</p>}
               </div>
             </div>
-            <div className="divide-y border-y py-4">
+
+            {/* Numéro facture + date */}
+            <div className="flex justify-between items-center text-sm">
+              <div>
+                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Facture</p>
+                <p className="font-bold text-gray-900">{lastSale?.invoiceNumber || `#${lastSale?.id?.slice(-6)}`}</p>
+              </div>
+              <div className="text-right">
+                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Date</p>
+                <p className="font-bold text-gray-900">{lastSale?.date ? new Date(lastSale.date).toLocaleDateString('fr-FR') : '—'}</p>
+                <p className="text-xs text-gray-500">{lastSale?.date ? new Date(lastSale.date).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : ''}</p>
+              </div>
+            </div>
+
+            {/* Articles */}
+            <div className="border-y-2 border-dashed border-gray-200 py-3">
+              <div className="grid grid-cols-12 gap-2 text-[10px] font-black text-gray-400 uppercase tracking-widest pb-2 border-b border-gray-100">
+                <div className="col-span-6">Article</div>
+                <div className="col-span-2 text-center">Qté</div>
+                <div className="col-span-2 text-right">Prix</div>
+                <div className="col-span-2 text-right">Total</div>
+              </div>
               {lastSale?.products.map((p: any, i: number) => (
-                <div key={i} className="flex justify-between py-2 text-sm">
-                  <span className="font-medium">{p.qty}x {p.name}</span>
-                  <span className="font-bold">{(p.qty * p.price).toLocaleString()} CFA</span>
+                <div key={i} className="grid grid-cols-12 gap-2 py-2 text-sm border-b border-gray-50">
+                  <div className="col-span-6 font-medium text-gray-900">{p.name}</div>
+                  <div className="col-span-2 text-center text-gray-600">{p.qty}</div>
+                  <div className="col-span-2 text-right text-gray-600">{(p.price || 0).toLocaleString()}</div>
+                  <div className="col-span-2 text-right font-bold text-gray-900">{(p.qty * p.price || 0).toLocaleString()}</div>
                 </div>
               ))}
             </div>
-            {lastSale?.discountAmount > 0 && (
-              <div className="flex justify-between items-center text-sm">
-                <span className="text-gray-400">Remise</span>
-                <span className="font-bold text-red-500">-{(lastSale.discountAmount || 0).toLocaleString()} CFA</span>
+
+            {/* Totaux */}
+            <div className="space-y-2">
+              {lastSale?.discountAmount > 0 && (
+                <div className="flex justify-between items-center text-sm">
+                  <span className="text-gray-500">Remise</span>
+                  <span className="font-bold text-red-500">-{(lastSale.discountAmount || 0).toLocaleString()} CFA</span>
+                </div>
+              )}
+              <div className="flex justify-between items-center pt-2 border-t border-gray-100">
+                <span className="font-bold text-gray-900 uppercase tracking-widest text-xs">Total</span>
+                <span className="text-2xl font-headline font-bold text-primary">{(lastSale?.total || 0).toLocaleString()} CFA</span>
               </div>
-            )}
-            <div className="flex justify-between items-center pt-4">
-              <span className="font-bold text-gray-400 uppercase tracking-widest text-xs">Total Net</span>
-              <span className="text-3xl font-headline font-bold text-primary">{(lastSale?.total || 0).toLocaleString()} CFA</span>
             </div>
-            <div className="flex gap-4 pt-4">
-               <Button className="flex-1 h-14 rounded-2xl font-bold gap-2" variant="outline" onClick={() => window.print()}>
-                 <Printer className="h-4 w-4" /> Imprimer
-               </Button>
-               <Button className="flex-1 h-14 sena-gradient text-white rounded-2xl font-bold" onClick={() => setIsInvoiceOpen(false)}>
-                 Nouvelle Vente
-               </Button>
+
+            {/* Pied de facture */}
+            <div className="text-center pt-4 border-t-2 border-dashed border-gray-200">
+              <p className="text-xs text-gray-400 font-medium">Merci de votre confiance !</p>
+              <p className="text-[10px] text-gray-300 mt-1">StockPlus — Keur'Geek Digital Technology</p>
+            </div>
+
+            {/* Boutons */}
+            <div className="flex gap-3 pt-2 no-print">
+              <Button className="flex-1 h-12 rounded-2xl font-bold gap-2" variant="outline" onClick={() => window.print()}>
+                <Printer className="h-4 w-4" /> Imprimer
+              </Button>
+              <Button className="flex-1 h-12 sena-gradient text-white rounded-2xl font-bold" onClick={() => setIsInvoiceOpen(false)}>
+                Nouvelle Vente
+              </Button>
             </div>
           </div>
         </DialogContent>

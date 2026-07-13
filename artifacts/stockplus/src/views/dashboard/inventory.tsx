@@ -241,30 +241,86 @@ export default function InventoryPage() {
     }
   }
 
-  // 📸 Upload image produit (plan Basic)
+  // 📸 Compression d'image côté client (canvas)
+  // Les photos iPhone font 3-5 Mo, on les compresse sous 1 Mo
+  const compressImage = (file: File, maxWidth = 800, quality = 0.7): Promise<File> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader()
+      reader.onload = (e) => {
+        const img = new Image()
+        img.onload = () => {
+          const canvas = document.createElement('canvas')
+          let width = img.width
+          let height = img.height
+
+          // Redimensionner si trop grand
+          if (width > maxWidth) {
+            height = (height * maxWidth) / width
+            width = maxWidth
+          }
+
+          canvas.width = width
+          canvas.height = height
+          const ctx = canvas.getContext('2d')
+          if (!ctx) {
+            resolve(file) // fallback : fichier original
+            return
+          }
+          ctx.drawImage(img, 0, 0, width, height)
+
+          // Convertir en JPEG (plus compact que PNG)
+          canvas.toBlob(
+            (blob) => {
+              if (!blob) {
+                resolve(file)
+                return
+              }
+              const compressedFile = new File([blob], file.name.replace(/\.(png|webp|heic|HEIC)$/i, '.jpg'), {
+                type: 'image/jpeg',
+                lastModified: Date.now(),
+              })
+              resolve(compressedFile)
+            },
+            'image/jpeg',
+            quality
+          )
+        }
+        img.onerror = () => resolve(file)
+        img.src = e.target?.result as string
+      }
+      reader.onerror = () => resolve(file)
+      reader.readAsDataURL(file)
+    })
+  }
+
+  // 📸 Upload image produit (plan Basic) — avec compression
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file || !boutique) return
 
-    // Validation
-    if (file.size > 2 * 1024 * 1024) {
-      toast({ variant: "destructive", title: "Image trop lourde", description: "Maximum 2 Mo." })
-      return
-    }
     if (!file.type.startsWith('image/')) {
-      toast({ variant: "destructive", title: "Format invalide", description: "Choisissez une image (PNG, JPG, WebP)." })
+      toast({ variant: "destructive", title: "Format invalide", description: "Choisissez une image (PNG, JPG, WebP, HEIC)." })
       return
     }
 
     setImageUploading(true)
     try {
+      // 1. Compresser l'image (iPhone 5Mo → ~500 Ko)
+      let fileToUpload = file
+      if (file.size > 1 * 1024 * 1024) {
+        console.log(`[upload] Image originale: ${(file.size / 1024 / 1024).toFixed(2)} Mo → compression...`)
+        fileToUpload = await compressImage(file, 800, 0.7)
+        console.log(`[upload] Image compressée: ${(fileToUpload.size / 1024 / 1024).toFixed(2)} Mo`)
+      }
+
+      // 2. Upload vers Supabase Storage
       const supabase = getSupabaseClient()
-      const ext = file.name.split('.').pop()?.toLowerCase() || 'jpg'
+      const ext = fileToUpload.name.split('.').pop()?.toLowerCase() || 'jpg'
       const fileName = `${boutique.id}/products/${Date.now()}.${ext}`
 
       const { error: uploadErr } = await supabase.storage
         .from('products')
-        .upload(fileName, file, { cacheControl: '3600', upsert: false })
+        .upload(fileName, fileToUpload, { cacheControl: '3600', upsert: false })
 
       if (uploadErr) throw uploadErr
 
@@ -276,7 +332,6 @@ export default function InventoryPage() {
       toast({ title: "Image uploadée", description: "L'image du produit a été ajoutée." })
     } catch (e: any) {
       console.error('Image upload error:', e)
-      // Fallback : utiliser l'URL externe ou un placeholder
       toast({
         variant: "destructive",
         title: "Upload échoué",
@@ -285,6 +340,7 @@ export default function InventoryPage() {
     } finally {
       setImageUploading(false)
       if (imageInputRef.current) imageInputRef.current.value = ''
+      if (cameraInputRef.current) cameraInputRef.current.value = ''
     }
   }
 

@@ -499,3 +499,34 @@ h1, h2, h3, h4, h5, h6 {
 .bg-shape.active {
   opacity: 1;
 }
+
+/* ============================================================
+   IMPRESSION FACTURE — masquer tout sauf la facture
+   ============================================================ */
+@media print {
+  /* Masquer tout le contenu de la page */
+  body * {
+    visibility: hidden;
+  }
+  /* Afficher seulement la facture */
+  .invoice-print, .invoice-print * {
+    visibility: visible;
+  }
+  /* Positionner la facture en haut à gauche */
+  .invoice-print {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    padding: 20px !important;
+  }
+  /* Masquer les boutons */
+  .no-print {
+    display: none !important;
+  }
+  /* Forcer les couleurs */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+}

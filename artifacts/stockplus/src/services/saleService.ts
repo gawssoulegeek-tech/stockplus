@@ -53,8 +53,7 @@ export const saleService = {
       .insert({
         boutique_id,
         sale_type: data.sale_type,
-        customer_id: data.customer_id,
-        customer_name: data.customer_name,
+        customer_name: data.customer_name,  // customer_id n'existe pas dans la table
         invoice_number: data.invoice_number,
         subtotal,
         tax_amount,
