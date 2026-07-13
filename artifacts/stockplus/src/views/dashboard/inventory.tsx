@@ -92,6 +92,29 @@ export default function InventoryPage() {
     imageUrl: ""
   })
 
+  // 📏 Configuration des unités par type
+  const UNIT_CONFIG: Record<string, { type: string; baseUnit?: string; baseLabel?: string; defaultContent?: number }> = {
+    "pièce": { type: "unité" },
+    // Poids
+    "kg": { type: "poids", baseUnit: "g", baseLabel: "grammes (g)", defaultContent: 1000 },
+    "g": { type: "poids" },
+    // Longueur
+    "m": { type: "longueur", baseUnit: "cm", baseLabel: "centimètres (cm)", defaultContent: 100 },
+    "cm": { type: "longueur" },
+    // Volume
+    "L": { type: "volume", baseUnit: "mL", baseLabel: "millilitres (mL)", defaultContent: 1000 },
+    "mL": { type: "volume" },
+    // Conditionnement (emballage)
+    "carton": { type: "conditionnement", baseUnit: "pièce", baseLabel: "pièces", defaultContent: 1 },
+    "sac": { type: "conditionnement", baseUnit: "pièce", baseLabel: "pièces", defaultContent: 1 },
+    "boîte": { type: "conditionnement", baseUnit: "pièce", baseLabel: "pièces", defaultContent: 1 },
+    "paquet": { type: "conditionnement", baseUnit: "pièce", baseLabel: "pièces", defaultContent: 1 },
+    "lot": { type: "conditionnement", baseUnit: "pièce", baseLabel: "pièces", defaultContent: 1 },
+  }
+
+  const currentUnitConfig = UNIT_CONFIG[newProduct.unit] || { type: "unité" }
+  const showUnitContent = currentUnitConfig.type !== "unité" && currentUnitConfig.baseUnit
+
   // Upload image (plan Basic)
   const [imageUploading, setImageUploading] = useState(false)
   const imageInputRef = useRef<HTMLInputElement>(null)
@@ -727,39 +750,49 @@ export default function InventoryPage() {
                 {/* Unité de mesure — disponible pour tous les plans */}
                 <div className="space-y-2">
                   <Label>Unité de mesure</Label>
-                  <Select value={newProduct.unit} onValueChange={v => setNewProduct({...newProduct, unit: v})}>
+                  <Select value={newProduct.unit} onValueChange={v => {
+                    const config = UNIT_CONFIG[v] || { type: "unité" }
+                    // Pré-remplir le contenu par unité avec la valeur par défaut
+                    // (ex: kg → 1000 g, m → 100 cm, L → 1000 mL)
+                    const defaultContent = config.defaultContent && config.defaultContent > 1
+                      ? String(config.defaultContent)
+                      : ""
+                    setNewProduct({ ...newProduct, unit: v, unitContent: defaultContent })
+                  }}>
                     <SelectTrigger className="h-12 rounded-xl">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent className="rounded-xl">
                       <SelectItem value="pièce">Pièce</SelectItem>
+                      <SelectItem value="carton">Carton</SelectItem>
+                      <SelectItem value="sac">Sac</SelectItem>
+                      <SelectItem value="boîte">Boîte</SelectItem>
+                      <SelectItem value="paquet">Paquet</SelectItem>
+                      <SelectItem value="lot">Lot</SelectItem>
                       <SelectItem value="kg">Kilogramme (kg)</SelectItem>
                       <SelectItem value="g">Gramme (g)</SelectItem>
                       <SelectItem value="L">Litre (L)</SelectItem>
                       <SelectItem value="mL">Millilitre (mL)</SelectItem>
                       <SelectItem value="m">Mètre (m)</SelectItem>
                       <SelectItem value="cm">Centimètre (cm)</SelectItem>
-                      <SelectItem value="carton">Carton</SelectItem>
-                      <SelectItem value="sac">Sac</SelectItem>
-                      <SelectItem value="boîte">Boîte</SelectItem>
-                      <SelectItem value="paquet">Paquet</SelectItem>
-                      <SelectItem value="lot">Lot</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
 
-                {/* Contenu par unité (quantité d'unités de base par unité) */}
-                {newProduct.unit !== "pièce" && (
+                {/* Contenu par unité (conversion vers sous-unité) */}
+                {showUnitContent && currentUnitConfig.baseUnit && currentUnitConfig.baseLabel && (
                   <div className="space-y-2">
                     <Label>
-                      Contenu par unité <span className="text-gray-400 font-normal">(nombre de pièces par {newProduct.unit})</span>
+                      {currentUnitConfig.type === "conditionnement"
+                        ? <>Contenu par {newProduct.unit} <span className="text-gray-400 font-normal">({currentUnitConfig.baseLabel})</span></>
+                        : <>Conversion <span className="text-gray-400 font-normal">(1 {newProduct.unit} = ? {currentUnitConfig.baseLabel})</span></}
                     </Label>
                     <div className="flex items-center gap-3">
                       <Input
                         type="number"
                         value={newProduct.unitContent}
                         onChange={e => setNewProduct({...newProduct, unitContent: e.target.value})}
-                        placeholder="Ex: 24"
+                        placeholder={`Ex: ${currentUnitConfig.defaultContent || 1}`}
                         className="h-12 rounded-xl"
                         min="1"
                       />
@@ -769,8 +802,8 @@ export default function InventoryPage() {
                     </div>
                     {newProduct.unitContent && parseInt(newProduct.unitContent) > 0 && newProduct.stock && (
                       <p className="text-xs text-primary font-bold">
-                        → Stock total : {parseInt(newProduct.stock) * parseInt(newProduct.unitContent)} pièces
-                        ({newProduct.stock} {newProduct.unit}s × {newProduct.unitContent})
+                        → Stock total : {(parseInt(newProduct.stock) * parseInt(newProduct.unitContent)).toLocaleString()} {currentUnitConfig.baseUnit === "pièce" ? "pièces" : currentUnitConfig.baseLabel}
+                        <span className="font-normal text-gray-500"> ({newProduct.stock} {newProduct.unit}{parseInt(newProduct.stock) > 1 ? 's' : ''} × {newProduct.unitContent})</span>
                       </p>
                     )}
                   </div>
