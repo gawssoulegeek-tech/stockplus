@@ -65,6 +65,7 @@ export default function SaaSAdminPage() {
 
   const [boutiques, setBoutiques] = useState<any[]>([])
   const [logs, setLogs] = useState<any[]>([])
+  const [waitlist, setWaitlist] = useState<any[]>([])
   const [paymentRequests, setPaymentRequests] = useState<any[]>([])
   const [searchTerm, setSearchTerm] = useState("")
   const [isMounted, setIsMounted] = useState(false)
@@ -101,7 +102,7 @@ export default function SaaSAdminPage() {
         setTimeout(() => reject(new Error('Timeout: chargement trop long')), 15000)
       )
 
-      const [boutiquesRes, logsRes, paymentsRes] = await Promise.race([
+      const [boutiquesRes, logsRes, paymentsRes, waitlistRes] = await Promise.race([
         Promise.all([
           supabase
             .from("boutiques")
@@ -118,6 +119,11 @@ export default function SaaSAdminPage() {
             .select("*, boutique:boutiques!boutique_id(name)")
             .eq("status", "pending")
             .order("created_at", { ascending: false }),
+          supabase
+            .from("waitlist")
+            .select("*")
+            .order("created_at", { ascending: false })
+            .limit(200),
         ]),
         timeoutPromise,
       ])
@@ -182,6 +188,11 @@ export default function SaaSAdminPage() {
             requestedPlan: "Pro",
           }))
         )
+      }
+
+      // Waitlist (liste d'attente)
+      if (!waitlistRes.error && waitlistRes.data) {
+        setWaitlist(waitlistRes.data)
       }
     } catch (e: any) {
       console.error("Error loading SaaS data:", e)
@@ -589,6 +600,10 @@ export default function SaaSAdminPage() {
               <Badge className="ml-2 bg-blue-500 text-white">{PREMIUM_MODULES.length}</Badge>
             )}
           </TabsTrigger>
+          <TabsTrigger value="waitlist" className="rounded-xl flex-1 font-bold">
+            <Clock className="h-3 w-3 mr-1 inline" />
+            Liste d'attente
+          </TabsTrigger>
           <TabsTrigger value="logs" className="rounded-xl flex-1 font-bold">
             Logs
           </TabsTrigger>
@@ -968,6 +983,128 @@ export default function SaaSAdminPage() {
                 </div>
               </Card>
             ))}
+          </div>
+        </TabsContent>
+
+        {/* 🆕 Onglet Liste d'attente */}
+        <TabsContent value="waitlist">
+          <div className="space-y-6">
+            {/* Stats */}
+            <div className="grid gap-4 md:grid-cols-4">
+              <Card className="premium-card p-6">
+                <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Total</div>
+                <div className="text-3xl font-headline font-bold text-gray-900">{waitlist.length}</div>
+              </Card>
+              <Card className="premium-card p-6">
+                <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">En attente</div>
+                <div className="text-3xl font-headline font-bold text-orange-500">
+                  {waitlist.filter((w: any) => w.status === 'pending').length}
+                </div>
+              </Card>
+              <Card className="premium-card p-6">
+                <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Contactés</div>
+                <div className="text-3xl font-headline font-bold text-blue-500">
+                  {waitlist.filter((w: any) => w.status === 'contacted').length}
+                </div>
+              </Card>
+              <Card className="premium-card p-6">
+                <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Comptes créés</div>
+                <div className="text-3xl font-headline font-bold text-green-500">
+                  {waitlist.filter((w: any) => w.status === 'created').length}
+                </div>
+              </Card>
+            </div>
+
+            {/* Liste */}
+            <Card className="premium-card overflow-hidden">
+              <div className="p-6 border-b bg-gray-50/30">
+                <h3 className="text-xl font-headline font-bold">Inscriptions liste d'attente</h3>
+                <p className="text-sm text-gray-400 font-medium">Contactez et approuvez les commerçants intéressés.</p>
+              </div>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Boutique</TableHead>
+                    <TableHead>Gérant</TableHead>
+                    <TableHead>Téléphone</TableHead>
+                    <TableHead>Type</TableHead>
+                    <TableHead>Date</TableHead>
+                    <TableHead>Statut</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {waitlist.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={7} className="text-center py-16 text-gray-400">
+                        <Clock className="h-12 w-12 mx-auto mb-3 text-gray-200" />
+                        Aucune inscription pour le moment.
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    waitlist.map((w: any) => (
+                      <TableRow key={w.id}>
+                        <TableCell><strong>{w.boutique_name}</strong></TableCell>
+                        <TableCell>{w.owner_name}</TableCell>
+                        <TableCell>
+                          <a href={`tel:${w.phone}`} className="text-primary font-bold hover:underline">
+                            {w.phone}
+                          </a>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="outline" className="font-bold">
+                            {w.business_type || '—'}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-sm text-gray-500">
+                          {new Date(w.created_at).toLocaleDateString('fr-FR')}
+                        </TableCell>
+                        <TableCell>
+                          <Badge className={
+                            w.status === 'pending' ? 'bg-orange-50 text-orange-600' :
+                            w.status === 'contacted' ? 'bg-blue-50 text-blue-600' :
+                            w.status === 'created' ? 'bg-green-50 text-green-600' :
+                            w.status === 'rejected' ? 'bg-red-50 text-red-600' :
+                            'bg-gray-50 text-gray-600'
+                          }>
+                            {w.status === 'pending' ? 'En attente' :
+                             w.status === 'contacted' ? 'Contacté' :
+                             w.status === 'created' ? 'Compte créé' :
+                             w.status === 'rejected' ? 'Refusé' : w.status}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex justify-end gap-2">
+                            {/* WhatsApp */}
+                            <a
+                              href={`https://wa.me/${w.phone.replace(/[^0-9]/g, '')}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="h-9 w-9 rounded-xl bg-green-50 hover:bg-green-100 flex items-center justify-center text-green-600"
+                              title="Contacter sur WhatsApp"
+                            >
+                              <Smartphone className="h-4 w-4" />
+                            </a>
+                            {/* Créer le compte */}
+                            <Button
+                              size="sm"
+                              className="h-9 sena-gradient text-white rounded-xl font-bold"
+                              onClick={async () => {
+                                // Rediriger vers /register pré-rempli
+                                window.open(`/register?boutique=${encodeURIComponent(w.boutique_name)}&owner=${encodeURIComponent(w.owner_name)}&phone=${encodeURIComponent(w.phone)}&email=${encodeURIComponent(w.email || '')}`, '_blank')
+                              }}
+                              title="Créer le compte boutique"
+                            >
+                              Créer compte
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </Card>
           </div>
         </TabsContent>
 

@@ -88,13 +88,21 @@ const ClassyHero = () => {
                     </p>
 
                     <div className="flex flex-col sm:flex-row gap-6 sm:gap-8 items-center justify-center pt-8 px-6">
-                        <Link href="/register" className="w-full sm:w-auto h-16 sm:h-20 px-10 sm:px-16 rounded-[2rem] sena-gradient text-white flex items-center justify-center font-bold text-xl sm:text-2xl shadow-[0_20px_50px_rgba(255,136,0,0.5)] hover:scale-105 active:scale-95 transition-all group">
-                            Essayer gratuitement
+                        <Link href="/waitlist" className="w-full sm:w-auto h-16 sm:h-20 px-10 sm:px-16 rounded-[2rem] sena-gradient text-white flex items-center justify-center font-bold text-xl sm:text-2xl shadow-[0_20px_50px_rgba(255,136,0,0.5)] hover:scale-105 active:scale-95 transition-all group">
+                            Rejoindre la liste d'attente
                             <ArrowRight className="ml-4 h-6 w-6 sm:h-8 sm:w-8 group-hover:translate-x-2 transition-transform" />
                         </Link>
                         <Link href="https://wa.me/221783636466" target="_blank" className="w-full sm:w-auto h-16 sm:h-20 px-10 sm:px-16 rounded-[2rem] bg-white/5 border-2 border-white/10 text-white flex items-center justify-center font-bold text-xl sm:text-2xl backdrop-blur-2xl hover:bg-white/15 hover:border-primary/50 transition-all">
                             Voir la démo
                         </Link>
+                    </div>
+
+                    {/* Badge Bêta privée */}
+                    <div className="flex justify-center pt-6">
+                      <div className="inline-flex items-center gap-2 bg-primary/10 border border-primary/20 px-4 py-2 rounded-full">
+                        <span className="h-2 w-2 rounded-full bg-primary animate-pulse" />
+                        <span className="text-xs font-black text-primary uppercase tracking-widest">Bêta privée — Ouverture prochaine</span>
+                      </div>
                     </div>
                 </motion.div>
             </div>

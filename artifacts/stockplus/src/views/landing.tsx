@@ -342,8 +342,8 @@ export default function LandingPage() {
                     "w-full h-20 rounded-[2rem] font-bold text-xl transition-all shadow-2xl",
                     plan.btnClass
                   )} asChild>
-                    <Link href={plan.name === "ESSAI" ? "/register?plan=Basic" : `/register?plan=${plan.name}`}>
-                      {plan.name === "ESSAI" ? "Essayer gratuitement" : `Choisir ${plan.name}`}
+                    <Link href="/waitlist">
+                      {plan.name === "ESSAI" ? "Rejoindre la liste" : `Choisir ${plan.name}`}
                     </Link>
                   </Button>
                 </div>
@@ -429,8 +429,11 @@ export default function LandingPage() {
                       </p>
                     </div>
                     <Button size="lg" className="h-16 md:h-20 px-8 md:px-12 rounded-full sena-gradient text-white w-full font-bold text-lg md:text-xl shadow-2xl shadow-orange-500/30 hover:scale-[1.03] transition-transform duration-300" asChild>
-                      <Link href="/register">Essayer Gratuitement</Link>
+                      <Link href="/waitlist">Rejoindre la liste d'attente</Link>
                     </Button>
+                    <p className="text-center text-xs text-gray-400 font-medium">
+                      🔒 Bêta privée — Inscriptions limitées
+                    </p>
                   </div>
               </div>
            </div>
