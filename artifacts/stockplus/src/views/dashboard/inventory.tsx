@@ -18,6 +18,8 @@ import {
   Loader2,
   ScanLine,
   FileText,
+  Camera,
+  FileSpreadsheet,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -92,12 +94,19 @@ export default function InventoryPage() {
   // Upload image (plan Basic)
   const [imageUploading, setImageUploading] = useState(false)
   const imageInputRef = useRef<HTMLInputElement>(null)
+  const cameraInputRef = useRef<HTMLInputElement>(null)
 
   // Scan facture fournisseur (plan Pro)
   const [scanDialogOpen, setScanDialogOpen] = useState(false)
   const [scanLoading, setScanLoading] = useState(false)
   const [scannedProducts, setScannedProducts] = useState<any[]>([])
   const scanFileRef = useRef<HTMLInputElement>(null)
+
+  // Import CSV
+  const [importDialogOpen, setImportDialogOpen] = useState(false)
+  const csvInputRef = useRef<HTMLInputElement>(null)
+  const [csvPreview, setCsvPreview] = useState<any[]>([])
+  const [csvLoading, setCsvLoading] = useState(false)
 
   const [stockDialog, setStockDialog] = useState<{ open: boolean; productId: string; productName: string; currentStock: number }>({ open: false, productId: '', productName: '', currentStock: 0 })
   const [stockQty, setStockQty] = useState("")
@@ -106,7 +115,6 @@ export default function InventoryPage() {
   const [adjustReason, setAdjustReason] = useState("")
   const [historyDialog, setHistoryDialog] = useState<{ open: boolean; productId: string; productName: string; moves: any[] }>({ open: false, productId: '', productName: '', moves: [] })
   const [historyLoading, setHistoryLoading] = useState(false)
-  const [importDialogOpen, setImportDialogOpen] = useState(false)
   const [showLowStock, setShowLowStock] = useState(false)
   const [categoryFilter, setCategoryFilter] = useState("all")
 
@@ -239,6 +247,97 @@ export default function InventoryPage() {
       setImageUploading(false)
       if (imageInputRef.current) imageInputRef.current.value = ''
     }
+  }
+
+  // 📷 Prise de photo directe (caméra)
+  // Réutilise handleImageUpload mais avec capture="environment"
+  const handleCameraCapture = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    // Convertir l'événement pour réutiliser handleImageUpload
+    await handleImageUpload(e)
+  }
+
+  // 📊 Import CSV de produits
+  const handleCsvUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file || !boutique) return
+
+    setCsvLoading(true)
+    setImportDialogOpen(true)
+
+    try {
+      const text = await file.text()
+      const lines = text.split('\n').filter(l => l.trim())
+      
+      if (lines.length < 2) {
+        toast({ variant: "destructive", title: "CSV vide", description: "Le fichier doit avoir un en-tête + au moins 1 ligne." })
+        return
+      }
+
+      // Parser le CSV (supporte virgule et point-virgule)
+      const delimiter = lines[0].includes(';') ? ';' : ','
+      const headers = lines[0].split(delimiter).map(h => h.trim().toLowerCase())
+      
+      const products = lines.slice(1).map(line => {
+        const values = line.split(delimiter)
+        const obj: any = {}
+        headers.forEach((h, i) => {
+          obj[h] = values[i]?.trim() || ''
+        })
+        return {
+          name: obj.name || obj.nom || obj.produit || 'Produit',
+          category: obj.category || obj.categorie || obj.cat || 'Général',
+          price: parseFloat(obj.price || obj.prix || obj.prix_vente || '0') || 0,
+          stock: parseInt(obj.stock || obj.quantite || obj.qty || '0') || 0,
+          sku: obj.sku || obj.code || '',
+          cost_price: parseFloat(obj.cost_price || obj.prix_achat || obj.cout || '0') || 0,
+        }
+      })
+
+      setCsvPreview(products)
+      toast({ title: "CSV chargé", description: `${products.length} produits prêts à importer.` })
+    } catch (e: any) {
+      toast({ variant: "destructive", title: "Erreur CSV", description: e.message })
+    } finally {
+      setCsvLoading(false)
+      if (csvInputRef.current) csvInputRef.current.value = ''
+    }
+  }
+
+  const importCsvProducts = async () => {
+    if (!boutique || csvPreview.length === 0) return
+    const supabase = getSupabaseClient()
+    let imported = 0
+
+    for (const p of csvPreview) {
+      try {
+        const product = await productService.createProduct(supabase, boutique.id, {
+          name: p.name,
+          sku: p.sku || `SKU-${Date.now().toString(36).toUpperCase()}-${imported}`,
+          cost_price: p.cost_price,
+          price_retail: p.price,
+          quantity_in_stock: p.stock,
+          category: p.category,
+          is_active: true,
+        })
+
+        if (p.stock > 0) {
+          await stockService.createStockMove(supabase, boutique.id, product.id, StockMoveType.PURCHASE, p.stock, {
+            reason: `Import CSV (${p.name})`,
+            recorded_by: userProfile?.name,
+          })
+        }
+        imported++
+      } catch (e) {
+        console.error('Import CSV product error:', e)
+      }
+    }
+
+    refreshProducts()
+    setImportDialogOpen(false)
+    setCsvPreview([])
+    toast({ title: "Import terminé", description: `${imported} produit(s) importé(s).` })
   }
 
   // 📄 Scan facture fournisseur (plan Pro) via Gemini IA
@@ -454,9 +553,16 @@ export default function InventoryPage() {
           <p className="text-gray-500 font-medium text-lg">Gérez votre catalogue multi-boutiques.</p>
         </div>
         <div className="flex gap-3">
-          <Button variant="outline" onClick={() => setImportDialogOpen(true)} className="h-12 px-6 rounded-xl border-gray-200 font-bold">
-            <Upload className="h-4 w-4 mr-2" />
-            Importer
+          <input
+            ref={csvInputRef}
+            type="file"
+            accept=".csv,text/csv"
+            onChange={handleCsvUpload}
+            className="hidden"
+          />
+          <Button variant="outline" onClick={() => csvInputRef.current?.click()} className="h-12 px-6 rounded-xl border-gray-200 font-bold">
+            <FileSpreadsheet className="h-4 w-4 mr-2" />
+            Importer CSV
           </Button>
           {/* 🔍 Scan facture fournisseur (plan Pro uniquement) */}
           {features.supplierInvoiceScan && (
@@ -490,10 +596,10 @@ export default function InventoryPage() {
                 <DialogTitle className="text-2xl font-headline">Ajouter au Catalogue</DialogTitle>
               </DialogHeader>
               <form onSubmit={handleAddProduct} className="space-y-4 py-4">
-                {/* 📸 Upload image produit */}
+                {/* 📸 Upload image produit + Caméra */}
                 <div className="space-y-2">
                   <Label>Image du produit</Label>
-                  <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-3">
                     {newProduct.imageUrl ? (
                       <div className="relative h-20 w-20 rounded-2xl overflow-hidden border-2 border-gray-100">
                         <img src={newProduct.imageUrl} alt="Aperçu" className="w-full h-full object-cover" />
@@ -510,7 +616,7 @@ export default function InventoryPage() {
                         <ImageIcon className="h-8 w-8 text-gray-300" />
                       </div>
                     )}
-                    <div className="flex-1">
+                    <div className="flex-1 space-y-2">
                       <input
                         ref={imageInputRef}
                         type="file"
@@ -518,20 +624,41 @@ export default function InventoryPage() {
                         onChange={handleImageUpload}
                         className="hidden"
                       />
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={() => imageInputRef.current?.click()}
-                        disabled={imageUploading}
-                        className="h-11 rounded-xl font-bold border-gray-200 w-full"
-                      >
-                        {imageUploading ? (
-                          <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Upload...</>
-                        ) : (
-                          <><Upload className="h-4 w-4 mr-2" /> {newProduct.imageUrl ? "Changer" : "Upload"}</>
-                        )}
-                      </Button>
-                      <p className="text-[10px] text-gray-400 mt-1">PNG, JPG, WebP — max 2 Mo</p>
+                      {/* Input caméra (capture) */}
+                      <input
+                        ref={cameraInputRef}
+                        type="file"
+                        accept="image/*"
+                        capture="environment"
+                        onChange={handleCameraCapture}
+                        className="hidden"
+                      />
+                      <div className="flex gap-2">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => imageInputRef.current?.click()}
+                          disabled={imageUploading}
+                          className="h-10 rounded-xl font-bold border-gray-200 flex-1 text-xs"
+                        >
+                          {imageUploading ? (
+                            <><Loader2 className="h-3 w-3 mr-1 animate-spin" /> ...</>
+                          ) : (
+                            <><Upload className="h-3 w-3 mr-1" /> Galerie</>
+                          )}
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => cameraInputRef.current?.click()}
+                          disabled={imageUploading}
+                          className="h-10 rounded-xl font-bold border-gray-200 flex-1 text-xs"
+                        >
+                          <Camera className="h-3 w-3 mr-1" />
+                          Photo
+                        </Button>
+                      </div>
+                      <p className="text-[10px] text-gray-400">PNG, JPG, WebP — max 2 Mo</p>
                     </div>
                   </div>
                 </div>
@@ -542,6 +669,17 @@ export default function InventoryPage() {
                     value={newProduct.name}
                     onChange={e => setNewProduct({...newProduct, name: e.target.value})}
                     className="h-12 rounded-xl" required
+                  />
+                </div>
+
+                {/* Catégorie optionnelle */}
+                <div className="space-y-2">
+                  <Label>Catégorie <span className="text-gray-400 font-normal">(optionnel)</span></Label>
+                  <Input
+                    value={newProduct.category}
+                    onChange={e => setNewProduct({...newProduct, category: e.target.value})}
+                    placeholder="Ex: Boissons, Électronique, Cosmétiques..."
+                    className="h-12 rounded-xl"
                   />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
@@ -565,22 +703,29 @@ export default function InventoryPage() {
                   </div>
                 </div>
 
-                {features.units && (
-                  <div className="space-y-2">
-                    <Label>Unité de mesure</Label>
-                    <Select value={newProduct.unit} onValueChange={v => setNewProduct({...newProduct, unit: v})}>
-                      <SelectTrigger className="h-12 rounded-xl">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent className="rounded-xl">
-                        <SelectItem value="pièce">Pièce</SelectItem>
-                        <SelectItem value="m">Mètre (m)</SelectItem>
-                        <SelectItem value="kg">Kilogramme (kg)</SelectItem>
-                        <SelectItem value="L">Litre (L)</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                )}
+                {/* Unité de mesure — disponible pour tous les plans */}
+                <div className="space-y-2">
+                  <Label>Unité de mesure</Label>
+                  <Select value={newProduct.unit} onValueChange={v => setNewProduct({...newProduct, unit: v})}>
+                    <SelectTrigger className="h-12 rounded-xl">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="rounded-xl">
+                      <SelectItem value="pièce">Pièce</SelectItem>
+                      <SelectItem value="kg">Kilogramme (kg)</SelectItem>
+                      <SelectItem value="g">Gramme (g)</SelectItem>
+                      <SelectItem value="L">Litre (L)</SelectItem>
+                      <SelectItem value="mL">Millilitre (mL)</SelectItem>
+                      <SelectItem value="m">Mètre (m)</SelectItem>
+                      <SelectItem value="cm">Centimètre (cm)</SelectItem>
+                      <SelectItem value="carton">Carton</SelectItem>
+                      <SelectItem value="sac">Sac</SelectItem>
+                      <SelectItem value="boîte">Boîte</SelectItem>
+                      <SelectItem value="paquet">Paquet</SelectItem>
+                      <SelectItem value="lot">Lot</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
 
                 <Button type="submit" className="w-full sena-gradient text-white h-14 rounded-2xl font-bold text-lg shadow-xl shadow-orange-500/20">
                   Enregistrer
@@ -896,6 +1041,85 @@ export default function InventoryPage() {
                 >
                   <ScanLine className="h-4 w-4 mr-2" />
                   Réessayer
+                </Button>
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* 📊 Dialogue import CSV */}
+      <Dialog open={importDialogOpen} onOpenChange={setImportDialogOpen}>
+        <DialogContent className="sm:max-w-[600px] rounded-[2.5rem] p-8">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-headline flex items-center gap-2">
+              <FileSpreadsheet className="h-6 w-6 text-primary" />
+              Importer des produits (CSV)
+            </DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            {csvLoading ? (
+              <div className="flex flex-col items-center justify-center py-16 gap-4">
+                <Loader2 className="h-12 w-12 text-primary animate-spin" />
+                <p className="text-gray-500 font-medium">Lecture du fichier CSV...</p>
+              </div>
+            ) : csvPreview.length > 0 ? (
+              <div className="space-y-4">
+                <p className="text-sm text-gray-500">
+                  {csvPreview.length} produit(s) à importer. Vérifiez et cliquez sur "Importer".
+                </p>
+                <div className="max-h-80 overflow-y-auto space-y-2">
+                  {csvPreview.map((p, i) => (
+                    <div key={i} className="flex items-center justify-between p-3 rounded-xl bg-gray-50">
+                      <div className="flex-1">
+                        <p className="font-bold text-gray-900">{p.name}</p>
+                        <p className="text-xs text-gray-500">
+                          {p.category} • Qté: {p.stock} • Prix: {p.price.toLocaleString()} CFA
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <div className="bg-blue-50 rounded-xl p-3 text-xs text-blue-700">
+                  💡 Format CSV attendu : colonnes <code>name</code>, <code>price</code>, <code>stock</code>, <code>category</code> (optionnel), <code>cost_price</code> (optionnel)
+                </div>
+                <div className="flex gap-3 pt-2">
+                  <Button
+                    variant="outline"
+                    onClick={() => { setImportDialogOpen(false); setCsvPreview([]) }}
+                    className="flex-1 h-12 rounded-xl font-bold"
+                  >
+                    Annuler
+                  </Button>
+                  <Button
+                    onClick={importCsvProducts}
+                    className="flex-1 h-12 sena-gradient text-white rounded-xl font-bold"
+                  >
+                    <Upload className="h-4 w-4 mr-2" />
+                    Importer ({csvPreview.length})
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <div className="text-center py-10 space-y-4">
+                <FileSpreadsheet className="h-12 w-12 text-gray-300 mx-auto" />
+                <div>
+                  <p className="font-bold text-gray-900 mb-2">Importez vos produits en masse</p>
+                  <p className="text-sm text-gray-500">Sélectionnez un fichier CSV avec vos produits.</p>
+                </div>
+                <div className="bg-gray-50 rounded-xl p-4 text-left text-xs text-gray-600">
+                  <p className="font-bold mb-2">Format attendu (en-tête) :</p>
+                  <code className="block">name,price,stock,category,cost_price</code>
+                  <code className="block mt-1">Coca-Cola,500,24,Boissons,300</code>
+                  <code className="block mt-1">Riz 5kg,2500,10,Alimentation,2000</code>
+                </div>
+                <Button
+                  variant="outline"
+                  onClick={() => csvInputRef.current?.click()}
+                  className="h-12 rounded-xl font-bold"
+                >
+                  <FileSpreadsheet className="h-4 w-4 mr-2" />
+                  Choisir un fichier CSV
                 </Button>
               </div>
             )}
