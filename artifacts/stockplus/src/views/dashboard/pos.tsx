@@ -318,7 +318,7 @@ export default function POSPage() {
                   <CardContent className="p-4 flex-1">
                     <h3 className="font-bold text-gray-900 truncate mb-1">{product.name}</h3>
                     <p className="text-lg font-headline font-bold text-primary">
-                      {((activeCart.saleType === "Gros" && product.price_wholesale) ? product.price_wholesale : product.price_retail).toLocaleString()} CFA
+                      {(((activeCart.saleType === "Gros" && product.price_wholesale) ? product.price_wholesale : product.price_retail) || 0).toLocaleString()} CFA
                     </p>
                   </CardContent>
                 </Card>
@@ -386,7 +386,7 @@ export default function POSPage() {
                     <div className="flex-1 min-w-0">
                       <p className="font-bold truncate text-gray-900">{item.name}</p>
                       <p className="text-xs font-bold text-primary">
-                        {((activeCart.saleType === "Gros" && item.wholesalePrice) ? item.wholesalePrice : item.price).toLocaleString()} CFA
+                        {(((activeCart.saleType === "Gros" && item.wholesalePrice) ? item.wholesalePrice : item.price) || 0).toLocaleString()} CFA
                       </p>
                       <span className="text-[10px] font-bold text-gray-400 uppercase">{item.unit}</span>
                     </div>
@@ -505,12 +505,12 @@ export default function POSPage() {
             {lastSale?.discountAmount > 0 && (
               <div className="flex justify-between items-center text-sm">
                 <span className="text-gray-400">Remise</span>
-                <span className="font-bold text-red-500">-{lastSale.discountAmount.toLocaleString()} CFA</span>
+                <span className="font-bold text-red-500">-{(lastSale.discountAmount || 0).toLocaleString()} CFA</span>
               </div>
             )}
             <div className="flex justify-between items-center pt-4">
               <span className="font-bold text-gray-400 uppercase tracking-widest text-xs">Total Net</span>
-              <span className="text-3xl font-headline font-bold text-primary">{(lastSale?.total).toLocaleString()} CFA</span>
+              <span className="text-3xl font-headline font-bold text-primary">{(lastSale?.total || 0).toLocaleString()} CFA</span>
             </div>
             <div className="flex gap-4 pt-4">
                <Button className="flex-1 h-14 rounded-2xl font-bold gap-2" variant="outline" onClick={() => window.print()}>

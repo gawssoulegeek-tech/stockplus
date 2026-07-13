@@ -29,10 +29,10 @@
   "/(dashboard)/inventory/page": "app/(dashboard)/inventory/page.js",
   "/(dashboard)/pos/page": "app/(dashboard)/pos/page.js",
   "/(dashboard)/quotations/page": "app/(dashboard)/quotations/page.js",
-  "/(dashboard)/reports/page": "app/(dashboard)/reports/page.js",
   "/(dashboard)/saas/page": "app/(dashboard)/saas/page.js",
   "/(dashboard)/sales/page": "app/(dashboard)/sales/page.js",
   "/(dashboard)/settings/page": "app/(dashboard)/settings/page.js",
   "/(dashboard)/setup-status/page": "app/(dashboard)/setup-status/page.js",
-  "/(dashboard)/users/page": "app/(dashboard)/users/page.js"
+  "/(dashboard)/users/page": "app/(dashboard)/users/page.js",
+  "/(dashboard)/reports/page": "app/(dashboard)/reports/page.js"
 }

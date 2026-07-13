@@ -198,11 +198,11 @@ export default function SalesHistoryPage() {
     const headers = ["Facture", "Date", "Client", "Total", "Méthode", "Statut", "Vendeur"]
     const rows = filtered.map(s => [
       s.invoice_number || s.id,
-      new Date(s.sale_date).toLocaleDateString(),
+      s.sale_date ? new Date(s.sale_date).toLocaleDateString() : "—",
       s.customer_name || "—",
-      (s.total_amount / 100).toFixed(2),
-      paymentMethodLabels[s.payment_method] || s.payment_method,
-      paymentStatusLabels[s.payment_status] || s.payment_status,
+      ((s.total_amount || 0) / 100).toFixed(2),
+      paymentMethodLabels[s.payment_method] || s.payment_method || "—",
+      paymentStatusLabels[s.payment_status] || s.payment_status || "—",
       s.seller_name || "—",
     ])
     const csv = [headers.join(","), ...rows.map(r => r.join(","))].join("\n")
@@ -351,15 +351,15 @@ export default function SalesHistoryPage() {
                           <ChevronDown
                             className={`h-4 w-4 text-gray-300 transition-transform ${isExpanded ? 'rotate-180' : ''}`}
                           />
-                          <span className="font-bold text-gray-900">{sale.invoice_number || sale.id.slice(0, 8)}</span>
+                          <span className="font-bold text-gray-900">{sale.invoice_number || (sale.id ? sale.id.slice(0, 8) : '—')}</span>
                         </div>
                       </TableCell>
                       <TableCell className="text-sm font-bold text-gray-500">
-                        {new Date(sale.sale_date).toLocaleDateString()}
+                        {sale.sale_date ? new Date(sale.sale_date).toLocaleDateString() : '—'}
                       </TableCell>
                       <TableCell className="font-bold text-gray-800">{sale.customer_name || '—'}</TableCell>
                       <TableCell className="font-headline font-bold text-gray-900">
-                        {sale.total_amount.toLocaleString()} CFA
+                        {(sale.total_amount || 0).toLocaleString()} CFA
                       </TableCell>
                       <TableCell>
                         <Badge variant="outline" className={`rounded-lg text-[9px] font-black border-none ${methodColor}`}>
@@ -431,7 +431,7 @@ export default function SalesHistoryPage() {
                       <TableCell className="font-bold text-gray-800 py-3">{item.product_name}</TableCell>
                       <TableCell className="text-center font-bold text-gray-500">{item.quantity}</TableCell>
                       <TableCell className="text-right font-bold text-gray-500">{item.unit_price?.toLocaleString()} CFA</TableCell>
-                      <TableCell className="text-right font-headline font-bold text-gray-900">{(item.item_total || item.unit_price * item.quantity).toLocaleString()} CFA</TableCell>
+                      <TableCell className="text-right font-headline font-bold text-gray-900">{(item.item_total || (item.unit_price || 0) * (item.quantity || 0) || 0).toLocaleString()} CFA</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -525,7 +525,7 @@ export default function SalesHistoryPage() {
               </div>
               <div>
                 <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1">Date</p>
-                <p className="font-bold text-gray-900">{detailSale ? new Date(detailSale.sale_date).toLocaleDateString() : '—'}</p>
+                <p className="font-bold text-gray-900">{detailSale?.sale_date ? new Date(detailSale.sale_date).toLocaleDateString() : '—'}</p>
               </div>
               <div>
                 <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1">Client</p>
@@ -567,7 +567,7 @@ export default function SalesHistoryPage() {
                       <TableRow key={item.id} className="border-b border-gray-50">
                         <TableCell className="font-bold text-gray-800 py-3">{item.product_name}</TableCell>
                         <TableCell className="text-center font-bold text-gray-500">{item.quantity}</TableCell>
-                        <TableCell className="text-right font-headline font-bold text-gray-900">{(item.item_total || item.unit_price * item.quantity).toLocaleString()} CFA</TableCell>
+                        <TableCell className="text-right font-headline font-bold text-gray-900">{(item.item_total || (item.unit_price || 0) * (item.quantity || 0) || 0).toLocaleString()} CFA</TableCell>
                       </TableRow>
                     ))}
                   </TableBody>

@@ -15,6 +15,7 @@ import { useLocation } from "@/lib/compat/wouter"
 import { getSupabaseClient } from "@/supabase/client"
 import { getUserProfile, getBoutique } from "@/supabase/auth-service"
 import { SuperadminNotifications } from "@/components/superadmin/notifications-bell"
+import { ErrorBoundary } from "@/components/error-boundary"
 
 const BoutiqueContext = createContext<any>(null)
 export const useBoutique = () => useContext(BoutiqueContext)
@@ -208,7 +209,9 @@ export default function DashboardLayout({
             </div>
           )}
           <main className="flex-1 p-6 md:p-12 overflow-auto">
-            {children}
+            <ErrorBoundary>
+              {children}
+            </ErrorBoundary>
           </main>
         </SidebarInset>
       </SidebarProvider>
