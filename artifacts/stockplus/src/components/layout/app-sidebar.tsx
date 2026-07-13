@@ -118,28 +118,28 @@ export function AppSidebar() {
 
   return (
     <Sidebar collapsible="icon" className="border-r border-gray-100 bg-white">
-      <SidebarHeader className="px-6 py-10">
+      <SidebarHeader className="px-4 py-6">
         <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-2xl sena-gradient shadow-lg shadow-orange-500/20">
+          <div className="flex h-9 w-9 items-center justify-center rounded-xl sena-gradient shadow-lg shadow-orange-500/20 shrink-0">
             <Sparkles className="h-5 w-5 text-white" />
           </div>
           <div className="flex flex-col group-data-[collapsible=icon]:hidden overflow-hidden">
-            <span className="font-headline font-bold text-2xl tracking-tight text-gray-900 uppercase">StockPlus</span>
+            <span className="font-headline font-bold text-xl tracking-tight text-gray-900 uppercase">StockPlus</span>
           </div>
         </div>
       </SidebarHeader>
-      <SidebarContent className="px-4">
+      <SidebarContent className="px-3">
         {role === 'superadmin' && (
           <SidebarGroup>
-            <SidebarGroupLabel className="px-4 font-black text-primary uppercase text-[8px] tracking-[0.2em] group-data-[collapsible=icon]:hidden mb-4">Administration SaaS</SidebarGroupLabel>
+            <SidebarGroupLabel className="px-3 font-black text-primary uppercase text-[8px] tracking-[0.2em] group-data-[collapsible=icon]:hidden mb-3">Administration SaaS</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
                 <SidebarMenuItem className="mb-1">
                   <SidebarMenuButton asChild isActive={pathname === "/saas"} className={cn(
-                    "rounded-2xl h-12 transition-all px-4",
+                    "rounded-xl h-10 transition-all px-3",
                     pathname === "/saas" ? "bg-primary text-white font-bold" : "text-gray-400 hover:bg-orange-50/50 hover:text-gray-900"
                   )}>
-                    <Link href="/saas" className="flex items-center gap-4">
+                    <Link href="/saas" className="flex items-center gap-3">
                       <ShieldCheck className={cn("h-5 w-5", pathname === "/saas" ? "text-white" : "text-primary")} />
                       <span className="text-sm">Supervision SaaS</span>
                     </Link>
@@ -157,10 +157,10 @@ export function AppSidebar() {
               {filteredItems.map((item) => (
                 <SidebarMenuItem key={item.title} className="mb-1">
                   <SidebarMenuButton asChild isActive={pathname === item.url} className={cn(
-                    "rounded-2xl h-12 transition-all px-4",
+                    "rounded-xl h-10 transition-all px-3",
                     pathname === item.url ? "bg-orange-50 text-orange-600 font-bold" : "text-gray-400 hover:bg-orange-50/50 hover:text-gray-900"
                   )}>
-                    <Link href={item.url} className="flex items-center gap-4">
+                    <Link href={item.url} className="flex items-center gap-3">
                       <item.icon className={cn("h-5 w-5", pathname === item.url ? "text-orange-600" : "text-gray-400")} />
                       <span className="text-sm">{item.title}</span>
                     </Link>
@@ -213,9 +213,9 @@ export function AppSidebar() {
           <SidebarMenuItem>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <SidebarMenuButton className="h-20 rounded-[1.5rem] hover:bg-gray-50 px-4 transition-all">
-                  <div className="flex items-center gap-4 w-full">
-                    <div className="h-12 w-12 rounded-2xl sena-gradient flex items-center justify-center text-white text-lg font-black shadow-lg shadow-orange-500/20">
+                <SidebarMenuButton className="h-16 rounded-xl hover:bg-gray-50 px-3 transition-all">
+                  <div className="flex items-center gap-3 w-full">
+                    <div className="h-10 w-10 rounded-xl sena-gradient flex items-center justify-center text-white text-base font-black shadow-lg shadow-orange-500/20 shrink-0">
                       {userName.charAt(0)}
                     </div>
                     <div className="flex flex-col flex-1 text-left overflow-hidden group-data-[collapsible=icon]:hidden">
