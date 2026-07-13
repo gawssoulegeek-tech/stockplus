@@ -785,7 +785,7 @@ export default function InventoryPage() {
                     <Label>
                       {currentUnitConfig.type === "conditionnement"
                         ? <>Contenu par {newProduct.unit} <span className="text-gray-400 font-normal">({currentUnitConfig.baseLabel})</span></>
-                        : <>Conversion <span className="text-gray-400 font-normal">(1 {newProduct.unit} = ? {currentUnitConfig.baseLabel})</span></}
+                        : <>Conversion <span className="text-gray-400 font-normal">(1 {newProduct.unit} = ? {currentUnitConfig.baseLabel})</span></>}
                     </Label>
                     <div className="flex items-center gap-3">
                       <Input
