@@ -250,6 +250,28 @@ export default function LandingPage() {
         {/* SECTION 5: TARIFICATION */}
         <section id="prix" className="py-24 md:py-32 bg-white">
           <div className="container px-6 mx-auto">
+            {/* 🎁 Offre de lancement */}
+            <div className="max-w-4xl mx-auto mb-16">
+              <div className="bg-gradient-to-r from-orange-50 to-amber-50 border-2 border-orange-100 rounded-[2.5rem] p-8 md:p-12 text-center space-y-4 relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-40 h-40 bg-primary/10 rounded-full blur-3xl" />
+                <div className="relative z-10">
+                  <div className="inline-flex items-center gap-2 bg-primary text-white px-4 py-2 rounded-full text-xs font-black uppercase tracking-widest mb-4">
+                    🎁 Offre de lancement
+                  </div>
+                  <h3 className="text-3xl md:text-4xl font-headline font-bold text-gray-900 tracking-tighter mb-3">
+                    1 mois gratuit pour les 50 premières boutiques
+                  </h3>
+                  <p className="text-gray-600 font-medium text-lg max-w-2xl mx-auto">
+                    Sans frais d'abonnement pendant cette période. Profitez de toutes les fonctionnalités StockPlus gratuitement.
+                  </p>
+                  <div className="flex items-center justify-center gap-2 mt-4">
+                    <span className="h-2 w-2 rounded-full bg-primary animate-pulse" />
+                    <span className="text-sm font-bold text-primary">Places limitées — Bêta privée</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
             <div className="text-center max-w-3xl mx-auto mb-20 space-y-6">
               <Badge className="bg-primary/10 text-primary border-none px-6 py-2 rounded-full font-black text-xs tracking-widest uppercase">Tarification</Badge>
               <h2 className="text-5xl md:text-7xl font-headline font-bold tracking-tighter text-gray-900 leading-[0.9]">
@@ -348,6 +370,16 @@ export default function LandingPage() {
                   </Button>
                 </div>
               ))}
+            </div>
+
+            {/* 🎁 Message cadeau sous les tarifs */}
+            <div className="max-w-3xl mx-auto mt-12 text-center">
+              <div className="inline-flex items-center gap-3 bg-gray-50 rounded-2xl px-6 py-4">
+                <span className="text-2xl">🎁</span>
+                <p className="text-sm font-medium text-gray-600 text-left">
+                  Les <strong className="text-gray-900">50 premières boutiques</strong> bénéficient d'<strong className="text-primary">1 mois gratuit</strong>, sans frais d'abonnement pendant cette période.
+                </p>
+              </div>
             </div>
 
             {/* Modules Premium */}
