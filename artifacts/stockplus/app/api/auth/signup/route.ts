@@ -58,7 +58,7 @@ export async function POST(req: NextRequest) {
     LOG('Auth user créé', { uid })
 
     const boutiqueId = `boutique_${Date.now()}`
-    const trialEndsAt = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString()
+    const trialEndsAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
     const superadminEmail = process.env.SUPERADMIN_EMAIL?.toLowerCase()
     const isRoot = superadminEmail ? normalizedEmail === superadminEmail : false
     const VALID_PLANS = ['Essai', 'Basic', 'Pro'] as const

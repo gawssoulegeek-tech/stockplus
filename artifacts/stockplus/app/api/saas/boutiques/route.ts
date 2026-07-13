@@ -123,7 +123,7 @@ export async function PATCH(req: NextRequest) {
 
         // Étape 3 : Créer la boutique
         const boutiqueId = `boutique_${Date.now()}`
-        const trialEndsAt = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString()
+        const trialEndsAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
 
         LOG('Étape 3 : insertion public.boutiques...', { boutiqueId, name, plan: selectedPlan })
         const { error: boutiqueInsertError } = await adminClient.from('boutiques').insert({
@@ -176,7 +176,7 @@ export async function PATCH(req: NextRequest) {
         const { data: bout } = await adminClient.from('boutiques').select('plan, name, owner_id').eq('id', id).single()
         if (!bout) return Response.json({ error: 'Boutique introuvable' }, { status: 404 })
         const b = bout as { plan: string; name: string; owner_id: string | null }
-        const trialEndsAt = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString()
+        const trialEndsAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
         await adminClient.from('boutiques').update({ status: 'Essai', trial_ends_at: trialEndsAt, team_members_count: 1, is_active: true }).eq('id', id)
         const ownerEmail = await getOwnerEmail(adminClient, b.owner_id)
         if (ownerEmail) void sendBoutiqueApprovedEmail(ownerEmail, b.name, trialEndsAt)

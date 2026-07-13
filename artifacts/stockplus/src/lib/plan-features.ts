@@ -1,6 +1,6 @@
 export type PlanId = 'Basic' | 'Pro'
 
-export const TRIAL_DAYS = 14
+export const TRIAL_DAYS = 30
 
 /** Feature flags scope : toutes les features que le code peut activer */
 export type FeatureKey =

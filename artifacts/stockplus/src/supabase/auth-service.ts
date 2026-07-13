@@ -260,9 +260,9 @@ export async function createBoutique(
   try {
     const boutiqueId = `boutique_${Date.now()}`
     
-    // Calculate trial end date (14 days from now)
+    // Calculate trial end date (30 days from now)
     const trialEndsAt = new Date()
-    trialEndsAt.setDate(trialEndsAt.getDate() + 14)
+    trialEndsAt.setDate(trialEndsAt.getDate() + 30)
 
     const boutiqueData = {
       id: boutiqueId,

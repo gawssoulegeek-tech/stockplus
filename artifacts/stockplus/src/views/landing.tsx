@@ -285,7 +285,7 @@ export default function LandingPage() {
                 { 
                   name: "ESSAI", 
                   price: "Gratuit", 
-                  period: "14 jours",
+                  period: "30 jours",
                   color: "border-gray-100 bg-white hover:bg-orange-50/20 shadow-sm",
                   btnClass: "bg-gray-100 text-gray-900 hover:bg-orange-100",
                   features: [
@@ -295,7 +295,7 @@ export default function LandingPage() {
                     "Impression de facture thermique",
                     "Gestion des clients",
                     "IA Awa basique",
-                    "1 gérant",
+                    "2 gérants",
                   ] 
                 },
                 { 

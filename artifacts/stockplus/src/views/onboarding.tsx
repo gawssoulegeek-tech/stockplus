@@ -529,7 +529,7 @@ export default function OnboardingPage() {
                 </div>
                 <div>
                   <div className="text-xs text-gray-400 font-bold">Statut</div>
-                  <div className="text-sm font-bold text-green-600">Essai 14 jours</div>
+                  <div className="text-sm font-bold text-green-600">Essai 30 jours</div>
                 </div>
               </div>
             </div>
