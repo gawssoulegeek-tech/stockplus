@@ -91,7 +91,7 @@ export default function InventoryPage() {
 
   // Upload image (plan Basic)
   const [imageUploading, setImageUploading] = useState(false)
-  const fileInputRef = useRef<HTMLInputElement>(null)
+  const imageInputRef = useRef<HTMLInputElement>(null)
 
   // Scan facture fournisseur (plan Pro)
   const [scanDialogOpen, setScanDialogOpen] = useState(false)
@@ -237,7 +237,7 @@ export default function InventoryPage() {
       })
     } finally {
       setImageUploading(false)
-      if (fileInputRef.current) fileInputRef.current.value = ''
+      if (imageInputRef.current) imageInputRef.current.value = ''
     }
   }
 
@@ -512,7 +512,7 @@ export default function InventoryPage() {
                     )}
                     <div className="flex-1">
                       <input
-                        ref={fileInputRef}
+                        ref={imageInputRef}
                         type="file"
                         accept="image/*"
                         onChange={handleImageUpload}
@@ -521,7 +521,7 @@ export default function InventoryPage() {
                       <Button
                         type="button"
                         variant="outline"
-                        onClick={() => fileInputRef.current?.click()}
+                        onClick={() => imageInputRef.current?.click()}
                         disabled={imageUploading}
                         className="h-11 rounded-xl font-bold border-gray-200 w-full"
                       >
