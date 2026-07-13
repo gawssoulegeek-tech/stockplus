@@ -545,7 +545,7 @@ export default function POSPage() {
             {/* Pied de facture */}
             <div className="text-center pt-4 border-t-2 border-dashed border-gray-200">
               <p className="text-xs text-gray-400 font-medium">Merci de votre confiance !</p>
-              <p className="text-[10px] text-gray-300 mt-1">StockPlus — Keur'Geek Digital Technology</p>
+              <p className="text-sm font-bold text-gray-700 mt-1">{boutique?.name || 'Ma Boutique'}</p>
             </div>
 
             {/* Boutons */}
