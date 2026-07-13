@@ -491,9 +491,10 @@ export default function POSPage() {
             <div className="text-center space-y-3 pb-4 border-b-2 border-dashed border-gray-200">
               <div className="h-14 w-14 rounded-2xl sena-gradient flex items-center justify-center shadow-lg mx-auto"><Store className="text-white h-7 w-7" /></div>
               <div>
-                <h2 className="text-xl font-headline font-bold text-gray-900">{boutique?.name || 'Ma Boutique'}</h2>
+                <h2 className="text-xl font-headline font-bold text-gray-900">{boutique?.name}</h2>
                 {boutique?.phone_number && <p className="text-xs text-gray-500">Tél : {boutique.phone_number}</p>}
                 {boutique?.location && <p className="text-xs text-gray-500">{boutique.location}</p>}
+                {boutique?.email && <p className="text-xs text-gray-500">{boutique.email}</p>}
               </div>
             </div>
 
@@ -545,7 +546,10 @@ export default function POSPage() {
             {/* Pied de facture */}
             <div className="text-center pt-4 border-t-2 border-dashed border-gray-200">
               <p className="text-xs text-gray-400 font-medium">Merci de votre confiance !</p>
-              <p className="text-sm font-bold text-gray-700 mt-1">{boutique?.name || 'Ma Boutique'}</p>
+              <p className="text-sm font-bold text-gray-700 mt-1">{boutique?.name}</p>
+              {userProfile?.name && (
+                <p className="text-[10px] text-gray-400 mt-1">Servi par {userProfile.name}</p>
+              )}
             </div>
 
             {/* Boutons */}
