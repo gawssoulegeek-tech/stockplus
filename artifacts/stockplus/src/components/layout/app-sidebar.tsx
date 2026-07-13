@@ -33,6 +33,7 @@ import {
   SidebarGroup,
   SidebarGroupContent,
   SidebarGroupLabel,
+  useSidebar,
 } from "@/components/ui/sidebar"
 import { Link, useLocation } from "@/lib/compat/wouter"
 import Lottie from "lottie-react"
@@ -73,11 +74,21 @@ export function AppSidebar() {
   const { boutique, userProfile } = useBoutique() || {}
   const [isMounted, setIsMounted] = React.useState(false)
   const [awaData, setAwaData] = React.useState<any>(null)
-  
+
   const role = userProfile?.role || "manager"
   const plan = boutique?.plan || "Basic"
   const status = boutique?.status || "Actif"
   const userName = userProfile?.name || "Utilisateur"
+
+  // Récupérer le contexte sidebar pour fermer sur mobile après navigation
+  const { setOpenMobile, isMobile } = useSidebar()
+
+  // Fermer la sidebar mobile quand le pathname change (après clic sur un lien)
+  React.useEffect(() => {
+    if (isMobile) {
+      setOpenMobile(false)
+    }
+  }, [pathname, isMobile, setOpenMobile])
 
   React.useEffect(() => {
     setIsMounted(true)
