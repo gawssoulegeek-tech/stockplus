@@ -154,10 +154,10 @@ export default function DashboardLayout({
       <SidebarProvider>
         <AppSidebar />
         <SidebarInset className="bg-gray-50/50">
-          <header className="flex h-20 shrink-0 items-center gap-4 transition-all border-b border-gray-100 px-6 bg-white/50 backdrop-blur-md sticky top-0 z-40">
-            <div className="flex flex-1 items-center gap-4">
-              <SidebarTrigger className="h-10 w-10 rounded-xl hover:bg-orange-50 hover:text-primary transition-colors" />
-              <Separator orientation="vertical" className="h-6 bg-gray-200" />
+          <header className="flex h-16 md:h-20 shrink-0 items-center gap-3 md:gap-4 transition-all border-b border-gray-100 px-4 md:px-6 bg-white/50 backdrop-blur-md sticky top-0 z-40">
+            <div className="flex flex-1 items-center gap-3 md:gap-4 min-w-0">
+              <SidebarTrigger className="h-9 w-9 md:h-10 md:w-10 rounded-xl hover:bg-orange-50 hover:text-primary transition-colors shrink-0" />
+              <Separator orientation="vertical" className="h-6 bg-gray-200 hidden sm:block" />
               <div className="hidden md:flex relative w-full max-w-md">
                 <Search className="absolute left-4 top-3 h-4 w-4 text-gray-400" />
                 <Input
@@ -166,9 +166,13 @@ export default function DashboardLayout({
                   className="pl-11 h-11 bg-gray-100/50 border-none rounded-xl focus-visible:ring-primary focus-visible:ring-1 transition-all font-medium"
                 />
               </div>
+              {/* Nom boutique visible sur mobile (compact) */}
+              <div className="md:hidden flex-1 min-w-0">
+                <span className="text-sm font-bold text-gray-900 truncate block">{boutique?.name || (userProfile.role === 'superadmin' ? 'Supervision SaaS' : 'Ma Boutique')}</span>
+              </div>
             </div>
-            <div className="flex items-center gap-4">
-              <div className="hidden sm:flex flex-col items-end mr-2">
+            <div className="flex items-center gap-2 md:gap-4 shrink-0">
+              <div className="hidden lg:flex flex-col items-end mr-2">
                 <span className="text-sm font-bold text-gray-900">{boutique?.name || (userProfile.role === 'superadmin' ? 'Supervision SaaS' : 'Ma Boutique')}</span>
                 <span className="text-[10px] font-black text-primary uppercase tracking-widest">{userProfile?.role}</span>
               </div>
@@ -178,8 +182,8 @@ export default function DashboardLayout({
 
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className="h-11 w-11 rounded-xl hover:bg-orange-50 hover:text-primary transition-colors border border-gray-100 bg-white shadow-sm">
-                    <User className="h-5 w-5" />
+                  <Button variant="ghost" size="icon" className="h-9 w-9 md:h-11 md:w-11 rounded-xl hover:bg-orange-50 hover:text-primary transition-colors border border-gray-100 bg-white shadow-sm">
+                    <User className="h-4 w-4 md:h-5 md:w-5" />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-64 rounded-[2rem] p-3 border-gray-100 shadow-3xl">
@@ -196,11 +200,11 @@ export default function DashboardLayout({
             </div>
           </header>
           {isImpersonating && (
-            <div className="bg-amber-50 border-b border-amber-200 px-6 py-3 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <AlertTriangle className="h-4 w-4 text-amber-600" />
-                <span className="text-sm font-medium text-amber-800">
-                  Mode impersonation actif — Vous gérez <strong>{boutique?.name}</strong>
+            <div className="bg-amber-50 border-b border-amber-200 px-4 md:px-6 py-3 flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2 min-w-0">
+                <AlertTriangle className="h-4 w-4 text-amber-600 shrink-0" />
+                <span className="text-xs md:text-sm font-medium text-amber-800 truncate">
+                  Mode impersonation — <strong>{boutique?.name}</strong>
                 </span>
               </div>
               <Button variant="ghost" size="sm" className="text-amber-700 hover:bg-amber-100 rounded-lg font-bold" onClick={() => { setIsImpersonating(false); setBoutique(null); navigate("/saas") }}>
@@ -208,7 +212,7 @@ export default function DashboardLayout({
               </Button>
             </div>
           )}
-          <main className="flex-1 p-6 md:p-12 overflow-auto">
+          <main className="flex-1 p-4 md:p-6 lg:p-12 overflow-auto">
             <ErrorBoundary>
               {children}
             </ErrorBoundary>

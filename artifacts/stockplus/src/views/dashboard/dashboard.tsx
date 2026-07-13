@@ -114,36 +114,42 @@ export default function DashboardPage() {
   if (!isMounted) return null
 
   return (
-    <div className="space-y-12 max-w-7xl mx-auto pb-20">
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-8">
-        <div className="space-y-2">
-          <Badge className="bg-orange-100 text-primary border-none px-4 py-1 rounded-full font-black text-[10px] tracking-widest uppercase mb-2">
-            Vue d'ensemble — Plan {boutique?.plan}
-          </Badge>
-          <h1 className="text-4xl md:text-7xl font-headline font-bold text-gray-900 tracking-tighter">
-            Bonjour, {boutique?.name}
-          </h1>
-          <p className="text-gray-400 text-lg font-medium">L'IA Awa a analysé vos ventes. Tout est sous contrôle.</p>
-        </div>
-        {financeData && (
-          <div className="hidden lg:block w-32 h-32 opacity-60">
-            <Lottie animationData={financeData} loop={true} className="w-full h-full" />
+    <div className="space-y-8 md:space-y-12 max-w-7xl mx-auto pb-20 px-4 md:px-0">
+      {/* Header responsive */}
+      <div className="flex flex-col gap-6">
+        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+          <div className="space-y-2 flex-1">
+            <Badge className="bg-orange-100 text-primary border-none px-3 py-1 rounded-full font-black text-[10px] tracking-widest uppercase mb-2">
+              Vue d'ensemble — Plan {boutique?.plan}
+            </Badge>
+            <h1 className="text-3xl sm:text-4xl md:text-6xl lg:text-7xl font-headline font-bold text-gray-900 tracking-tighter">
+              Bonjour, {boutique?.name}
+            </h1>
+            <p className="text-gray-400 text-base md:text-lg font-medium">L'IA Awa a analysé vos ventes. Tout est sous contrôle.</p>
           </div>
-        )}
-        <div className="flex gap-4">
-          <Button variant="outline" className="rounded-[1.5rem] h-16 px-8 font-bold border-gray-200 hover:bg-orange-50 hover:text-primary transition-all text-lg shadow-sm" asChild>
-            <Link href="/inventory"><Package className="h-5 w-5 mr-3" /> Inventaire</Link>
+          {/* Lottie Finance — visible sur tous les écrans, taille responsive */}
+          {financeData && (
+            <div className="w-24 h-24 sm:w-28 sm:h-28 md:w-32 md:h-32 shrink-0 mx-auto sm:mx-0 opacity-70">
+              <Lottie animationData={financeData} loop={true} className="w-full h-full" />
+            </div>
+          )}
+        </div>
+        {/* Boutons d'action — stack sur mobile, row sur desktop */}
+        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+          <Button variant="outline" className="rounded-2xl h-12 sm:h-14 md:h-16 px-6 sm:px-8 font-bold border-gray-200 hover:bg-orange-50 hover:text-primary transition-all text-base sm:text-lg shadow-sm w-full sm:w-auto" asChild>
+            <Link href="/inventory"><Package className="h-5 w-5 mr-2 sm:mr-3" /> Inventaire</Link>
           </Button>
-          <Button className="sena-gradient text-white rounded-[1.5rem] h-16 px-10 font-bold shadow-2xl shadow-orange-500/30 text-lg group" asChild>
+          <Button className="sena-gradient text-white rounded-2xl h-12 sm:h-14 md:h-16 px-6 sm:px-10 font-bold shadow-2xl shadow-orange-500/30 text-base sm:text-lg group w-full sm:w-auto" asChild>
             <Link href="/pos">
-              <Plus className="h-6 w-6 mr-3 group-hover:rotate-90 transition-transform duration-300" /> 
+              <Plus className="h-5 w-5 sm:h-6 sm:w-6 mr-2 sm:mr-3 group-hover:rotate-90 transition-transform duration-300" /> 
               Nouvelle Vente
             </Link>
           </Button>
         </div>
       </div>
 
-      <div className="grid gap-8 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+      {/* Stats cards — 1 colonne mobile, 2 tablette, 4 desktop */}
+      <div className="grid gap-4 sm:gap-6 md:gap-8 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
         <StatsCard title="Chiffre d'Affaires" value={formatCurrency(stats.totalRevenue)} icon={DollarSign} className="border-none shadow-xl bg-white" />
         <StatsCard title="Ventes du Jour" value={formatCurrency(stats.todayRevenue)} icon={Target} className="border-none shadow-xl bg-white" />
         <StatsCard title="Profit (Est.)" value={formatCurrency(Math.round(stats.totalProfit))} icon={TrendingUp} className="border-none shadow-xl bg-white" />
@@ -155,18 +161,19 @@ export default function DashboardPage() {
         />
       </div>
 
-      <div className="grid gap-8 md:grid-cols-3">
+      {/* Graphique + Awa — stack sur mobile, côte à côte desktop */}
+      <div className="grid gap-6 md:gap-8 grid-cols-1 md:grid-cols-3">
         <Card className="md:col-span-2 premium-card shadow-2xl border-none overflow-hidden group">
-          <CardHeader className="p-10 flex flex-row items-center justify-between relative z-10">
+          <CardHeader className="p-6 md:p-10 flex flex-row items-center justify-between relative z-10">
             <div className="space-y-1">
-              <CardTitle className="font-headline text-4xl">Performance Hebdomadaire</CardTitle>
-              <CardDescription className="font-medium text-lg">Suivi des encaissements sur 7 jours</CardDescription>
+              <CardTitle className="font-headline text-2xl md:text-4xl">Performance Hebdomadaire</CardTitle>
+              <CardDescription className="font-medium text-sm md:text-lg">Suivi des encaissements sur 7 jours</CardDescription>
             </div>
-            <div className="h-16 w-16 rounded-[1.5rem] bg-orange-50 flex items-center justify-center text-primary">
-              <TrendingUp className="h-8 w-8" />
+            <div className="h-12 w-12 md:h-16 md:w-16 rounded-2xl bg-orange-50 flex items-center justify-center text-primary shrink-0">
+              <TrendingUp className="h-6 w-6 md:h-8 md:w-8" />
             </div>
           </CardHeader>
-          <CardContent className="h-[400px] px-6 pb-10 relative z-10">
+          <CardContent className="h-[280px] md:h-[400px] px-4 md:px-6 pb-6 md:pb-10 relative z-10">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={chartData}>
                 <defs>
@@ -180,7 +187,7 @@ export default function DashboardPage() {
                   dataKey="name" 
                   axisLine={false} 
                   tickLine={false} 
-                  tick={{fill: '#94a3b8', fontSize: 14, fontWeight: 'bold'}}
+                  tick={{fill: '#94a3b8', fontSize: 12, fontWeight: 'bold'}}
                   dy={10}
                 />
                 <YAxis hide />
@@ -195,28 +202,32 @@ export default function DashboardPage() {
           <div className="absolute top-0 left-0 w-full h-full bg-orange-50/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500 -z-0" />
         </Card>
 
+        {/* Carte Awa — Lottie mis en avant */}
         <Card className="premium-card bg-gray-950 text-white border-none flex flex-col justify-between shadow-3xl overflow-hidden relative group">
           <div className="absolute top-0 left-0 w-full h-full bg-primary/10 opacity-0 group-hover:opacity-100 transition-opacity duration-700 blur-[100px] -z-0" />
-          <CardHeader className="p-10 space-y-8 relative z-10">
-            <div className="h-32 w-32 bg-white/10 rounded-[2.5rem] flex items-center justify-center backdrop-blur-2xl overflow-hidden p-4 shadow-2xl ring-1 ring-white/20">
-              {awaData ? <Lottie animationData={awaData} loop={true} className="w-full h-full scale-125" /> : <div className="h-10 w-10 animate-pulse bg-white/10 rounded-full" />}
+          <CardHeader className="p-6 md:p-10 space-y-6 md:space-y-8 relative z-10">
+            {/* Lottie Awa — grand et centré, mis en avant */}
+            <div className="flex justify-center">
+              <div className="h-32 w-32 md:h-40 md:w-40 bg-white/10 rounded-[2.5rem] flex items-center justify-center backdrop-blur-2xl overflow-hidden p-3 md:p-4 shadow-2xl ring-1 ring-white/20">
+                {awaData ? <Lottie animationData={awaData} loop={true} className="w-full h-full scale-125" /> : <div className="h-10 w-10 animate-pulse bg-white/10 rounded-full" />}
+              </div>
             </div>
-            <div className="space-y-6">
-              <div className="flex items-center gap-3">
+            <div className="space-y-4 md:space-y-6 text-center md:text-left">
+              <div className="flex items-center justify-center md:justify-start gap-3">
                 <Badge className="bg-primary text-white border-none font-black text-[10px] uppercase tracking-widest h-8 px-4 rounded-full">Assistant Pro</Badge>
               </div>
-              <CardTitle className="font-headline text-5xl leading-[0.9] tracking-tighter">
+              <CardTitle className="font-headline text-3xl md:text-5xl leading-[0.9] tracking-tighter">
                 L'Intelligence <br /><span className="text-primary italic">Awa</span>
               </CardTitle>
-              <div className="text-gray-400 text-lg font-medium leading-relaxed">
+              <div className="text-gray-400 text-base md:text-lg font-medium leading-relaxed">
                 {stats.lowStockCount > 0 
                   ? `Attention, ${stats.lowStockCount} produits sont en stock critique. Voulez-vous une liste de réapprovisionnement ?` 
                   : "Excellent travail ! Votre marge brute est en hausse de 12% par rapport à la semaine dernière."}
               </div>
             </div>
           </CardHeader>
-          <CardContent className="p-10 relative z-10">
-            <Button className="w-full sena-gradient text-white rounded-[2rem] h-20 font-bold text-2xl shadow-2xl shadow-orange-500/20 group/btn" asChild>
+          <CardContent className="p-6 md:p-10 relative z-10">
+            <Button className="w-full sena-gradient text-white rounded-2xl md:rounded-[2rem] h-14 md:h-20 font-bold text-lg md:text-2xl shadow-2xl shadow-orange-500/20 group/btn" asChild>
               <Link href="/ai">
                 Consulter Awa 
                 <ArrowRight className="ml-4 h-8 w-8 group-hover/btn:translate-x-2 transition-transform" />
