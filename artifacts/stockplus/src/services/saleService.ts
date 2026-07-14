@@ -53,7 +53,9 @@ export const saleService = {
       .insert({
         boutique_id,
         sale_type: data.sale_type,
-        customer_name: data.customer_name,  // customer_id n'existe pas dans la table
+        customer_id: data.customer_id || null,
+        customer_name: data.customer_name,
+        seller_name: data.seller_name || null,
         invoice_number: data.invoice_number,
         subtotal,
         tax_amount,
@@ -77,7 +79,7 @@ export const saleService = {
     for (const item of data.items) {
       const { data: product } = await supabase
         .from('products')
-        .select('name, price_retail, price_wholesale')
+        .select('name, price_retail, price_wholesale, quantity_in_stock')
         .eq('id', item.product_id)
         .single();
 
@@ -107,10 +109,11 @@ export const saleService = {
       items.push(saleItem);
 
       // ✅ Déduction du stock + enregistrement du mouvement
-      // ⚠️ On capture le stock AVANT/APRÈS l'insertion du sale_item pour détecter
-      // un éventuel trigger DB qui aurait déjà décrémenté le stock.
-      // (Évite le double-décrément)
+      // On compare le stock avant (product.quantity_in_stock) et après l'insertion du sale_item
+      // pour détecter un éventuel trigger DB (évite le double-décrément)
       try {
+        const stockBefore = (product as any)?.quantity_in_stock ?? 0;
+
         const { data: prodAfter } = await supabase
           .from('products')
           .select('quantity_in_stock')
@@ -120,7 +123,7 @@ export const saleService = {
         const stockAfterItem = (prodAfter as { quantity_in_stock?: number } | null)?.quantity_in_stock ?? 0;
 
         // Si le stock n'a pas bougé (pas de trigger), on le décrémente manuellement
-        if (stockAfterItem === (prod?.quantity_in_stock ?? 0)) {
+        if (stockAfterItem === stockBefore) {
           // Pas de trigger → décrémenter manuellement
           const newStock = Math.max(0, stockAfterItem - item.quantity);
           await supabase
@@ -128,7 +131,6 @@ export const saleService = {
             .update({ quantity_in_stock: newStock })
             .eq('id', item.product_id);
         }
-        // Si un trigger a déjà décrémenté, on ne fait rien (stock déjà à jour)
 
         // Créer un mouvement de stock tracé (audit, ne modifie pas le stock)
         await supabase.from('stock_moves').insert({

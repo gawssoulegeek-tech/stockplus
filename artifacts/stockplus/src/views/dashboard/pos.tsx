@@ -204,6 +204,7 @@ export default function POSPage() {
         payment_method: pmMap[paymentMethod] || PaymentMethod.CASH,
         discount_amount: discountAmount || undefined,
         discount_reason: discountAmount > 0 ? "Remise manuelle" : undefined,
+        seller_name: userProfile?.name,
         notes: `Vente par ${userProfile?.name || 'caisse'}`,
       })
 

@@ -574,6 +574,7 @@ export interface CreateSaleRequest {
   sale_type: SaleType
   customer_id?: string
   customer_name?: string
+  seller_name?: string
   invoice_number?: string
   items: Array<{
     product_id: string

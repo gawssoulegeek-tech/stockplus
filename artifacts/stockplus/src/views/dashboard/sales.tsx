@@ -200,7 +200,7 @@ export default function SalesHistoryPage() {
       s.invoice_number || s.id,
       s.sale_date ? new Date(s.sale_date).toLocaleDateString() : "—",
       s.customer_name || "—",
-      ((s.total_amount || 0) / 100).toFixed(2),
+      ((s.total_amount || 0)).toFixed(0),
       paymentMethodLabels[s.payment_method] || s.payment_method || "—",
       paymentStatusLabels[s.payment_status] || s.payment_status || "—",
       s.seller_name || "—",

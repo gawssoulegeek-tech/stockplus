@@ -945,7 +945,7 @@ export default function InventoryPage() {
                     {features.units && (
                       <TableCell className="text-xs font-bold text-gray-500 uppercase">{product.unit_of_measure || 'pcs'}</TableCell>
                     )}
-                    <TableCell className="font-headline font-bold text-primary text-lg">{product.price_retail.toLocaleString()} CFA</TableCell>
+                    <TableCell className="font-headline font-bold text-primary text-lg">{(product.price_retail || 0).toLocaleString()} CFA</TableCell>
                     <TableCell className="text-right px-8">
                       <div className="flex justify-end gap-2">
                          <Button

@@ -84,8 +84,8 @@ export default function SettingsPage() {
     }
   }
 
-  const isAdmin = userProfile?.role === "admin"
-  const isPro = boutique?.plan === "Pro"
+  const isAdmin = userProfile?.role === "owner" || userProfile?.role === "superadmin"
+  const isPro = boutique?.plan === "Pro" || boutique?.status === "Essai"
 
   const handleToggleEmailReports = async (value: boolean) => {
     if (!boutique) return

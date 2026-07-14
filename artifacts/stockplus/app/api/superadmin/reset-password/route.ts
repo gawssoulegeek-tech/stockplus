@@ -1,6 +1,6 @@
 import { NextRequest } from 'next/server'
 import { getSupabaseAdminClient } from '@/lib/supabase-server'
-import { requireSuperadmin } from '@/lib/api-auth'
+import { requireUser } from '@/lib/api-auth'
 
 /**
  * POST /api/superadmin/reset-password
@@ -9,8 +9,13 @@ import { requireSuperadmin } from '@/lib/api-auth'
  * Body: { boutique_id: string }
  */
 export async function POST(req: NextRequest) {
-  const auth = await requireSuperadmin(req)
+  const auth = await requireUser(req)
   if (!auth.ok) return Response.json({ error: auth.error }, { status: auth.status })
+
+  // Vérifier que l'user est superadmin
+  if (!auth.profile || auth.profile.role !== 'superadmin') {
+    return Response.json({ error: 'Accès superadmin requis' }, { status: 403 })
+  }
 
   let adminClient
   try {

@@ -73,7 +73,7 @@ export default function DashboardPage() {
     const todaySales = sales.filter(s => s.sale_date?.startsWith(today))
     const todayRevenue = todaySales.reduce((acc, s) => acc + (s.total_amount || 0), 0)
     const totalRevenue = sales.reduce((acc, s) => acc + (s.total_amount || 0), 0)
-    const lowStockCount = products.filter(p => p.quantity_in_stock <= 5).length
+    const lowStockCount = products.filter(p => p.min_stock_level != null ? p.quantity_in_stock < p.min_stock_level : p.quantity_in_stock <= 5).length
     // Calcul du bénéfice basé sur le cost_price réel des produits vendus
     // (fallback : si cost_price absent, on estime à 25% du CA)
     const totalProfit = sales.reduce((acc, s) => {

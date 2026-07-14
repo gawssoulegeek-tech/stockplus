@@ -81,7 +81,7 @@ export default function CreditPage() {
         .from('payments')
         .select('amount')
         .eq('boutique_id', boutique.id)
-        .gte('payment_date', thirtyDaysAgoStr),
+        .gte('created_at', thirtyDaysAgoStr),
     ])
     .then(([debtsRes, customersRes, paymentsRes]) => {
       setDebts(debtsRes.data || [])
