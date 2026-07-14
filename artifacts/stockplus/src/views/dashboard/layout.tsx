@@ -36,10 +36,13 @@ export default function DashboardLayout({
   useEffect(() => {
     setIsMounted(true)
     const supabase = getSupabaseClient()
+    let cancelled = false
 
     const initAuth = async () => {
       try {
         const { data: { session } } = await supabase.auth.getSession()
+
+        if (cancelled) return
 
         if (!session?.user) {
           setIsLoading(false)
@@ -49,8 +52,9 @@ export default function DashboardLayout({
 
         const profile = await getUserProfile(supabase, session.user.id)
 
+        if (cancelled) return
+
         // ⚠️ Si pas de profil dans la table users → rediriger vers pending-approval
-        // (au lieu de donner un rôle superadmin par défaut qui était un bug de sécurité)
         if (!profile) {
           console.warn('[Layout] Profil users manquant pour', session.user.email, '- redirection vers pending-approval')
           setIsLoading(false)
@@ -74,6 +78,8 @@ export default function DashboardLayout({
         }
 
         const boutiqueData = await getBoutique(supabase, profile.boutique_id)
+
+        if (cancelled) return
 
         if (boutiqueData) {
           // Vérifier l'expiration de l'essai
@@ -117,7 +123,7 @@ export default function DashboardLayout({
 
     initAuth()
 
-    // Écouter uniquement la déconnexion
+    // Écouter uniquement la déconnexion (pas TOKEN_REFRESHED qui cause les rechargements)
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event: string) => {
         if (event === 'SIGNED_OUT') {
@@ -125,13 +131,16 @@ export default function DashboardLayout({
           setBoutique(null)
           navigate("/login")
         }
+        // Ignorer TOKEN_REFRESHED et INITIAL_SESSION pour éviter les rechargements intempestifs
       }
     )
 
     return () => {
+      cancelled = true
       subscription?.unsubscribe()
     }
-  }, [navigate])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])  // ⚠️ [] vide au lieu de [navigate] pour éviter les re-rendus
 
   const handleLogout = async () => {
     const supabase = getSupabaseClient()
