@@ -64,7 +64,13 @@ export async function middleware(request: NextRequest) {
   }
 
   // Si user connecté et sur /login ou /register → rediriger vers /dashboard
+  // SAUF si /register a des paramètres (boutique=...) = création de compte pour un tiers
   if (user && (pathname === '/login' || pathname === '/register')) {
+    const hasQueryParams = request.nextUrl.searchParams.toString().length > 0
+    if (pathname === '/register' && hasQueryParams) {
+      // Laisser passer : le superadmin crée un compte pour un prospect
+      return response
+    }
     const url = request.nextUrl.clone()
     url.pathname = '/dashboard'
     url.search = ''

@@ -1,4 +1,4 @@
-import { useState, Suspense } from "react"
+import { useState, Suspense, useEffect } from "react"
 import { Link, useLocation, useSearchParams } from "@/lib/compat/wouter"
 import { Sparkles, ArrowRight, Mail, Lock, Store, User, ArrowLeft, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -20,6 +20,22 @@ function RegisterForm() {
     email: "",
     password: ""
   })
+
+  // Pré-remplir depuis les paramètres URL (quand superadmin crée un compte depuis la liste d'attente)
+  useEffect(() => {
+    const boutique = searchParams.get('boutique')
+    const owner = searchParams.get('owner')
+    const email = searchParams.get('email')
+    const phone = searchParams.get('phone')
+    if (boutique || owner || email) {
+      setFormData({
+        boutiqueName: boutique || "",
+        ownerName: owner || "",
+        email: email || "",
+        password: "",
+      })
+    }
+  }, [searchParams])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
