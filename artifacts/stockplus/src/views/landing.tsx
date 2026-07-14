@@ -312,7 +312,7 @@ export default function LandingPage() {
                     "Historique illimité",
                     "Produits illimités",
                     "Rapports de ventes détaillés",
-                    "3 gérants",
+                    "2 gérants (propriétaire + 1)",
                   ] 
                 },
                 { 

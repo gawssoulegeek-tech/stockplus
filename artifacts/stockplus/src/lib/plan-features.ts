@@ -29,8 +29,8 @@ export const ALL_FEATURES: Record<FeatureKey, string> = {
 }
 
 export const MAX_GERANTS: Record<string, number> = {
-  Essai: 1,
-  Basic: 1,
+  Essai: 2,
+  Basic: 2,
   Pro: 20,
 }
 
