@@ -43,29 +43,37 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import { useBoutique } from "@/views/dashboard/layout"
+import { getSupabaseClient } from "@/supabase/client"
+import { saleService } from "@/services/saleService"
+import { productService } from "@/services/productService"
 
 export default function ReportsPage() {
   const { toast } = useToast()
+  const { boutique } = useBoutique() || {}
   const [period, setPeriod] = useState("year")
   const [sales, setSales] = useState<any[]>([])
   const [products, setProducts] = useState<any[]>([])
-  const [plan, setPlan] = useState("Basic")
-  const [status, setStatus] = useState("Actif")
+
+  const plan = boutique?.plan || "Basic"
+  const status = boutique?.status || "Actif"
 
   useEffect(() => {
-    const savedSales = localStorage.getItem("sena_sales")
-    const savedProducts = localStorage.getItem("sena_products")
-    if (savedSales) setSales(JSON.parse(savedSales))
-    if (savedProducts) setProducts(JSON.parse(savedProducts))
-
-    const savedBoutiques = JSON.parse(localStorage.getItem("sena_boutiques_data") || "[]")
-    const currentShop = localStorage.getItem("shop_name")
-    const myBoutique = savedBoutiques.find((b: any) => b.name === currentShop)
-    if (myBoutique) {
-      setPlan(myBoutique.plan)
-      setStatus(myBoutique.status)
-    }
-  }, [])
+    if (!boutique?.id) return
+    const supabase = getSupabaseClient()
+    Promise.all([
+      saleService.listSales(supabase, boutique.id, { per_page: 500 }),
+      productService.listProducts(supabase, boutique.id, { per_page: 500 }),
+    ]).then(([salesRes, productsRes]) => {
+      // Transformer les ventes pour le format attendu par les graphiques
+      setSales((salesRes.data || []).map((s: any) => ({
+        ...s,
+        date: s.sale_date || s.created_at,
+        total: s.total_amount || 0,
+      })))
+      setProducts(productsRes.data || [])
+    }).catch(() => {})
+  }, [boutique?.id])
 
   const effectivePlan = status === "Essai" ? "Pro" : plan
 

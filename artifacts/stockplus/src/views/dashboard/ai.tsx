@@ -22,6 +22,10 @@ import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useToast } from "@/hooks/use-toast"
 import { ScrollArea } from "@/components/ui/scroll-area"
+import { useBoutique } from "@/views/dashboard/layout"
+import { getSupabaseClient } from "@/supabase/client"
+import { saleService } from "@/services/saleService"
+import { productService } from "@/services/productService"
 
 const DAILY_TRIAL_LIMIT = 5
 const AWA_AVATAR_URL = "/awa-avatar.json"
@@ -52,39 +56,71 @@ type SenaBusinessInsightsOutput = {
 
 export default function AIAssistantPage() {
   const { toast } = useToast()
+  const { boutique } = useBoutique() || {}
+
+  // Plan & status are derived from the current boutique (loaded via Supabase in the layout)
+  const plan = boutique?.plan || "Basic"
+  const status = boutique?.status || "Actif"
+
   const [isProcessing, setIsProcessing] = useState(false)
   const [scanResult, setScanResult] = useState<SenaProductPhotoScanOutput | null>(null)
   const [invoiceResult, setInvoiceResult] = useState<SenaInvoiceDataExtractorOutput | null>(null)
   const [insights, setInsights] = useState<SenaBusinessInsightsOutput | null>(null)
-  const [plan, setPlan] = useState("Basic")
-  const [status, setStatus] = useState("Actif")
-  const [aiUsage, setAiUsage] = useState(0)
+  const [aiUsage, setAiUsage] = useState(0) // In-memory only (no localStorage persistence)
   const [isMounted, setIsMounted] = useState(false)
   const [awaData, setAwaData] = useState<any>(null)
   const [loadingData, setLoadingData] = useState<any>(null)
-  
+  const [dbProducts, setDbProducts] = useState<any[]>([])
+  const [dbSales, setDbSales] = useState<any[]>([])
+  const [dbSaleItems, setDbSaleItems] = useState<any[]>([])
+  const [session, setSession] = useState<any>(null)
+
   const productInputRef = useRef<HTMLInputElement>(null)
   const invoiceInputRef = useRef<HTMLInputElement>(null)
 
+  // Helper: build authenticated headers for AI API calls (/api/ai/* require auth)
+  const getAuthHeaders = () => {
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' }
+    if (session?.access_token) {
+      headers['Authorization'] = `Bearer ${session.access_token}`
+    }
+    return headers
+  }
+
   useEffect(() => {
     setIsMounted(true)
-    const savedBoutiques = JSON.parse(localStorage.getItem("sena_boutiques_data") || "[]")
-    const currentShop = localStorage.getItem("shop_name")
-    const today = new Date().toLocaleDateString()
-    
-    let myBoutiqueIndex = savedBoutiques.findIndex((b: any) => b.name === currentShop)
-    if (myBoutiqueIndex !== -1) {
-      let b = savedBoutiques[myBoutiqueIndex]
-      if (b.status === "Essai" && b.lastAiResetDate !== today) {
-        b.aiScans = 0
-        b.lastAiResetDate = today
-        savedBoutiques[myBoutiqueIndex] = b
-        localStorage.setItem("sena_boutiques_data", JSON.stringify(savedBoutiques))
+    const supabase = getSupabaseClient()
+
+    const loadData = async () => {
+      try {
+        const { data: { session: currentSession } } = await supabase.auth.getSession()
+        setSession(currentSession)
+
+        if (boutique?.id) {
+          // Load products & sales from Supabase in parallel
+          const [productsRes, salesRes] = await Promise.all([
+            productService.listProducts(supabase, boutique.id, { per_page: 1000 }),
+            saleService.listSales(supabase, boutique.id, { per_page: 1000 }),
+          ])
+          setDbProducts(productsRes.data || [])
+          setDbSales(salesRes.data || [])
+
+          // Fetch sale_items linked to these sales (used for AI insights)
+          const saleIds = (salesRes.data || []).map((s: any) => s.id).filter(Boolean)
+          if (saleIds.length > 0) {
+            const { data: items } = await supabase
+              .from('sale_items')
+              .select('product_id, product_name, quantity, unit_price, created_at, sale_id')
+              .in('sale_id', saleIds)
+            setDbSaleItems(items || [])
+          }
+        }
+      } catch (err) {
+        console.warn('Failed to load AI data from Supabase:', err)
       }
-      setPlan(b.plan)
-      setStatus(b.status)
-      setAiUsage(b.aiScans || 0)
     }
+
+    loadData()
 
     // Safer Lottie loading
     const loadLottie = async (url: string, setter: (data: any) => void) => {
@@ -101,19 +137,11 @@ export default function AIAssistantPage() {
 
     loadLottie(AWA_AVATAR_URL, setAwaData)
     loadLottie(LOADING_CUBE_URL, setLoadingData)
-  }, [])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [boutique?.id])
 
   const incrementAiUsage = () => {
-    const currentShop = localStorage.getItem("shop_name")
-    const savedBoutiques = JSON.parse(localStorage.getItem("sena_boutiques_data") || "[]")
-    const today = new Date().toLocaleDateString()
-    const updated = savedBoutiques.map((b: any) => {
-      if (b.name === currentShop) {
-        return { ...b, aiScans: (b.aiScans || 0) + 1, lastAiResetDate: today }
-      }
-      return b
-    })
-    localStorage.setItem("sena_boutiques_data", JSON.stringify(updated))
+    // In-memory only (no localStorage persistence)
     setAiUsage(prev => prev + 1)
   }
 
@@ -144,7 +172,7 @@ export default function AIAssistantPage() {
         if (type === 'product') {
           const res = await fetch('/api/ai/product-photo-scan', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: getAuthHeaders(),
             body: JSON.stringify({ photoDataUri: base64 })
           });
           if (!res.ok) throw new Error(await res.text());
@@ -156,7 +184,7 @@ export default function AIAssistantPage() {
         } else {
           const res = await fetch('/api/ai/invoice-extract', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: getAuthHeaders(),
             body: JSON.stringify({ invoiceDataUri: base64 })
           });
           if (!res.ok) throw new Error(await res.text());
@@ -180,19 +208,33 @@ export default function AIAssistantPage() {
     if (!checkQuota()) return
     setIsProcessing(true)
     try {
-      const products = JSON.parse(localStorage.getItem("sena_products") || "[]")
-      const sales = JSON.parse(localStorage.getItem("sena_sales") || "[]")
-      const inputProducts = products.map((p: any) => ({
-        id: p.id, name: p.name, category: p.category, currentStock: p.stock, purchasePrice: p.price * 0.7, sellingPrice: p.price
+      // Map DB products (from Supabase) to the AI input shape
+      const inputProducts = dbProducts.map((p: any) => ({
+        id: p.id,
+        name: p.name,
+        category: p.category || 'Autre',
+        currentStock: p.quantity_in_stock ?? 0,
+        purchasePrice: p.cost_price ?? Math.round((p.price_retail || 0) * 0.7),
+        sellingPrice: p.price_retail ?? 0,
       }))
-      const inputSales = sales.flatMap((s: any) => (s.products || []).map((p: any) => ({
-        productId: products.find((op: any) => op.name === p.name)?.id || "unknown",
-        quantity: p.qty, salePrice: p.qty * p.price, date: new Date().toISOString()
-      })))
-      
+
+      // Build sale_id → sale_date lookup so we can date each sale_item
+      const saleDateById = new Map<string, string>()
+      dbSales.forEach((s: any) => {
+        if (s.id) saleDateById.set(s.id, s.sale_date || s.created_at || new Date().toISOString())
+      })
+
+      // Map sale_items (from Supabase) to the salesRecords shape expected by the AI
+      const inputSales = dbSaleItems.map((item: any) => ({
+        productId: item.product_id || 'unknown',
+        quantity: item.quantity || 0,
+        salePrice: (item.unit_price || 0) * (item.quantity || 0),
+        date: saleDateById.get(item.sale_id) || item.created_at || new Date().toISOString(),
+      }))
+
       const res = await fetch('/api/ai/business-insights', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAuthHeaders(),
         body: JSON.stringify({
           products: inputProducts,
           salesRecords: inputSales,
