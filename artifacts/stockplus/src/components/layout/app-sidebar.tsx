@@ -56,16 +56,16 @@ const navItems = [
   { title: "Ventes (Caisse)", icon: ShoppingCart, url: "/pos", roles: ["owner", "manager"] },
   { title: "IA Awa", icon: Sparkles, url: "/ai", roles: ["owner", "manager"], minPlan: "Pro" },
   { title: "Inventaire", icon: Package, url: "/inventory", roles: ["owner", "manager"], minPlan: "Basic" },
-  { title: "Mouvements", icon: History, url: "/inventory/moves", roles: ["owner", "manager"], minPlan: "Basic" },
   // [BUG C] "Devis" / quotations entry removed — page is mocked and not functional.
   // { title: "Devis", icon: FileText, url: "/quotations", roles: ["owner", "manager"], minPlan: "Basic" },
+  // "Mouvements" retiré de la sidebar — accessible via la page Inventaire
+  // { title: "Mouvements", icon: History, url: "/inventory/moves", roles: ["owner", "manager"], minPlan: "Basic" },
   { title: "Historique Factures", icon: Receipt, url: "/sales", roles: ["owner", "manager"] },
   { title: "Analyses & Rapports", icon: BarChart3, url: "/reports", roles: ["owner", "manager"], minPlan: "Pro" },
   { title: "Import Chine", icon: Globe, url: "/inventory/china-import", roles: ["owner", "manager"], minPlan: "Pro" },
   { title: "Crédit Client", icon: CreditCard, url: "/credit", roles: ["owner", "manager"] },
   { title: "Équipe", icon: Users, url: "/users", roles: ["owner"], minPlan: "Pro" },
   { title: "Réglages Boutique", icon: Settings, url: "/settings", roles: ["owner"] },
-  { title: "État Setup", icon: Activity, url: "/setup-status", roles: ["owner", "superadmin"] },
 ]
 
 const DAILY_TRIAL_LIMIT = 5
@@ -170,21 +170,7 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
 
-        {/* Upgrade Card for Basic Users — compact */}
-        {plan === "Basic" && status !== "Essai" && role !== 'superadmin' && (
-          <div className="px-3 py-3 group-data-[collapsible=icon]:hidden">
-            <div className="rounded-xl p-4 bg-gray-900 text-white shadow-lg relative overflow-hidden">
-              <div className="relative z-10 space-y-2">
-                <div className="flex items-center gap-2">
-                  <Star className="h-3 w-3 text-primary fill-primary" />
-                  <span className="text-[10px] font-black text-primary uppercase tracking-widest">Plan Pro — 25K</span>
-                </div>
-                <p className="text-[10px] text-gray-400 font-medium leading-tight">Débloquez l'IA Awa et les rapports avancés.</p>
-                <Button size="sm" className="w-full h-9 text-[9px] font-black uppercase tracking-widest sena-gradient border-none rounded-lg">Mettre à niveau</Button>
-              </div>
-            </div>
-          </div>
-        )}
+        {/* Carte upgrade supprimée de la sidebar — déplacée vers les paramètres */}
 
         {status === "Essai" && role !== 'superadmin' && (
           <div className="px-3 py-3 group-data-[collapsible=icon]:hidden">
