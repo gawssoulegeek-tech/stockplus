@@ -49,6 +49,7 @@ interface CartSession {
   name: string
   items: CartItem[]
   customerName: string
+  customerPhone: string
   saleType: "Détail" | "Gros"
 }
 
@@ -58,7 +59,7 @@ export default function POSPage() {
 
   const [products, setProducts] = useState<any[]>([])
   const [carts, setCarts] = useState<CartSession[]>([
-    { id: "cart_1", name: "Client 1", items: [], customerName: "", saleType: "Détail" }
+    { id: "cart_1", name: "Client 1", items: [], customerName: "", customerPhone: "", saleType: "Détail" }
   ])
   const [activeCartId, setActiveCartId] = useState("cart_1")
   const activeCart = carts.find(c => c.id === activeCartId) || carts[0]
@@ -98,7 +99,7 @@ export default function POSPage() {
       return
     }
     const newId = `cart_${Date.now()}`
-    const newCart: CartSession = { id: newId, name: `Client ${carts.length + 1}`, items: [], customerName: "", saleType: "Détail" }
+    const newCart: CartSession = { id: newId, name: `Client ${carts.length + 1}`, items: [], customerName: "", customerPhone: "", saleType: "Détail" }
     setCarts([...carts, newCart])
     setActiveCartId(newId)
   }
@@ -194,7 +195,7 @@ export default function POSPage() {
 
       const { sale, items } = await saleService.createSale(supabase, boutique.id, {
         sale_type: features.wholesale ? (activeCart.saleType === "Gros" ? SaleType.WHOLESALE : SaleType.RETAIL) : SaleType.RETAIL,
-        customer_name: features.customers ? activeCart.customerName || "Client Passager" : "Client Passager",
+        customer_name: activeCart.customerName || "Client Passager",
         invoice_number: invoiceNumber,
         items: activeCart.items.map(i => ({
           product_id: i.id,
@@ -205,10 +206,10 @@ export default function POSPage() {
         discount_amount: discountAmount || undefined,
         discount_reason: discountAmount > 0 ? "Remise manuelle" : undefined,
         seller_name: userProfile?.name,
-        notes: `Vente par ${userProfile?.name || 'caisse'}`,
+        notes: `Vente par ${userProfile?.name || 'caisse'}${activeCart.customerPhone ? ` | Tél: ${activeCart.customerPhone}` : ''}`,
       })
 
-      setLastSale({ id: sale.id, invoiceNumber, total: sale.total_amount, discountAmount: sale.discount_amount, date: sale.created_at, products: items.map(i => ({ name: i.product_name, qty: i.quantity, price: i.unit_price })) })
+      setLastSale({ id: sale.id, invoiceNumber, total: sale.total_amount, discountAmount: sale.discount_amount, date: sale.created_at, customerName: activeCart.customerName, customerPhone: activeCart.customerPhone, products: items.map(i => ({ name: i.product_name, qty: i.quantity, price: i.unit_price })) })
 
       setDiscountValue(0)
       setDiscountType("fixed")
@@ -216,7 +217,7 @@ export default function POSPage() {
       if (carts.length > 1) {
         removeCart(activeCartId)
       } else {
-        updateActiveCart({ items: [], customerName: "", saleType: "Détail" })
+        updateActiveCart({ items: [], customerName: "", customerPhone: "", saleType: "Détail" })
       }
       setIsInvoiceOpen(true)
       toast({ title: "Vente réussie", description: "Le stock a été déduit." })
@@ -344,7 +345,7 @@ export default function POSPage() {
                      <UserIcon className="h-3 w-3" /> Client
                    </label>
                    <Input
-                     placeholder="Chercher un client..."
+                     placeholder="Nom complet du client..."
                      value={activeCart.customerName}
                      onChange={e => {
                        updateActiveCart({ customerName: e.target.value })
@@ -363,7 +364,7 @@ export default function POSPage() {
                            type="button"
                            className="w-full px-4 py-3 text-left hover:bg-orange-50 font-medium text-sm border-b border-orange-50 last:border-b-0 transition-colors"
                            onMouseDown={() => {
-                             updateActiveCart({ customerName: c.full_name })
+                             updateActiveCart({ customerName: c.full_name, customerPhone: c.phone_number || "" })
                              setShowCustomerDropdown(false)
                            }}
                          >
@@ -373,6 +374,35 @@ export default function POSPage() {
                        ))}
                      </div>
                    )}
+                   {/* Champ téléphone */}
+                   <Input
+                     type="tel"
+                     placeholder="Numéro de téléphone..."
+                     value={activeCart.customerPhone}
+                     onChange={e => updateActiveCart({ customerPhone: e.target.value })}
+                     className="h-10 rounded-xl bg-white border-none shadow-sm mt-2"
+                   />
+                </div>
+              )}
+              {/* Si pas de module clients, on affiche quand même nom + téléphone simplifié */}
+              {!features.customers && (
+                <div className="space-y-2 mb-4 bg-gray-50 p-4 rounded-2xl border border-gray-100">
+                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
+                    <UserIcon className="h-3 w-3" /> Client (optionnel)
+                  </label>
+                  <Input
+                    placeholder="Nom complet du client..."
+                    value={activeCart.customerName}
+                    onChange={e => updateActiveCart({ customerName: e.target.value })}
+                    className="h-10 rounded-xl bg-white border-none shadow-sm"
+                  />
+                  <Input
+                    type="tel"
+                    placeholder="Numéro de téléphone..."
+                    value={activeCart.customerPhone}
+                    onChange={e => updateActiveCart({ customerPhone: e.target.value })}
+                    className="h-10 rounded-xl bg-white border-none shadow-sm mt-2"
+                  />
                 </div>
               )}
 
@@ -499,11 +529,17 @@ export default function POSPage() {
               </div>
             </div>
 
-            {/* Numéro facture + date */}
+            {/* Numéro facture + date + client */}
             <div className="flex justify-between items-center text-sm">
               <div>
                 <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Facture</p>
                 <p className="font-bold text-gray-900">{lastSale?.invoiceNumber || `#${lastSale?.id?.slice(-6)}`}</p>
+                {lastSale?.customerName && lastSale.customerName !== "Client Passager" && (
+                  <p className="text-xs text-gray-600 mt-1">Client : {lastSale.customerName}</p>
+                )}
+                {lastSale?.customerPhone && (
+                  <p className="text-xs text-gray-500">Tél : {lastSale.customerPhone}</p>
+                )}
               </div>
               <div className="text-right">
                 <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Date</p>

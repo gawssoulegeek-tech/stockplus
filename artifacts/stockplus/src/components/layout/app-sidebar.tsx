@@ -58,8 +58,8 @@ const navItems = [
   { title: "Inventaire", icon: Package, url: "/inventory", roles: ["owner", "manager"], minPlan: "Basic" },
   // [BUG C] "Devis" / quotations entry removed — page is mocked and not functional.
   // { title: "Devis", icon: FileText, url: "/quotations", roles: ["owner", "manager"], minPlan: "Basic" },
-  // "Mouvements" retiré de la sidebar — accessible via la page Inventaire
-  // { title: "Mouvements", icon: History, url: "/inventory/moves", roles: ["owner", "manager"], minPlan: "Basic" },
+  // "Mouvements" remis dans la sidebar
+  { title: "Mouvements", icon: History, url: "/inventory/moves", roles: ["owner", "manager"], minPlan: "Basic" },
   { title: "Historique Factures", icon: Receipt, url: "/sales", roles: ["owner", "manager"] },
   { title: "Analyses & Rapports", icon: BarChart3, url: "/reports", roles: ["owner", "manager"], minPlan: "Pro" },
   { title: "Import Chine", icon: Globe, url: "/inventory/china-import", roles: ["owner", "manager"], minPlan: "Pro" },
