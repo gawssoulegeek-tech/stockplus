@@ -1,5 +1,6 @@
 import { SupabaseClient } from '@supabase/supabase-js';
 import { ChinaImport, PaginatedResponse } from '@/types/supabase';
+import { stockService } from './stockService';
 
 /**
  * [BUG E] Real `china_imports` schema:
@@ -201,27 +202,19 @@ export const chinaImportService = {
       actual_delivery_date: deliveryDate,
     } as Partial<ChinaImport>);
 
-    // Record stock_moves for traceability (resilient — failures don't crash receive())
-    try {
-      const items: Array<{ quantity?: number }> = (imp as any).items || [];
-      for (const item of items) {
-        try {
-          await supabase.from('stock_moves').insert({
-            boutique_id: (imp as any).boutique_id,
-            product_id: importId, // ⚠️ pre-existing limitation: import id, no real product link
-            move_type: 'purchase',
-            quantity_change: item.quantity || 0,
-            reference_type: 'import',
-            reference_id: importId,
-            move_date: new Date().toISOString(),
-            created_at: new Date().toISOString(),
-          });
-        } catch (itemErr) {
-          console.warn('[chinaImportService.receive] stock_moves insert failed for an item:', itemErr);
-        }
+    const items: Array<{ product_id?: string; quantity?: number }> = (imp as any).items || [];
+    for (const item of items) {
+      if (!item?.product_id) continue;
+      try {
+        await stockService.createStockMove(supabase, imp.boutique_id, item.product_id, 'purchase', item.quantity || 0, {
+          reference_type: 'import',
+          reference_id: importId,
+          reason: 'Import reçu',
+          notes: `Réception de l'import ${importId} pour ${item.product_id}`,
+        });
+      } catch (itemErr) {
+        console.warn('[chinaImportService.receive] stock move creation failed for an item:', itemErr);
       }
-    } catch (stockErr) {
-      console.warn('[chinaImportService.receive] stock_moves loop failed:', stockErr);
     }
 
     return updated;

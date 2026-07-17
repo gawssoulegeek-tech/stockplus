@@ -5,6 +5,7 @@ import '@/index.css'
 export const metadata: Metadata = {
   title: 'StockPlus — Gestion de boutique',
   description: 'Gérez votre inventaire, vos ventes et votre boutique avec StockPlus.',
+  viewport: 'width=device-width, initial-scale=1',
   icons: {
     icon: '/logo.png',
     apple: '/logo.png',

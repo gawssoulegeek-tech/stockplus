@@ -22,135 +22,29 @@ export const saleService = {
     boutique_id: string,
     data: CreateSaleRequest
   ): Promise<{ sale: Sale; items: SaleItem[] }> {
-    // Start transaction
-    let sale: Sale;
-    let items: SaleItem[] = [];
+    const response = await fetch('/api/sales', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      credentials: 'same-origin',
+      body: JSON.stringify({ boutique_id, ...data }),
+    })
 
-    // Calculate totals
-    let subtotal = 0;
-    for (const item of data.items) {
-      const { data: product } = await supabase
-        .from('products')
-        .select('price_retail, price_wholesale')
-        .eq('id', item.product_id)
-        .single();
-
-      if (!product) throw new Error(`Product ${item.product_id} not found`);
-
-      const unit_price = data.sale_type === 'wholesale' && item.is_wholesale_price
-        ? product.price_wholesale || product.price_retail
-        : product.price_retail;
-
-      subtotal += unit_price * item.quantity;
+    const payload = await response.json().catch(() => null)
+    if (!response.ok) {
+      const message = payload?.error || payload?.message || response.statusText || 'Failed to create sale'
+      throw new Error(message)
     }
 
-    const tax_amount = Math.round(subtotal * 0.18); // 18% default tax
-    const total_amount = subtotal + tax_amount - (data.discount_amount || 0);
-
-    // Create sale
-    const { data: newSale, error: saleError } = await supabase
-      .from('sales')
-      .insert({
-        boutique_id,
-        sale_type: data.sale_type,
-        customer_id: data.customer_id || null,
-        customer_name: data.customer_name,
-        seller_name: data.seller_name || null,
-        invoice_number: data.invoice_number,
-        subtotal,
-        tax_amount,
-        total_amount,
-        payment_method: data.payment_method,
-        payment_status: data.payment_method === 'credit' ? 'pending' : 'complete',
-        discount_amount: data.discount_amount || 0,
-        discount_reason: data.discount_reason,
-        notes: data.notes,
-        is_void: false,
-        sale_date: new Date().toISOString(),
-        created_at: new Date().toISOString(),
-      })
-      .select()
-      .single();
-
-    if (saleError) throw new Error(`Failed to create sale: ${saleError.message}`);
-    sale = newSale;
-
-    // Create sale items
-    for (const item of data.items) {
-      const { data: product } = await supabase
-        .from('products')
-        .select('name, price_retail, price_wholesale, quantity_in_stock')
-        .eq('id', item.product_id)
-        .single();
-
-      if (!product) continue;
-
-      const unit_price = data.sale_type === 'wholesale' && item.is_wholesale_price
-        ? product.price_wholesale || product.price_retail
-        : product.price_retail;
-
-      const { data: saleItem, error: itemError } = await supabase
-        .from('sale_items')
-        .insert({
-          sale_id: sale.id,
-          product_id: item.product_id,
-          product_name: product.name,
-          quantity: item.quantity,
-          unit_price,
-          is_wholesale_price: item.is_wholesale_price || false,
-          item_total: unit_price * item.quantity,
-          discount_amount: 0,
-          created_at: new Date().toISOString(),
-        })
-        .select()
-        .single();
-
-      if (itemError) continue;
-      items.push(saleItem);
-
-      // ✅ Déduction du stock + enregistrement du mouvement
-      // On compare le stock avant (product.quantity_in_stock) et après l'insertion du sale_item
-      // pour détecter un éventuel trigger DB (évite le double-décrément)
-      try {
-        const stockBefore = (product as any)?.quantity_in_stock ?? 0;
-
-        const { data: prodAfter } = await supabase
-          .from('products')
-          .select('quantity_in_stock')
-          .eq('id', item.product_id)
-          .single();
-
-        const stockAfterItem = (prodAfter as { quantity_in_stock?: number } | null)?.quantity_in_stock ?? 0;
-
-        // Si le stock n'a pas bougé (pas de trigger), on le décrémente manuellement
-        if (stockAfterItem === stockBefore) {
-          // Pas de trigger → décrémenter manuellement
-          const newStock = Math.max(0, stockAfterItem - item.quantity);
-          await supabase
-            .from('products')
-            .update({ quantity_in_stock: newStock })
-            .eq('id', item.product_id);
-        }
-
-        // Créer un mouvement de stock tracé (audit, ne modifie pas le stock)
-        await supabase.from('stock_moves').insert({
-          boutique_id,
-          product_id: item.product_id,
-          move_type: 'sale',
-          quantity_change: -item.quantity,
-          reference_type: 'sale',
-          reference_id: sale.id,
-          reason: `Vente ${sale.invoice_number || sale.id}`,
-          notes: `Vente enregistrée - ${item.quantity} unité(s)`,
-          move_date: new Date().toISOString(),
-          created_at: new Date().toISOString(),
-        });
-      } catch (stockErr) {
-        console.error(`Stock update failed for product ${item.product_id}:`, stockErr);
-      }
+    if (!payload || !payload.sale || !Array.isArray(payload.items)) {
+      throw new Error('Invalid response from sales API')
     }
 
-    return { sale, items };
+    return {
+      sale: payload.sale,
+      items: payload.items,
+    }
   },
 
   /**

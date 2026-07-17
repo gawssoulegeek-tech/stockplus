@@ -27,9 +27,13 @@ export const stockService = {
       notes?: string;
     }
   ): Promise<StockMove> {
-    const { data: move, error } = await supabase
-      .from('stock_moves')
-      .insert({
+    const response = await fetch('/api/stock-moves', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      credentials: 'same-origin',
+      body: JSON.stringify({
         boutique_id,
         product_id,
         move_type,
@@ -39,14 +43,20 @@ export const stockService = {
         reason: options?.reason,
         recorded_by: options?.recorded_by,
         notes: options?.notes,
-        move_date: new Date().toISOString(),
-        created_at: new Date().toISOString(),
-      })
-      .select()
-      .single();
+      }),
+    })
 
-    if (error) throw new Error(`Failed to create stock move: ${error.message}`);
-    return move;
+    const payload = await response.json().catch(() => null)
+    if (!response.ok) {
+      const message = payload?.error || payload?.message || response.statusText || 'Failed to create stock move'
+      throw new Error(message)
+    }
+
+    if (!payload || !payload.move) {
+      throw new Error('Invalid response from stock-moves API')
+    }
+
+    return payload.move
   },
 
   /**
