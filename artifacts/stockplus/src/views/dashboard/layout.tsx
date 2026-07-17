@@ -26,7 +26,7 @@ export default function DashboardLayout({
 }: {
   children: React.ReactNode
 }) {
-  const [, navigate] = useLocation()
+  const [pathname, navigate] = useLocation()
 
   const [isMounted, setIsMounted] = useState(false)
   const [boutique, setBoutique] = useState<any>(null)
@@ -223,7 +223,7 @@ export default function DashboardLayout({
             </div>
           )}
           <main className="flex-1 p-4 md:p-6 lg:p-12 overflow-auto">
-            <ErrorBoundary>
+            <ErrorBoundary key={pathname}>
               {children}
             </ErrorBoundary>
           </main>
