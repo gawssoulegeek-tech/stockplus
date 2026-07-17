@@ -515,38 +515,51 @@ export default function SalesHistoryPage() {
         <DialogContent className="sm:max-w-[600px] rounded-[2.5rem] p-0 overflow-hidden">
           <div className="p-8 space-y-6">
             <DialogHeader>
-              <DialogTitle className="text-2xl font-headline">Détails de la vente</DialogTitle>
+              <DialogTitle className="text-2xl font-headline">Facture de vente</DialogTitle>
+              <DialogDescription className="text-gray-500">
+                Détails de la transaction et récapitulatif de la facture.
+              </DialogDescription>
             </DialogHeader>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1">Facture</p>
-                <p className="font-bold text-gray-900">{detailSale?.invoice_number || detailSale?.id?.slice(0, 8)}</p>
+            <div className="grid gap-4 rounded-3xl border border-gray-100 bg-gray-50 p-4">
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">Facture</p>
+                  <p className="font-bold text-gray-900 text-lg">{detailSale?.invoice_number || detailSale?.id?.slice(0, 8)}</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">Date</p>
+                  <p className="font-bold text-gray-900">{detailSale?.sale_date ? new Date(detailSale.sale_date).toLocaleDateString('fr-FR') : '—'}</p>
+                </div>
               </div>
-              <div>
-                <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1">Date</p>
-                <p className="font-bold text-gray-900">{detailSale?.sale_date ? new Date(detailSale.sale_date).toLocaleDateString() : '—'}</p>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1">Client</p>
+                  <p className="font-bold text-gray-900">{detailSale?.customer_name || '—'}</p>
+                </div>
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1">Vendeur</p>
+                  <p className="font-bold text-gray-900">{detailSale?.seller_name || '—'}</p>
+                </div>
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1">Méthode</p>
+                  <Badge variant="outline" className={`rounded-lg text-[9px] font-black border-none ${paymentMethodColors[detailSale?.payment_method] || 'bg-gray-50 text-gray-500'}`}>
+                    {paymentMethodLabels[detailSale?.payment_method] || detailSale?.payment_method}
+                  </Badge>
+                </div>
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1">Statut</p>
+                  <Badge variant="outline" className={`rounded-lg text-[9px] font-black border-none ${paymentStatusColors[detailSale?.payment_status] || 'bg-gray-50 text-gray-500'}`}>
+                    {paymentStatusLabels[detailSale?.payment_status] || detailSale?.payment_status}
+                  </Badge>
+                </div>
               </div>
-              <div>
-                <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1">Client</p>
-                <p className="font-bold text-gray-900">{detailSale?.customer_name || '—'}</p>
-              </div>
-              <div>
-                <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1">Vendeur</p>
-                <p className="font-bold text-gray-900">{detailSale?.seller_name || '—'}</p>
-              </div>
-              <div>
-                <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1">Méthode de paiement</p>
-                <Badge variant="outline" className={`rounded-lg text-[9px] font-black border-none ${paymentMethodColors[detailSale?.payment_method] || 'bg-gray-50 text-gray-500'}`}>
-                  {paymentMethodLabels[detailSale?.payment_method] || detailSale?.payment_method}
-                </Badge>
-              </div>
-              <div>
-                <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1">Statut</p>
-                <Badge variant="outline" className={`rounded-lg text-[9px] font-black border-none ${paymentStatusColors[detailSale?.payment_status] || 'bg-gray-50 text-gray-500'}`}>
-                  {paymentStatusLabels[detailSale?.payment_status] || detailSale?.payment_status}
-                </Badge>
-              </div>
+              {detailSale?.notes && (
+                <div className="rounded-2xl bg-white p-4 border border-gray-100 text-sm text-gray-600">
+                  <p className="font-black text-gray-700 mb-2">Notes</p>
+                  <p>{detailSale.notes}</p>
+                </div>
+              )}
             </div>
 
             <div className="border-t border-gray-100 pt-6">
@@ -575,9 +588,15 @@ export default function SalesHistoryPage() {
               )}
             </div>
 
-            <div className="flex justify-between items-center pt-6 border-t border-gray-100">
-              <p className="text-lg font-headline font-bold text-gray-900">Total payé</p>
-              <p className="text-3xl font-headline font-bold text-primary">{detailSale?.total_amount?.toLocaleString()} CFA</p>
+            <div className="grid gap-3 md:grid-cols-2 pt-6 border-t border-gray-100">
+              <div className="space-y-2">
+                <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">Montant total</p>
+                <p className="text-2xl font-headline font-bold text-gray-900">{detailSale?.total_amount?.toLocaleString()} CFA</p>
+              </div>
+              <div className="space-y-2 text-right">
+                <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">Paiement</p>
+                <p className="font-bold text-gray-900">{paymentStatusLabels[detailSale?.payment_status] || detailSale?.payment_status || '—'}</p>
+              </div>
             </div>
           </div>
         </DialogContent>

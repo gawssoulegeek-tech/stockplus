@@ -10,7 +10,7 @@ import {
   Banknote,
   Smartphone,
   CreditCard,
-  X,
+  Trash2,
   Printer,
   Store,
   User as UserIcon,
@@ -150,6 +150,10 @@ export default function POSPage() {
     updateActiveCart({ items: newItems })
   }
 
+  const removeItem = (id: string) => {
+    updateActiveCart({ items: activeCart.items.filter(item => item.id !== id) })
+  }
+
   const totalAmount = activeCart.items.reduce((sum, item) => {
     const price = (activeCart.saleType === "Gros" && item.wholesalePrice) ? item.wholesalePrice : item.price
     return sum + (price * item.quantity)
@@ -209,7 +213,26 @@ export default function POSPage() {
         notes: `Vente par ${userProfile?.name || 'caisse'}${activeCart.customerPhone ? ` | Tél: ${activeCart.customerPhone}` : ''}`,
       })
 
-      setLastSale({ id: sale.id, invoiceNumber, total: sale.total_amount, discountAmount: sale.discount_amount, date: sale.created_at, customerName: activeCart.customerName, customerPhone: activeCart.customerPhone, products: items.map(i => ({ name: i.product_name, qty: i.quantity, price: i.unit_price })) })
+      const productLines = items.map(i => ({ name: i.product_name, qty: i.quantity, price: i.unit_price }))
+      const subtotal = productLines.reduce((sum, item) => sum + (item.price || 0) * item.qty, 0)
+      const taxAmount = Math.round(subtotal * 0.18)
+      const paymentLabel = paymentMethod
+      const paymentStatus = paymentMethod === "Crédit" ? "En attente" : "Payée"
+
+      setLastSale({
+        id: sale.id,
+        invoiceNumber,
+        total: sale.total_amount,
+        discountAmount: sale.discount_amount,
+        subtotal,
+        taxAmount,
+        paymentMethod: paymentLabel,
+        paymentStatus,
+        date: sale.created_at,
+        customerName: activeCart.customerName,
+        customerPhone: activeCart.customerPhone,
+        products: productLines,
+      })
 
       setDiscountValue(0)
       setDiscountType("fixed")
@@ -426,6 +449,14 @@ export default function POSPage() {
                       <span className="w-6 text-center font-bold text-sm">{item.quantity}</span>
                       <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full" onClick={() => updateQty(item.id, 1)}><Plus className="h-3 w-3" /></Button>
                     </div>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-9 w-9 rounded-full text-red-500 hover:bg-red-50"
+                      onClick={() => removeItem(item.id)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
                   </div>
                 ))
               )}
@@ -567,11 +598,19 @@ export default function POSPage() {
             </div>
 
             {/* Totaux */}
-            <div className="space-y-2">
+            <div className="space-y-3 text-sm">
+              <div className="flex justify-between text-gray-500">
+                <span>Sous-total</span>
+                <span>{(lastSale?.subtotal || 0).toLocaleString()} CFA</span>
+              </div>
+              <div className="flex justify-between text-gray-500">
+                <span>TVA (18%)</span>
+                <span>{(lastSale?.taxAmount || 0).toLocaleString()} CFA</span>
+              </div>
               {lastSale?.discountAmount > 0 && (
-                <div className="flex justify-between items-center text-sm">
-                  <span className="text-gray-500">Remise</span>
-                  <span className="font-bold text-red-500">-{(lastSale.discountAmount || 0).toLocaleString()} CFA</span>
+                <div className="flex justify-between text-red-500">
+                  <span>Remise</span>
+                  <span>-{(lastSale.discountAmount || 0).toLocaleString()} CFA</span>
                 </div>
               )}
               <div className="flex justify-between items-center pt-2 border-t border-gray-100">
