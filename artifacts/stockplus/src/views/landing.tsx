@@ -383,6 +383,50 @@ export default function LandingPage() {
               </div>
             </div>
 
+            {/* 🛒 Addon Boutique en ligne */}
+            <div className="mt-24 max-w-5xl mx-auto">
+              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-100 rounded-[3rem] p-10 md:p-16 text-center relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/5 rounded-full blur-3xl" />
+                <div className="absolute bottom-0 left-0 w-48 h-48 bg-purple-500/5 rounded-full blur-3xl" />
+                <div className="relative z-10 max-w-3xl mx-auto">
+                  <Badge className="bg-blue-500 text-white border-none px-6 py-2 rounded-full font-black text-xs tracking-widest uppercase mb-6">ADDON</Badge>
+                  <div className="text-6xl mb-6">🛒</div>
+                  <h3 className="text-3xl md:text-5xl font-headline font-bold text-gray-900 tracking-tighter mb-4">
+                    Boutique en ligne
+                  </h3>
+                  <p className="text-lg md:text-xl text-gray-600 font-medium mb-6 max-w-2xl mx-auto leading-relaxed">
+                    Lancez votre site e-commerce complet relié à votre stock StockPlus. 
+                    Vos clients commandent en ligne, le stock se met à jour automatiquement.
+                  </p>
+                  <div className="grid sm:grid-cols-3 gap-6 mb-10 text-left max-w-2xl mx-auto">
+                    {[
+                      { icon: "🌐", title: "Catalogue en ligne", desc: "Tous vos produits visibles sur votre site" },
+                      { icon: "💳", title: "Paiements Wave/OM", desc: "Acceptez les paiements mobile money" },
+                      { icon: "🔄", title: "Stock synchronisé", desc: "Le stock s'ajuste en temps réel" },
+                    ].map((feat, i) => (
+                      <div key={i} className="bg-white/80 backdrop-blur rounded-2xl p-6 text-center border border-blue-100/50">
+                        <div className="text-3xl mb-3">{feat.icon}</div>
+                        <h4 className="font-bold text-gray-900 text-sm mb-1">{feat.title}</h4>
+                        <p className="text-xs text-gray-500 font-medium">{feat.desc}</p>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="flex items-center justify-center gap-4 flex-wrap">
+                    <div className="text-center">
+                      <div className="text-5xl md:text-6xl font-headline font-bold text-gray-900">79 000</div>
+                      <div className="text-xs font-bold text-gray-400 uppercase tracking-widest mt-1">FCFA / mois</div>
+                    </div>
+                    <Button size="lg" className="h-16 px-10 rounded-full bg-blue-500 hover:bg-blue-600 text-white font-bold text-lg shadow-2xl shadow-blue-500/30" asChild>
+                      <Link href="/waitlist">Ajouter à mon abonnement</Link>
+                    </Button>
+                  </div>
+                  <p className="text-xs text-gray-400 font-medium mt-6">
+                    ✨ Configuration offerte — Site personnalisé à votre boutique
+                  </p>
+                </div>
+              </div>
+            </div>
+
             {/* Types de boutiques compatibles */}
             <div className="mt-24 max-w-5xl mx-auto">
               <div className="text-center mb-12">
