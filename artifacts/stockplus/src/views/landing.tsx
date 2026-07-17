@@ -330,6 +330,8 @@ export default function LandingPage() {
                     "Rapports avancés & exports PDF/Excel",
                     "Scan IA des produits (photo)",
                     "Scan facture fournisseurs (auto-stock)",
+                    "CRM & relance automatique clients",
+                    "Comptabilité simple & export comptable",
                     "Jusqu'à 20 gérants",
                     "Support prioritaire 7j/7",
                   ] 

@@ -1,4 +1,4 @@
-export type PlanId = 'Basic' | 'Pro'
+export type PlanId = 'Basic' | 'Pro' | 'Premium'
 
 export const TRIAL_DAYS = 30
 
@@ -14,6 +14,11 @@ export type FeatureKey =
   | 'stockIncrement'
   | 'historicalMoves'
   | 'supplierInvoiceScan'
+  | 'crm'
+  | 'autoRelance'
+  | 'comptabilite'
+  | 'exportComptable'
+  | 'ecommerce'
 
 export const ALL_FEATURES: Record<FeatureKey, string> = {
   wholesale: 'Vente en Gros',
@@ -26,6 +31,11 @@ export const ALL_FEATURES: Record<FeatureKey, string> = {
   stockIncrement: 'Incrément manuel',
   historicalMoves: 'Mouvements historiques',
   supplierInvoiceScan: 'Scan facture fournisseurs',
+  crm: 'CRM & Relance Auto',
+  autoRelance: 'Relance automatique clients',
+  comptabilite: 'Comptabilité simple',
+  exportComptable: 'Export comptable',
+  ecommerce: 'Boutique en ligne',
 }
 
 export const MAX_GERANTS: Record<string, number> = {
@@ -47,6 +57,11 @@ export const PLAN_FEATURES: Record<string, Record<FeatureKey, boolean>> = {
     stockIncrement: true,
     historicalMoves: false,
     supplierInvoiceScan: false,
+    crm: false,
+    autoRelance: false,
+    comptabilite: false,
+    exportComptable: false,
+    ecommerce: false,
   },
   Basic: {
     wholesale: false,
@@ -59,6 +74,11 @@ export const PLAN_FEATURES: Record<string, Record<FeatureKey, boolean>> = {
     stockIncrement: true,
     historicalMoves: false,
     supplierInvoiceScan: false,
+    crm: false,
+    autoRelance: false,
+    comptabilite: false,
+    exportComptable: false,
+    ecommerce: false,
   },
   Pro: {
     wholesale: true,
@@ -71,20 +91,62 @@ export const PLAN_FEATURES: Record<string, Record<FeatureKey, boolean>> = {
     stockIncrement: true,
     historicalMoves: true,
     supplierInvoiceScan: true,
+    crm: true,
+    autoRelance: true,
+    comptabilite: true,
+    exportComptable: true,
+    ecommerce: false,
+  },
+  Premium: {
+    wholesale: true,
+    credit: true,
+    customers: true,
+    units: true,
+    chinaImport: false,
+    advancedReports: true,
+    multiCart: true,
+    stockIncrement: true,
+    historicalMoves: true,
+    supplierInvoiceScan: true,
+    crm: true,
+    autoRelance: true,
+    comptabilite: true,
+    exportComptable: true,
+    ecommerce: false,
   },
 }
 
 export const PLAN_PRICES: Record<PlanId, number> = {
   Basic: 10000,
   Pro: 25000,
+  Premium: 25000,
 }
 
-export const PAID_PLANS: PlanId[] = ['Basic', 'Pro']
+export const PAID_PLANS: PlanId[] = ['Basic', 'Pro', 'Premium']
 
-export function getFeaturesForPlan(plan: string): Record<string, boolean> {
+export function getFeaturesForPlan(plan: string): Record<FeatureKey, boolean> {
   const base = PLAN_FEATURES[plan]
   if (base) return { ...base }
   return { ...PLAN_FEATURES.Basic }
+}
+
+export function normalizeFeatures(features: Partial<Record<FeatureKey, boolean> & { importChina?: boolean }>): Record<FeatureKey, boolean> {
+  const normalized = Object.keys(ALL_FEATURES).reduce((acc, key) => {
+    acc[key as FeatureKey] = false
+    return acc
+  }, {} as Record<FeatureKey, boolean>)
+
+  for (const key of Object.keys(ALL_FEATURES) as FeatureKey[]) {
+    if (features[key] !== undefined) {
+      normalized[key] = Boolean(features[key])
+    }
+  }
+
+  if (features.importChina !== undefined) {
+    normalized.chinaImport = Boolean(features.importChina)
+  }
+
+  return normalized
 }
 
 export function isValidPlan(plan: string): plan is PlanId {
@@ -120,6 +182,7 @@ export const PREMIUM_MODULES: PremiumModule[] = [
   { id: 'barcode', label: 'Scanner code-barres', description: 'Scan rapide à la caisse.', price: 2500, implemented: false },
   { id: 'wave', label: 'Paiement Wave', description: 'Intégration Wave Mobile Money.', price: 2500, implemented: false },
   { id: 'orange', label: 'Orange Money', description: 'Intégration Orange Money.', price: 2500, implemented: false },
+  { id: 'ecommerce', label: 'Boutique en ligne', description: 'Site e-commerce complet lié à votre boutique StockPlus.', price: 79000, featureFlag: 'ecommerce', implemented: false },
 ]
 
 export function getModuleRevenue(activeModuleIds: string[]): number {
@@ -137,4 +200,10 @@ export function computeEffectiveFeatures(plan: string, activeModuleIds: string[]
     }
   }
   return features
+}
+
+export function getActivePremiumModuleIds(features: Record<FeatureKey, boolean>): string[] {
+  return PREMIUM_MODULES
+    .filter((mod) => mod.featureFlag && features[mod.featureFlag])
+    .map((mod) => mod.id)
 }

@@ -1,4 +1,4 @@
-export type PlanId = "Basic" | "Pro";
+export type PlanId = "Basic" | "Pro" | "Premium";
 
 export type FeatureKey =
   | "wholesale"
@@ -10,7 +10,12 @@ export type FeatureKey =
   | "multiCart"
   | "stockIncrement"
   | "historicalMoves"
-  | "supplierInvoiceScan";
+  | "supplierInvoiceScan"
+  | "crm"
+  | "autoRelance"
+  | "comptabilite"
+  | "exportComptable"
+  | "ecommerce";
 
 export const PLAN_FEATURES: Record<string, Record<FeatureKey, boolean>> = {
   Essai: {
@@ -24,6 +29,11 @@ export const PLAN_FEATURES: Record<string, Record<FeatureKey, boolean>> = {
     stockIncrement: true,
     historicalMoves: false,
     supplierInvoiceScan: false,
+    crm: false,
+    autoRelance: false,
+    comptabilite: false,
+    exportComptable: false,
+    ecommerce: false,
   },
   Basic: {
     wholesale: false,
@@ -36,6 +46,11 @@ export const PLAN_FEATURES: Record<string, Record<FeatureKey, boolean>> = {
     stockIncrement: true,
     historicalMoves: false,
     supplierInvoiceScan: false,
+    crm: false,
+    autoRelance: false,
+    comptabilite: false,
+    exportComptable: false,
+    ecommerce: false,
   },
   Pro: {
     wholesale: true,
@@ -48,16 +63,39 @@ export const PLAN_FEATURES: Record<string, Record<FeatureKey, boolean>> = {
     stockIncrement: true,
     historicalMoves: true,
     supplierInvoiceScan: true,
+    crm: true,
+    autoRelance: true,
+    comptabilite: true,
+    exportComptable: true,
+    ecommerce: false,
+  },
+  Premium: {
+    wholesale: true,
+    credit: true,
+    customers: true,
+    units: true,
+    chinaImport: false,
+    advancedReports: true,
+    multiCart: true,
+    stockIncrement: true,
+    historicalMoves: true,
+    supplierInvoiceScan: true,
+    crm: true,
+    autoRelance: true,
+    comptabilite: true,
+    exportComptable: true,
+    ecommerce: false,
   },
 };
 
 export const MAX_GERANTS: Record<string, number> = {
-  Essai: 1,
-  Basic: 1,
+  Essai: 2,
+  Basic: 2,
   Pro: 20,
+  Premium: 20,
 };
 
-export const PAID_PLANS: PlanId[] = ["Basic", "Pro"];
+export const PAID_PLANS: PlanId[] = ["Basic", "Pro", "Premium"];
 
 export function getFeaturesForPlan(plan: string): Record<string, boolean> {
   const base = PLAN_FEATURES[plan];

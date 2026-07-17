@@ -160,6 +160,11 @@ export interface Boutique {
     historicalMoves: boolean
     importChina: boolean
     supplierInvoiceScan?: boolean
+    crm?: boolean
+    autoRelance?: boolean
+    comptabilite?: boolean
+    exportComptable?: boolean
+    ecommerce?: boolean
   }
   
   created_at: string

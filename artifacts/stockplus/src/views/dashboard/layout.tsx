@@ -13,8 +13,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { useLocation } from "@/lib/compat/wouter"
 import { getSupabaseClient } from "@/supabase/client"
-import { getUserProfile, getBoutique } from "@/supabase/auth-service"
-import { SuperadminNotifications } from "@/components/superadmin/notifications-bell"
+import { getUserProfile, getBoutique } from "@/supabase/auth-service"import { normalizeFeatures } from '@/lib/plan-features'import { SuperadminNotifications } from "@/components/superadmin/notifications-bell"
 import { ErrorBoundary } from "@/components/error-boundary"
 
 const BoutiqueContext = createContext<any>(null)
@@ -112,7 +111,7 @@ export default function DashboardLayout({
             return
           }
 
-          setBoutique(boutiqueData)
+          setBoutique({ ...boutiqueData, features: normalizeFeatures(boutiqueData.features || {}) })
         }
         setIsLoading(false)
       } catch (e: any) {

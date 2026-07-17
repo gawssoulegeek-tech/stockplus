@@ -56,7 +56,7 @@ import { useToast } from "@/hooks/use-toast"
 import { useLocation } from "@/lib/compat/wouter"
 import { getSupabaseClient } from "@/supabase/client"
 import { useBoutique } from "@/views/dashboard/layout"
-import { PLAN_PRICES, getFeaturesForPlan, PAID_PLANS, TRIAL_DAYS, PREMIUM_MODULES, getModuleRevenue, MAX_GERANTS } from "@/lib/plan-features"
+import { PLAN_PRICES, getFeaturesForPlan, PAID_PLANS, TRIAL_DAYS, PREMIUM_MODULES, getModuleRevenue, MAX_GERANTS, getActivePremiumModuleIds, normalizeFeatures } from "@/lib/plan-features"
 
 export default function SaaSAdminPage() {
   const { toast } = useToast()
@@ -221,9 +221,8 @@ export default function SaaSAdminPage() {
 
   const totalModuleRevenue = useMemo(() => {
     return boutiques.reduce((acc, b) => {
-      const activeModuleIds = PREMIUM_MODULES
-        .filter(m => m.featureFlag && (b as any).features?.[m.featureFlag])
-        .map(m => m.id)
+      const features = normalizeFeatures((b as any).features || {})
+      const activeModuleIds = getActivePremiumModuleIds(features)
       return acc + getModuleRevenue(activeModuleIds)
     }, 0)
   }, [boutiques])
