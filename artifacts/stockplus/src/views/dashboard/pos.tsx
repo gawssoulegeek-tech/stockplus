@@ -84,7 +84,7 @@ export default function POSPage() {
   useEffect(() => {
     if (!boutique?.id) return
     const supabase = getSupabaseClient()
-    productService.listProducts(supabase, boutique.id, { per_page: 100 })
+    productService.listProducts(supabase, boutique.id, { per_page: 100, is_active: true })
       .then(res => setProducts(res.data))
       .catch(() => {})
   }, [boutique?.id])
