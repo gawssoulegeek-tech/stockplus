@@ -716,6 +716,23 @@ export default function InventoryPage() {
                     )}
                     <div className="flex-1 space-y-2">
                       <div className="grid gap-2 sm:grid-cols-2">
+                        {/* Input file caché pour la galerie */}
+                        <input
+                          ref={imageInputRef}
+                          type="file"
+                          accept="image/*"
+                          onChange={handleImageUpload}
+                          className="hidden"
+                        />
+                        {/* Input file caché pour la caméra */}
+                        <input
+                          ref={cameraInputRef}
+                          type="file"
+                          accept="image/*"
+                          capture="environment"
+                          onChange={handleCameraCapture}
+                          className="hidden"
+                        />
                         <Button
                           type="button"
                           variant="outline"
