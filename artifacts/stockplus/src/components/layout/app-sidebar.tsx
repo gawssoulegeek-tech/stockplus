@@ -56,6 +56,7 @@ const navItems = [
   { title: "Ventes (Caisse)", icon: ShoppingCart, url: "/pos", roles: ["owner", "manager"] },
   { title: "IA Awa", icon: Sparkles, url: "/ai", roles: ["owner", "manager"], minPlan: "Pro" },
   { title: "Inventaire", icon: Package, url: "/inventory", roles: ["owner", "manager"], minPlan: "Basic" },
+  { title: "Clients", icon: Users, url: "/clients", roles: ["owner", "manager"], minPlan: "Basic" },
   // [BUG C] "Devis" / quotations entry removed — page is mocked and not functional.
   // { title: "Devis", icon: FileText, url: "/quotations", roles: ["owner", "manager"], minPlan: "Basic" },
   // "Mouvements" remis dans la sidebar
