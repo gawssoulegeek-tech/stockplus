@@ -136,17 +136,17 @@ export default function DashboardPage() {
         </div>
         {/* Boutons d'action — stack sur mobile, row sur desktop */}
         <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
-          <Link href="/inventory" className="w-full sm:w-auto">
-            <Button variant="outline" className="rounded-2xl h-12 sm:h-14 md:h-16 px-6 sm:px-8 font-bold border-gray-200 hover:bg-orange-50 hover:text-primary transition-all text-base sm:text-lg shadow-sm w-full">
+          <Button asChild variant="outline" className="rounded-2xl h-12 sm:h-14 md:h-16 px-6 sm:px-8 font-bold border-gray-200 hover:bg-orange-50 hover:text-primary transition-all text-base sm:text-lg shadow-sm w-full sm:w-auto">
+            <Link href="/inventory">
               <Package className="h-5 w-5 mr-2 sm:mr-3" /> Inventaire
-            </Button>
-          </Link>
-          <Link href="/pos" className="w-full sm:w-auto">
-            <Button className="sena-gradient text-white rounded-2xl h-12 sm:h-14 md:h-16 px-6 sm:px-10 font-bold shadow-2xl shadow-orange-500/30 text-base sm:text-lg group w-full">
+            </Link>
+          </Button>
+          <Button asChild className="sena-gradient text-white rounded-2xl h-12 sm:h-14 md:h-16 px-6 sm:px-10 font-bold shadow-2xl shadow-orange-500/30 text-base sm:text-lg group w-full sm:w-auto">
+            <Link href="/pos">
               <Plus className="h-5 w-5 sm:h-6 sm:w-6 mr-2 sm:mr-3 group-hover:rotate-90 transition-transform duration-300" />
               Nouvelle Vente
-            </Button>
-          </Link>
+            </Link>
+          </Button>
         </div>
       </div>
 
@@ -229,12 +229,12 @@ export default function DashboardPage() {
             </div>
           </CardHeader>
           <CardContent className="p-6 md:p-10 relative z-10">
-            <Link href="/ai" className="block">
-              <Button className="w-full sena-gradient text-white rounded-2xl md:rounded-[2rem] h-14 md:h-20 font-bold text-lg md:text-2xl shadow-2xl shadow-orange-500/20 group/btn">
+            <Button asChild className="w-full sena-gradient text-white rounded-2xl md:rounded-[2rem] h-14 md:h-20 font-bold text-lg md:text-2xl shadow-2xl shadow-orange-500/20 group/btn">
+              <Link href="/ai">
                 Consulter Awa
                 <ArrowRight className="ml-4 h-8 w-8 group-hover/btn:translate-x-2 transition-transform" />
-              </Button>
-            </Link>
+              </Link>
+            </Button>
           </CardContent>
         </Card>
       </div>
