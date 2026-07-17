@@ -42,6 +42,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -686,60 +687,46 @@ export default function InventoryPage() {
                 Nouveau Produit
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[425px] rounded-[2.5rem] p-8">
+            <DialogContent className="sm:max-w-[430px] rounded-[2.5rem] p-8 bg-white border border-gray-100 shadow-2xl shadow-orange-200/20">
               <DialogHeader>
                 <DialogTitle className="text-2xl font-headline">Ajouter au Catalogue</DialogTitle>
+                <DialogDescription className="text-sm text-gray-500 mt-1">
+                  Ajoutez un nouveau produit pour le rendre disponible dans la caisse et l’inventaire.
+                </DialogDescription>
               </DialogHeader>
-              <form onSubmit={handleAddProduct} className="space-y-4 py-4">
-                {/* 📸 Upload image produit + Caméra */}
-                <div className="space-y-2">
-                  <Label>Image du produit</Label>
-                  <div className="flex items-center gap-3">
+              <form onSubmit={handleAddProduct} className="space-y-5 py-4">
+                <div className="rounded-3xl border border-dashed border-gray-200 bg-gray-50 p-4">
+                  <Label className="text-sm font-semibold text-gray-700">Image du produit</Label>
+                  <div className="mt-3 flex items-center gap-3">
                     {newProduct.imageUrl ? (
-                      <div className="relative h-20 w-20 rounded-2xl overflow-hidden border-2 border-gray-100">
+                      <div className="relative h-24 w-24 rounded-3xl overflow-hidden border border-gray-200 shadow-sm">
                         <img src={newProduct.imageUrl} alt="Aperçu" className="w-full h-full object-cover" />
                         <button
                           type="button"
                           onClick={() => setNewProduct({ ...newProduct, imageUrl: "" })}
-                          className="absolute top-1 right-1 h-6 w-6 rounded-full bg-red-500 text-white flex items-center justify-center hover:bg-red-600"
+                          className="absolute top-2 right-2 h-7 w-7 rounded-full bg-red-500 text-white flex items-center justify-center hover:bg-red-600"
                         >
-                          <X className="h-3 w-3" />
+                          <X className="h-4 w-4" />
                         </button>
                       </div>
                     ) : (
-                      <div className="h-20 w-20 rounded-2xl bg-gray-50 border-2 border-dashed border-gray-200 flex items-center justify-center">
+                      <div className="h-24 w-24 rounded-3xl bg-white border border-gray-200 border-dashed flex items-center justify-center">
                         <ImageIcon className="h-8 w-8 text-gray-300" />
                       </div>
                     )}
                     <div className="flex-1 space-y-2">
-                      <input
-                        ref={imageInputRef}
-                        type="file"
-                        accept="image/*"
-                        onChange={handleImageUpload}
-                        className="hidden"
-                      />
-                      {/* Input caméra (capture) */}
-                      <input
-                        ref={cameraInputRef}
-                        type="file"
-                        accept="image/*"
-                        capture="environment"
-                        onChange={handleCameraCapture}
-                        className="hidden"
-                      />
-                      <div className="flex gap-2">
+                      <div className="grid gap-2 sm:grid-cols-2">
                         <Button
                           type="button"
                           variant="outline"
                           onClick={() => imageInputRef.current?.click()}
                           disabled={imageUploading}
-                          className="h-10 rounded-xl font-bold border-gray-200 flex-1 text-xs"
+                          className="h-11 rounded-2xl font-bold border-gray-200 text-sm"
                         >
                           {imageUploading ? (
-                            <><Loader2 className="h-3 w-3 mr-1 animate-spin" /> ...</>
+                            <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Galerie</>
                           ) : (
-                            <><Upload className="h-3 w-3 mr-1" /> Galerie</>
+                            <><Upload className="h-4 w-4 mr-2" /> Galerie</>
                           )}
                         </Button>
                         <Button
@@ -747,123 +734,128 @@ export default function InventoryPage() {
                           variant="outline"
                           onClick={() => cameraInputRef.current?.click()}
                           disabled={imageUploading}
-                          className="h-10 rounded-xl font-bold border-gray-200 flex-1 text-xs"
+                          className="h-11 rounded-2xl font-bold border-gray-200 text-sm"
                         >
-                          <Camera className="h-3 w-3 mr-1" />
-                          Photo
+                          <Camera className="h-4 w-4 mr-2" /> Photo
                         </Button>
                       </div>
-                      <p className="text-[10px] text-gray-400">PNG, JPG, WebP — max 2 Mo</p>
+                      <p className="text-xs text-gray-500">PNG, JPG, WebP — max 2 Mo</p>
                     </div>
                   </div>
                 </div>
 
-                <div className="space-y-2">
-                  <Label>Nom du produit</Label>
-                  <Input
-                    value={newProduct.name}
-                    onChange={e => setNewProduct({...newProduct, name: e.target.value})}
-                    className="h-12 rounded-xl" required
-                  />
-                </div>
-
-                {/* Catégorie optionnelle */}
-                <div className="space-y-2">
-                  <Label>Catégorie <span className="text-gray-400 font-normal">(optionnel)</span></Label>
-                  <Input
-                    value={newProduct.category}
-                    onChange={e => setNewProduct({...newProduct, category: e.target.value})}
-                    placeholder="Ex: Boissons, Électronique, Cosmétiques..."
-                    className="h-12 rounded-xl"
-                  />
-                </div>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid gap-4">
                   <div className="space-y-2">
-                    <Label>Stock initial</Label>
-                    <div className="relative">
-                      <Input
-                        type="number"
-                        value={newProduct.stock}
-                        onChange={e => setNewProduct({...newProduct, stock: e.target.value})}
-                        className="h-12 rounded-xl pr-16" required
-                      />
-                      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-gray-400">
-                        {newProduct.unit}{(parseInt(newProduct.stock) || 0) > 1 ? 's' : ''}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Prix (CFA)</Label>
+                    <Label>Nom du produit</Label>
                     <Input
-                      type="number"
-                      value={newProduct.price}
-                      onChange={e => setNewProduct({...newProduct, price: e.target.value})}
-                      className="h-12 rounded-xl" required
+                      value={newProduct.name}
+                      onChange={e => setNewProduct({...newProduct, name: e.target.value})}
+                      className="h-12 rounded-2xl border-gray-200 bg-white"
+                      placeholder="Entrez le nom du produit"
+                      required
                     />
                   </div>
-                </div>
 
-                {/* Unité de mesure — disponible pour tous les plans */}
-                <div className="space-y-2">
-                  <Label>Unité de mesure</Label>
-                  <Select value={newProduct.unit} onValueChange={v => {
-                    const config = UNIT_CONFIG[v] || { type: "unité" }
-                    // Pré-remplir le contenu par unité avec la valeur par défaut
-                    // (ex: kg → 1000 g, m → 100 cm, L → 1000 mL)
-                    const defaultContent = config.defaultContent && config.defaultContent > 1
-                      ? String(config.defaultContent)
-                      : ""
-                    setNewProduct({ ...newProduct, unit: v, unitContent: defaultContent })
-                  }}>
-                    <SelectTrigger className="h-12 rounded-xl">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent className="rounded-xl">
-                      <SelectItem value="pièce">Pièce</SelectItem>
-                      <SelectItem value="carton">Carton</SelectItem>
-                      <SelectItem value="sac">Sac</SelectItem>
-                      <SelectItem value="boîte">Boîte</SelectItem>
-                      <SelectItem value="paquet">Paquet</SelectItem>
-                      <SelectItem value="lot">Lot</SelectItem>
-                      <SelectItem value="kg">Kilogramme (kg)</SelectItem>
-                      <SelectItem value="g">Gramme (g)</SelectItem>
-                      <SelectItem value="L">Litre (L)</SelectItem>
-                      <SelectItem value="mL">Millilitre (mL)</SelectItem>
-                      <SelectItem value="m">Mètre (m)</SelectItem>
-                      <SelectItem value="cm">Centimètre (cm)</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {/* Contenu par unité (conversion vers sous-unité) */}
-                {showUnitContent && currentUnitConfig.baseUnit && currentUnitConfig.baseLabel && (
                   <div className="space-y-2">
-                    <Label>
-                      {currentUnitConfig.type === "conditionnement"
-                        ? <>Contenu par {newProduct.unit} <span className="text-gray-400 font-normal">({currentUnitConfig.baseLabel})</span></>
-                        : <>Conversion <span className="text-gray-400 font-normal">(1 {newProduct.unit} = ? {currentUnitConfig.baseLabel})</span></>}
-                    </Label>
-                    <div className="flex items-center gap-3">
+                    <Label>Catégorie <span className="text-gray-400 font-normal">(optionnel)</span></Label>
+                    <Input
+                      value={newProduct.category}
+                      onChange={e => setNewProduct({...newProduct, category: e.target.value})}
+                      placeholder="Ex: Boissons, Électronique, Cosmétiques..."
+                      className="h-12 rounded-2xl border-gray-200 bg-white"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <div className="space-y-2">
+                      <Label>Stock initial</Label>
+                      <div className="relative">
+                        <Input
+                          type="number"
+                          value={newProduct.stock}
+                          onChange={e => setNewProduct({...newProduct, stock: e.target.value})}
+                          className="h-12 rounded-2xl border-gray-200 bg-white pr-16"
+                          placeholder="0"
+                          required
+                        />
+                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-gray-400">
+                          {newProduct.unit}{(parseInt(newProduct.stock) || 0) > 1 ? 's' : ''}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Prix (CFA)</Label>
                       <Input
                         type="number"
-                        value={newProduct.unitContent}
-                        onChange={e => setNewProduct({...newProduct, unitContent: e.target.value})}
-                        placeholder={`Ex: ${currentUnitConfig.defaultContent || 1}`}
-                        className="h-12 rounded-xl"
-                        min="1"
+                        value={newProduct.price}
+                        onChange={e => setNewProduct({...newProduct, price: e.target.value})}
+                        className="h-12 rounded-2xl border-gray-200 bg-white"
+                        placeholder="0"
+                        required
                       />
-                      <span className="text-xs text-gray-500 whitespace-nowrap">
-                        = 1 {newProduct.unit}
-                      </span>
                     </div>
-                    {newProduct.unitContent && parseInt(newProduct.unitContent) > 0 && newProduct.stock && (
-                      <p className="text-xs text-primary font-bold">
-                        → Stock total : {(parseInt(newProduct.stock) * parseInt(newProduct.unitContent)).toLocaleString()} {currentUnitConfig.baseUnit === "pièce" ? "pièces" : currentUnitConfig.baseLabel}
-                        <span className="font-normal text-gray-500"> ({newProduct.stock} {newProduct.unit}{parseInt(newProduct.stock) > 1 ? 's' : ''} × {newProduct.unitContent})</span>
-                      </p>
-                    )}
                   </div>
-                )}
+
+                  <div className="space-y-2">
+                    <Label>Unité de mesure</Label>
+                    <Select value={newProduct.unit} onValueChange={v => {
+                      const config = UNIT_CONFIG[v] || { type: "unité" }
+                      const defaultContent = config.defaultContent && config.defaultContent > 1
+                        ? String(config.defaultContent)
+                        : ""
+                      setNewProduct({ ...newProduct, unit: v, unitContent: defaultContent })
+                    }}>
+                      <SelectTrigger className="h-12 rounded-2xl border-gray-200 bg-white">
+                        <SelectValue placeholder="Choisir une unité" />
+                      </SelectTrigger>
+                      <SelectContent className="rounded-2xl">
+                        <SelectItem value="pièce">Pièce</SelectItem>
+                        <SelectItem value="carton">Carton</SelectItem>
+                        <SelectItem value="sac">Sac</SelectItem>
+                        <SelectItem value="boîte">Boîte</SelectItem>
+                        <SelectItem value="paquet">Paquet</SelectItem>
+                        <SelectItem value="lot">Lot</SelectItem>
+                        <SelectItem value="kg">Kilogramme (kg)</SelectItem>
+                        <SelectItem value="g">Gramme (g)</SelectItem>
+                        <SelectItem value="L">Litre (L)</SelectItem>
+                        <SelectItem value="mL">Millilitre (mL)</SelectItem>
+                        <SelectItem value="m">Mètre (m)</SelectItem>
+                        <SelectItem value="cm">Centimètre (cm)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {showUnitContent && currentUnitConfig.baseUnit && currentUnitConfig.baseLabel && (
+                    <div className="space-y-2 rounded-3xl bg-gray-50 p-4 border border-gray-200">
+                      <div className="flex flex-col gap-1">
+                        <Label className="text-sm font-semibold text-gray-700">
+                          {currentUnitConfig.type === "conditionnement"
+                            ? <>Contenu par {newProduct.unit} <span className="text-gray-400 font-normal">({currentUnitConfig.baseLabel})</span></>
+                            : <>Conversion <span className="text-gray-400 font-normal">(1 {newProduct.unit} = ? {currentUnitConfig.baseLabel})</span></>}
+                        </Label>
+                        <div className="flex items-center gap-3">
+                          <Input
+                            type="number"
+                            value={newProduct.unitContent}
+                            onChange={e => setNewProduct({...newProduct, unitContent: e.target.value})}
+                            placeholder={`Ex: ${currentUnitConfig.defaultContent || 1}`}
+                            className="h-12 rounded-2xl border-gray-200 bg-white"
+                            min="1"
+                          />
+                          <span className="text-sm text-gray-500 whitespace-nowrap">
+                            = 1 {newProduct.unit}
+                          </span>
+                        </div>
+                      </div>
+                      {newProduct.unitContent && parseInt(newProduct.unitContent) > 0 && newProduct.stock && (
+                        <p className="text-sm font-semibold text-primary">
+                          Stock total : {(parseInt(newProduct.stock) * parseInt(newProduct.unitContent)).toLocaleString()} {currentUnitConfig.baseUnit === "pièce" ? "pièces" : currentUnitConfig.baseLabel}
+                          <span className="font-normal text-gray-500"> ({newProduct.stock} {newProduct.unit}{parseInt(newProduct.stock) > 1 ? 's' : ''} × {newProduct.unitContent})</span>
+                        </p>
+                      )}
+                    </div>
+                  )}
+                </div>
 
                 <Button type="submit" className="w-full sena-gradient text-white h-14 rounded-2xl font-bold text-lg shadow-xl shadow-orange-500/20">
                   Enregistrer
@@ -974,7 +966,7 @@ export default function InventoryPage() {
                               onClick={async () => {
                                 const supabase = getSupabaseClient()
                                 try {
-                                  await productService.deleteProduct(supabase, product.id)
+                                  await productService.deleteProduct(supabase, boutique?.id || "", product.id)
                                   setProducts(prev => prev.filter(p => p.id !== product.id))
                                   toast({ title: "Produit retiré" })
                                 } catch (e: any) {

@@ -3,7 +3,6 @@ import Lottie from "lottie-react"
 import {
   Store,
   Bell,
-  Lock,
   Save,
   Cpu,
   CheckCircle2,
@@ -185,14 +184,12 @@ export default function SettingsPage() {
         </Button>
       </div>
 
-      <Tabs defaultValue="features" className="space-y-8">
+      <Tabs defaultValue="store" className="space-y-8">
         <TabsList className="bg-gray-100 h-14 rounded-2xl w-full max-w-3xl p-1.5 overflow-x-auto">
           <TabsTrigger value="store" className="rounded-xl flex-1 font-bold whitespace-nowrap"><Store className="mr-2 h-4" /> Boutique</TabsTrigger>
-          <TabsTrigger value="features" className="rounded-xl flex-1 font-bold whitespace-nowrap"><Cpu className="mr-2 h-4" /> Feature Flags</TabsTrigger>
           <TabsTrigger value="subscription" className="rounded-xl flex-1 font-bold whitespace-nowrap"><Crown className="mr-2 h-4" /> Abonnement</TabsTrigger>
           <TabsTrigger value="modules" className="rounded-xl flex-1 font-bold whitespace-nowrap"><Cpu className="mr-2 h-4" /> Modules Premium</TabsTrigger>
           <TabsTrigger value="team" className="rounded-xl flex-1 font-bold whitespace-nowrap"><Users className="mr-2 h-4" /> Équipe</TabsTrigger>
-          <TabsTrigger value="security" className="rounded-xl flex-1 font-bold whitespace-nowrap"><Lock className="mr-2 h-4" /> Sécurité</TabsTrigger>
         </TabsList>
 
         <TabsContent value="store">
@@ -239,61 +236,6 @@ export default function SettingsPage() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="features">
-          <Card className="premium-card">
-            <CardHeader className="p-8 border-b bg-gray-50/30">
-              <CardTitle className="text-2xl flex items-center gap-3">
-                <Cpu className="text-primary" />
-                Configuration du SaaS
-              </CardTitle>
-              <CardDescription>Activez les modules avancés pour personnaliser votre gestion.</CardDescription>
-            </CardHeader>
-            <CardContent className="p-8">
-              {!isAdmin ? (
-                <div className="bg-orange-50 p-6 rounded-2xl border border-orange-200 flex items-center gap-4 text-orange-700">
-                  {warningLottieData ? (
-                    <div className="h-8 w-8 shrink-0">
-                      <Lottie animationData={warningLottieData} loop={true} className="w-full h-full" />
-                    </div>
-                  ) : (
-                    <AlertCircle />
-                  )}
-                  <span className="font-bold">Seul l'administrateur peut modifier les Feature Flags de la boutique.</span>
-                </div>
-              ) : (
-                <div className="grid gap-8 md:grid-cols-2">
-                  {[
-                    { id: "units", label: "Unités de mesure", desc: "kg, mètres, litres pour vos produits.", icon: "📏" },
-                    { id: "wholesale", label: "Vente en Gros", desc: "Gérez les prix de gros et les cartons.", icon: "📦" },
-                    { id: "credit", label: "Ventes à Crédit", desc: "Suivi des créances et acomptes clients.", icon: "💳" },
-                    { id: "customers", label: "Gestion Clients", desc: "Ajoutez un nom client sur chaque vente.", icon: "👤" },
-                    { id: "importChina", label: "Import Chine", desc: "Calculez vos coûts de revient internationaux.", icon: "🌍" },
-                    { id: "reports", label: "Rapports avancés", desc: "Tableaux de bord et analyses détaillées.", icon: "📊" },
-                    { id: "multiCart", label: "Multi-panier", desc: "Gérez plusieurs paniers d'achat simultanés.", icon: "🛒" },
-                    { id: "historicalMoves", label: "Mouvements historiques", desc: "Enregistrez des stocks anciens (inventaire initial).", icon: "🕰️" },
-                  ].map((f) => (
-                    <div key={f.id} className="flex items-center justify-between p-6 rounded-2xl border bg-white hover:bg-orange-50/10 transition-colors group">
-                      <div className="flex gap-4">
-                        <div className="text-2xl h-12 w-12 rounded-xl bg-gray-50 flex items-center justify-center group-hover:scale-110 transition-transform">
-                          {f.icon}
-                        </div>
-                        <div>
-                          <Label className="font-bold text-lg block mb-1">{f.label}</Label>
-                          <p className="text-xs text-gray-500 leading-relaxed">{f.desc}</p>
-                        </div>
-                      </div>
-                      <Switch
-                        checked={flags[f.id]}
-                        onCheckedChange={(v) => setFlags({...flags, [f.id]: v})}
-                        className="data-[state=checked]:bg-primary"
-                      />
-                    </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
 
         <TabsContent value="modules">
           <Card className="premium-card">

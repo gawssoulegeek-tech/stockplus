@@ -131,11 +131,12 @@ export const productService = {
   /**
    * Delete product (soft delete)
    */
-  async deleteProduct(supabase: SupabaseClient, product_id: string): Promise<void> {
+  async deleteProduct(supabase: SupabaseClient, boutique_id: string, product_id: string): Promise<void> {
     const { error } = await supabase
       .from('products')
       .update({ is_active: false, updated_at: new Date().toISOString() })
-      .eq('id', product_id);
+      .eq('id', product_id)
+      .eq('boutique_id', boutique_id);
 
     if (error) throw new Error(`Failed to delete product: ${error.message}`);
   },
