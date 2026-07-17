@@ -414,14 +414,14 @@ export default function LandingPage() {
                   <div className="flex items-center justify-center gap-4 flex-wrap">
                     <div className="text-center">
                       <div className="text-5xl md:text-6xl font-headline font-bold text-gray-900">79 000</div>
-                      <div className="text-xs font-bold text-gray-400 uppercase tracking-widest mt-1">FCFA / mois</div>
+                      <div className="text-xs font-bold text-gray-400 uppercase tracking-widest mt-1">Paiement unique</div>
                     </div>
                     <Button size="lg" className="h-16 px-10 rounded-full bg-blue-500 hover:bg-blue-600 text-white font-bold text-lg shadow-2xl shadow-blue-500/30" asChild>
                       <Link href="/waitlist">Ajouter à mon abonnement</Link>
                     </Button>
                   </div>
                   <p className="text-xs text-gray-400 font-medium mt-6">
-                    ✨ Configuration offerte — Site personnalisé à votre boutique
+                    ✨ Hébergement & domaine inclus — Site personnalisé à votre boutique
                   </p>
                 </div>
               </div>
