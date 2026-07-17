@@ -75,6 +75,8 @@ export default function SalesHistoryPage() {
   const { boutique, features, userProfile } = useBoutique()
   const { toast } = useToast()
 
+  console.log('[SalesPage] boutique:', boutique?.id, 'loading:', loading)
+
   const [sales, setSales] = useState<any[]>([])
   const [totalCount, setTotalCount] = useState(0)
   const [page, setPage] = useState(1)
@@ -218,6 +220,13 @@ export default function SalesHistoryPage() {
 
   return (
     <div className="space-y-10">
+      {/* Debug indicator */}
+      <div className="flex gap-4 text-[11px] font-mono bg-yellow-50 border border-yellow-200 rounded-xl px-4 py-2 text-yellow-700">
+        <span>boutique: <b>{boutique?.id?.slice(0,16) || '—'}</b></span>
+        <span>ventes: <b>{totalCount}</b></span>
+        <span>chargement: <b>{loading ? 'oui' : 'non'}</b></span>
+        <span>page: <b>{page}</b></span>
+      </div>
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div className="space-y-1">
