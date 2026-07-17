@@ -118,7 +118,7 @@ export function AppSidebar() {
   if (!isMounted) return null
 
   return (
-    <Sidebar collapsible="icon" className="border-r border-gray-100 bg-white">
+    <Sidebar collapsible="icon" className="flex-shrink-0 border-r border-gray-100 bg-white">
       <SidebarHeader className="px-4 py-6">
         <div className="flex items-center gap-3">
           <img src="/logo.png" alt="StockPlus" className="h-9 w-9 rounded-xl object-contain shrink-0" />
