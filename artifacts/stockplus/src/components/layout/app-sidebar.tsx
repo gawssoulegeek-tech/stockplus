@@ -118,25 +118,25 @@ export function AppSidebar() {
   if (!isMounted) return null
 
   return (
-    <Sidebar collapsible="icon" className="border-r border-gray-100 bg-white">
+    <Sidebar collapsible="icon" className="border-r border-sidebar-border bg-sidebar text-sidebar-foreground">
       <SidebarHeader className="px-4 py-6">
         <div className="flex items-center gap-3">
           <img src="/logo.png" alt="StockPlus" className="h-9 w-9 rounded-xl object-contain shrink-0" />
           <div className="flex flex-col group-data-[collapsible=icon]:hidden overflow-hidden">
-            <span className="font-headline font-bold text-xl tracking-tight text-gray-900 uppercase">StockPlus</span>
+            <span className="font-headline font-bold text-xl tracking-tight text-white uppercase">StockPlus</span>
           </div>
         </div>
       </SidebarHeader>
       <SidebarContent className="px-3">
         {role === 'superadmin' && (
           <SidebarGroup>
-            <SidebarGroupLabel className="px-3 font-black text-primary uppercase text-[8px] tracking-[0.2em] group-data-[collapsible=icon]:hidden mb-3">Administration SaaS</SidebarGroupLabel>
+            <SidebarGroupLabel className="px-3 font-black text-sidebar-foreground/70 uppercase text-[8px] tracking-[0.2em] group-data-[collapsible=icon]:hidden mb-3">Administration SaaS</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
                 <SidebarMenuItem className="mb-1">
                   <SidebarMenuButton asChild isActive={pathname === "/saas"} className={cn(
                     "rounded-xl h-10 transition-all px-3",
-                    pathname === "/saas" ? "bg-primary text-white font-bold" : "text-gray-400 hover:bg-orange-50/50 hover:text-gray-900"
+                    pathname === "/saas" ? "bg-orange-500/20 text-orange-200 font-bold" : "text-sidebar-foreground/70 hover:bg-white/10 hover:text-white"
                   )}>
                     <Link href="/saas" className="flex items-center gap-3">
                       <ShieldCheck className={cn("h-5 w-5", pathname === "/saas" ? "text-white" : "text-primary")} />
@@ -150,14 +150,14 @@ export function AppSidebar() {
         )}
 
         <SidebarGroup>
-          <SidebarGroupLabel className="px-4 font-black text-gray-400 uppercase text-[8px] tracking-[0.2em] group-data-[collapsible=icon]:hidden mb-4">Gestion Commerciale</SidebarGroupLabel>
+          <SidebarGroupLabel className="px-4 font-black text-sidebar-foreground/60 uppercase text-[8px] tracking-[0.2em] group-data-[collapsible=icon]:hidden mb-4">Gestion Commerciale</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {filteredItems.map((item) => (
                 <SidebarMenuItem key={item.title} className="mb-1">
                   <SidebarMenuButton asChild isActive={pathname === item.url} className={cn(
                     "rounded-xl h-10 transition-all px-3",
-                    pathname === item.url ? "bg-orange-50 text-orange-600 font-bold" : "text-gray-400 hover:bg-orange-50/50 hover:text-gray-900"
+                    pathname === item.url ? "bg-orange-500/20 text-orange-200 font-bold" : "text-sidebar-foreground/70 hover:bg-white/10 hover:text-white"
                   )}>
                     <Link href={item.url} className="flex items-center gap-3">
                       <item.icon className={cn("h-5 w-5", pathname === item.url ? "text-orange-600" : "text-gray-400")} />
@@ -192,12 +192,12 @@ export function AppSidebar() {
           </div>
         )}
       </SidebarContent>
-      <SidebarFooter className="p-3 border-t border-gray-50">
+      <SidebarFooter className="p-3 border-t border-sidebar-border">
         <SidebarMenu>
           <SidebarMenuItem>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <SidebarMenuButton className="h-16 rounded-xl hover:bg-gray-50 px-3 transition-all">
+                <SidebarMenuButton className="h-16 rounded-xl bg-white/5 hover:bg-white/10 px-3 transition-all">
                   <div className="flex items-center gap-3 w-full">
                     <div className="h-10 w-10 rounded-xl sena-gradient flex items-center justify-center text-white text-base font-black shadow-lg shadow-orange-500/20 shrink-0">
                       {userName.charAt(0)}
