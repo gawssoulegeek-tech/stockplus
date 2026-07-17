@@ -312,6 +312,7 @@ export interface Debt {
   id: string                    // UUID
   boutique_id: string           // FK
   customer_id: string           // FK
+  sale_id?: string              // FK
   
   // Amount (in centimes)
   original_amount: number

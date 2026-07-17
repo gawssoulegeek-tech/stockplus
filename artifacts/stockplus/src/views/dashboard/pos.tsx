@@ -180,6 +180,13 @@ export default function POSPage() {
 
   const handleCheckout = async () => {
     if (activeCart.items.length === 0 || !boutique) return
+
+    const phone = activeCart.customerPhone
+    if (phone && phone.length > 0 && phone.length < 8) {
+      toast({ variant: "destructive", title: "Téléphone invalide", description: "Le numéro doit contenir au moins 8 chiffres (ex: +221771234567)" })
+      return
+    }
+
     setIsProcessing(true)
 
     const supabase = getSupabaseClient()
@@ -397,37 +404,60 @@ export default function POSPage() {
                        ))}
                      </div>
                    )}
-                   {/* Champ téléphone */}
+                    {/* Champ téléphone */}
+                    <Input
+                      type="tel"
+                      placeholder="+221 77 123 45 67"
+                      value={activeCart.customerPhone}
+                      onChange={e => {
+                        const raw = e.target.value.replace(/[^0-9+]/g, '')
+                        let formatted = raw
+                        if (raw.startsWith('+')) {
+                          formatted = '+' + raw.slice(1).replace(/\D/g, '')
+                        } else {
+                          const digits = raw.replace(/\D/g, '')
+                          formatted = digits.length > 0 ? `+221${digits}` : ''
+                        }
+                        updateActiveCart({ customerPhone: formatted })
+                      }}
+                      className="h-10 rounded-xl bg-white border-none shadow-sm mt-2"
+                    />
+                    {activeCart.customerPhone && activeCart.customerPhone.length > 0 && activeCart.customerPhone.length < 8 && (
+                      <p className="text-[10px] text-red-500 font-medium mt-1">Numéro trop court</p>
+                    )}
+                 </div>
+               )}
+               {/* Si pas de module clients, on affiche quand même nom + téléphone simplifié */}
+               {!features.customers && (
+                 <div className="space-y-2 mb-4 bg-gray-50 p-4 rounded-2xl border border-gray-100">
+                   <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
+                     <UserIcon className="h-3 w-3" /> Client (optionnel)
+                   </label>
+                   <Input
+                     placeholder="Nom complet du client..."
+                     value={activeCart.customerName}
+                     onChange={e => updateActiveCart({ customerName: e.target.value })}
+                     className="h-10 rounded-xl bg-white border-none shadow-sm"
+                   />
                    <Input
                      type="tel"
-                     placeholder="Numéro de téléphone..."
+                     placeholder="+221 77 123 45 67"
                      value={activeCart.customerPhone}
-                     onChange={e => updateActiveCart({ customerPhone: e.target.value })}
+                     onChange={e => {
+                       const raw = e.target.value.replace(/[^0-9+]/g, '')
+                       let formatted = raw
+                       if (raw.startsWith('+')) {
+                         formatted = '+' + raw.slice(1).replace(/\D/g, '')
+                       } else {
+                         const digits = raw.replace(/\D/g, '')
+                         formatted = digits.length > 0 ? `+221${digits}` : ''
+                       }
+                       updateActiveCart({ customerPhone: formatted })
+                     }}
                      className="h-10 rounded-xl bg-white border-none shadow-sm mt-2"
                    />
-                </div>
-              )}
-              {/* Si pas de module clients, on affiche quand même nom + téléphone simplifié */}
-              {!features.customers && (
-                <div className="space-y-2 mb-4 bg-gray-50 p-4 rounded-2xl border border-gray-100">
-                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
-                    <UserIcon className="h-3 w-3" /> Client (optionnel)
-                  </label>
-                  <Input
-                    placeholder="Nom complet du client..."
-                    value={activeCart.customerName}
-                    onChange={e => updateActiveCart({ customerName: e.target.value })}
-                    className="h-10 rounded-xl bg-white border-none shadow-sm"
-                  />
-                  <Input
-                    type="tel"
-                    placeholder="Numéro de téléphone..."
-                    value={activeCart.customerPhone}
-                    onChange={e => updateActiveCart({ customerPhone: e.target.value })}
-                    className="h-10 rounded-xl bg-white border-none shadow-sm mt-2"
-                  />
-                </div>
-              )}
+                 </div>
+               )}
 
               {activeCart.items.length === 0 ? (
                 <div className="h-40 flex flex-col items-center justify-center text-gray-300 space-y-4">
@@ -524,14 +554,16 @@ export default function POSPage() {
                 <span className="text-[10px] font-black uppercase tracking-widest">Wave</span>
               </Button>
 
-              <Button
-                variant={paymentMethod === "Crédit" ? "default" : "outline"}
-                className={cn("h-16 flex flex-col gap-1 rounded-2xl border-2 transition-all", paymentMethod === "Crédit" && "border-red-500 bg-red-50 text-red-500")}
-                onClick={() => setPaymentMethod("Crédit")}
-              >
-                <CreditCard className="h-5 w-5" />
-                <span className="text-[10px] font-black uppercase tracking-widest">Crédit</span>
-              </Button>
+              {features.credit && (
+                <Button
+                  variant={paymentMethod === "Crédit" ? "default" : "outline"}
+                  className={cn("h-16 flex flex-col gap-1 rounded-2xl border-2 transition-all", paymentMethod === "Crédit" && "border-red-500 bg-red-50 text-red-500")}
+                  onClick={() => setPaymentMethod("Crédit")}
+                >
+                  <CreditCard className="h-5 w-5" />
+                  <span className="text-[10px] font-black uppercase tracking-widest">Crédit</span>
+                </Button>
+              )}
             </div>
 
             <Button

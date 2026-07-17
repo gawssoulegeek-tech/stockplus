@@ -517,21 +517,43 @@ h1, h2, h3, h4, h5, h6 {
    IMPRESSION FACTURE — masquer tout sauf la facture
    ============================================================ */
 @media print {
-  /* Masquer tout le contenu de la page */
+  @page {
+    size: auto;
+    margin: 10mm;
+  }
+  /* Masquer tout le contenu de la page sauf la facture */
   body * {
     visibility: hidden;
   }
-  /* Afficher seulement la facture */
   .invoice-print, .invoice-print * {
     visibility: visible;
   }
-  /* Positionner la facture en haut à gauche */
   .invoice-print {
-    position: absolute;
-    left: 0;
-    top: 0;
+    position: static;
     width: 100%;
-    padding: 20px !important;
+    max-width: 100%;
+    padding: 10px !important;
+    margin: 0;
+    font-size: 12px;
+    overflow: visible;
+  }
+  .invoice-print .text-2xl {
+    font-size: 18px !important;
+  }
+  .invoice-print .text-4xl {
+    font-size: 22px !important;
+  }
+  .invoice-print .h-14, .invoice-print .h-12, .invoice-print .h-8 {
+    height: auto !important;
+  }
+  .invoice-print .space-y-6 > :not([hidden]) ~ :not([hidden]) {
+    margin-top: 0.75rem;
+  }
+  .invoice-print .p-8 {
+    padding: 10px !important;
+  }
+  .invoice-print table, .invoice-print .grid {
+    page-break-inside: avoid;
   }
   /* Masquer les boutons */
   .no-print {

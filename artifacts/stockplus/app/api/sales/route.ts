@@ -56,6 +56,7 @@ export async function POST(req: NextRequest) {
     customer_name,
     invoice_number,
     payment_method,
+    seller_name,
     discount_amount,
     discount_reason,
     notes,
@@ -67,6 +68,7 @@ export async function POST(req: NextRequest) {
     customer_name?: string
     invoice_number?: string
     payment_method: string
+    seller_name?: string
     discount_amount?: number
     discount_reason?: string
     notes?: string
@@ -145,6 +147,7 @@ export async function POST(req: NextRequest) {
       discount_amount: discount_amount || 0,
       discount_reason,
       notes,
+      seller_name,
       is_void: false,
       sale_date: new Date().toISOString(),
       created_at: new Date().toISOString(),

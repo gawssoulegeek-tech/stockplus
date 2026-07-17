@@ -204,7 +204,7 @@ export function AppSidebar() {
                       {userName.charAt(0)}
                     </div>
                     <div className="flex flex-col flex-1 text-left overflow-hidden group-data-[collapsible=icon]:hidden">
-                      <span className="text-sm font-bold text-gray-900 truncate">{userName}</span>
+                      <span className="text-sm font-bold text-white truncate">{userName}</span>
                       <Badge variant="outline" className="w-fit h-5 text-[8px] font-black text-primary border-primary/20 uppercase tracking-widest mt-1">
                         {role === 'superadmin' ? "SaaS OWNER" : plan}
                       </Badge>
