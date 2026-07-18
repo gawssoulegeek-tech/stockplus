@@ -13,16 +13,21 @@ as $$
 $$;
 
 -- Drop ALL old-style policies first (from dynamic SQL)
+-- Uses EXCEPTION handler to skip tables that may not exist
 do $$
 declare
   t text;
   tables text[] := array['products','customers','sales','stock_moves','payments','debts','china_imports','invitations','audit_logs','notifications','quotations'];
 begin
   foreach t in array tables loop
-    execute format('drop policy if exists "%s_select_own" on public.%s', t, t);
-    execute format('drop policy if exists "%s_insert_own" on public.%s', t, t);
-    execute format('drop policy if exists "%s_update_own" on public.%s', t, t);
-    execute format('drop policy if exists "%s_delete_own" on public.%s', t, t);
+    begin
+      execute format('drop policy if exists "%s_select_own" on public.%s', t, t);
+      execute format('drop policy if exists "%s_insert_own" on public.%s', t, t);
+      execute format('drop policy if exists "%s_update_own" on public.%s', t, t);
+      execute format('drop policy if exists "%s_delete_own" on public.%s', t, t);
+    exception when others then
+      raise notice 'Skipping table public.%: %', t, SQLERRM;
+    end;
   end loop;
 end $$;
 
