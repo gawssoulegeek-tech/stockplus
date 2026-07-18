@@ -73,11 +73,12 @@ const DAILY_TRIAL_LIMIT = 5
 
 export function AppSidebar() {
   const [pathname] = useLocation()
-  const { boutique, userProfile } = useBoutique() || {}
+  const { boutique, userProfile, isImpersonating } = useBoutique() || {}
   const [isMounted, setIsMounted] = React.useState(false)
   const [awaData, setAwaData] = React.useState<any>(null)
 
-  const role = userProfile?.role || "manager"
+  const effectiveRole = isImpersonating ? "owner" : (userProfile?.role || "manager")
+  const role = effectiveRole
   const plan = boutique?.plan || "Basic"
   const status = boutique?.status || "Actif"
   const userName = userProfile?.name || "Utilisateur"
