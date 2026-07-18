@@ -130,7 +130,7 @@ export default function DashboardLayout({
         if (event === 'SIGNED_OUT') {
           setUserProfile(null)
           setBoutique(null)
-          navigate("/login")
+          window.location.href = "/login"
         }
         // Ignorer TOKEN_REFRESHED et INITIAL_SESSION pour éviter les rechargements intempestifs
       }
@@ -146,7 +146,7 @@ export default function DashboardLayout({
   const handleLogout = async () => {
     const supabase = getSupabaseClient()
     await supabase.auth.signOut()
-    navigate("/login")
+    window.location.href = "/login"
   }
 
   if (!isMounted || isLoading) {
