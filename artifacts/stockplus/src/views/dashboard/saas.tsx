@@ -56,6 +56,7 @@ import { useToast } from "@/hooks/use-toast"
 import { useLocation } from "@/lib/compat/wouter"
 import { getSupabaseClient } from "@/supabase/client"
 import { useBoutique } from "@/views/dashboard/layout"
+import { normalizeFeatures } from "@/lib/plan-features"
 import { PLAN_PRICES, getFeaturesForPlan, PAID_PLANS, TRIAL_DAYS, PREMIUM_MODULES, getModuleRevenue, MAX_GERANTS, getActivePremiumModuleIds, normalizeFeatures } from "@/lib/plan-features"
 
 export default function SaaSAdminPage() {
@@ -231,7 +232,7 @@ export default function SaaSAdminPage() {
     try {
       const { data } = await supabase.from("boutiques").select("*").eq("name", boutique.name).single()
       if (data) {
-        setContextBoutique(data)
+        setContextBoutique({ ...data, features: normalizeFeatures(data.features || {}) })
         setIsImpersonating(true)
         toast({
           title: "Accès complet activé",
