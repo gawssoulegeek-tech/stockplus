@@ -215,7 +215,11 @@ export async function PATCH(req: NextRequest) {
         const PAID_PLANS = ['Basic', 'Pro', 'Premium']
         const currentIndex = PAID_PLANS.indexOf(b.plan)
         const newPlan = currentIndex === -1 ? 'Basic' : PAID_PLANS[(currentIndex + 1) % PAID_PLANS.length]
-        await adminClient.from('boutiques').update({ plan: newPlan, status: b.status === 'Essai' ? 'Actif' : b.status }).eq('id', id)
+        await adminClient.from('boutiques').update({
+          plan: newPlan,
+          features: getFeaturesForPlan(newPlan),
+          status: b.status === 'Essai' ? 'Actif' : b.status,
+        }).eq('id', id)
         return Response.json({ ok: true, plan: newPlan })
       }
       case 'activate-payment': {
@@ -226,7 +230,11 @@ export async function PATCH(req: NextRequest) {
         const { data: shops } = await adminClient.from('boutiques').select('id, plan').eq('name', shopName)
         if (!shops || shops.length === 0) return Response.json({ error: 'Boutique introuvable' }, { status: 404 })
         const finalPlan = planToSet || (shops as { plan: string }[])[0].plan
-        await adminClient.from('boutiques').update({ status: 'Actif', plan: finalPlan }).eq('name', shopName)
+        await adminClient.from('boutiques').update({
+          status: 'Actif',
+          plan: finalPlan,
+          features: getFeaturesForPlan(finalPlan),
+        }).eq('name', shopName)
         await adminClient.from('payments').update({ status: 'completed' }).eq('id', paymentId)
         return Response.json({ ok: true })
       }
