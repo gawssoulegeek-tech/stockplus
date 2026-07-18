@@ -131,27 +131,35 @@ export async function POST(req: NextRequest) {
   const tax_amount = Math.round(subtotal * 0.18)
   const total_amount = subtotal + tax_amount - (discount_amount || 0)
 
+  // ⚠️ On n'inclut pas seller_name dans l'insert principal car la colonne
+  // peut ne pas exister si la migration 009 n'a pas été appliquée.
+  // On le met dans notes à la place (best-effort).
+  const enrichedNotes = seller_name
+    ? `${notes || ''}${notes ? ' | ' : ''}Vendeur: ${seller_name}`
+    : notes
+
+  const saleInsertPayload: Record<string, unknown> = {
+    boutique_id,
+    sale_type,
+    customer_id,
+    customer_name,
+    invoice_number,
+    subtotal,
+    tax_amount,
+    total_amount,
+    payment_method,
+    payment_status: payment_method === 'credit' ? 'pending' : 'complete',
+    discount_amount: discount_amount || 0,
+    discount_reason,
+    notes: enrichedNotes,
+    is_void: false,
+    sale_date: new Date().toISOString(),
+    created_at: new Date().toISOString(),
+  }
+
   const { data: newSale, error: saleError } = await adminClient
     .from('sales')
-    .insert({
-      boutique_id,
-      sale_type,
-      customer_id,
-      customer_name,
-      invoice_number,
-      subtotal,
-      tax_amount,
-      total_amount,
-      payment_method,
-      payment_status: payment_method === 'credit' ? 'pending' : 'complete',
-      discount_amount: discount_amount || 0,
-      discount_reason,
-      notes,
-      seller_name,
-      is_void: false,
-      sale_date: new Date().toISOString(),
-      created_at: new Date().toISOString(),
-    })
+    .insert(saleInsertPayload)
     .select()
     .single()
 

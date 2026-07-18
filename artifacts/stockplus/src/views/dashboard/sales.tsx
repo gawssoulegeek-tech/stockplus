@@ -75,8 +75,6 @@ export default function SalesHistoryPage() {
   const { boutique, features, userProfile } = useBoutique()
   const { toast } = useToast()
 
-  console.log('[SalesPage] boutique:', boutique?.id, 'loading:', loading)
-
   const [sales, setSales] = useState<any[]>([])
   const [totalCount, setTotalCount] = useState(0)
   const [page, setPage] = useState(1)

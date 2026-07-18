@@ -1,17 +1,17 @@
 import { useEffect, useMemo, useState } from "react"
-import { Search, Plus, UserPlus, Loader2, Edit3, Trash2 } from "lucide-react"
+import { Search, Plus, Loader2, Edit3, Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { useToast } from "@/hooks/use-toast"
 import { useBoutique } from "@/views/dashboard/layout"
 import { getSupabaseClient } from "@/supabase/client"
 import { customerService } from "@/services/customerService"
-import { Customer } from "@/types/supabase"
+import { Customer, CustomerType } from "@/types/supabase"
 
 const emptyForm = {
   full_name: "",
@@ -20,7 +20,7 @@ const emptyForm = {
   street_address: "",
   city: "",
   postal_code: "",
-  customer_type: "retail",
+  customer_type: CustomerType.INDIVIDUAL,
   credit_limit: 0,
   notes: "",
 }
@@ -133,13 +133,15 @@ export default function ClientsPage() {
           <p className="text-sm text-gray-500">Gérez vos clients et retrouvez facilement les informations de facturation.</p>
         </div>
         <div className="flex flex-col gap-3 sm:flex-row items-stretch sm:items-center">
-          <Input
-            value={searchTerm}
-            onChange={e => setSearchTerm(e.target.value)}
-            placeholder="Rechercher un client..."
-            className="h-12 min-w-[260px]"
-            icon={<Search className="h-4 w-4 text-gray-400" />}
-          />
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <Input
+              value={searchTerm}
+              onChange={e => setSearchTerm(e.target.value)}
+              placeholder="Rechercher un client..."
+              className="h-12 min-w-[260px] pl-10"
+            />
+          </div>
           <Button className="h-12 rounded-xl" onClick={openNewCustomerDialog}>
             <Plus className="mr-2 h-4 w-4" /> Nouveau client
           </Button>
