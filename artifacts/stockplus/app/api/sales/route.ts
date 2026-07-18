@@ -179,8 +179,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Invalid product items payload' }, { status: 400 })
   }
 
-  const tax_amount = Math.round(subtotal * 0.18)
-  const total_amount = subtotal + tax_amount - (discount_amount || 0)
+  const tax_amount = 0
+  const total_amount = subtotal - (discount_amount || 0)
 
   // ⚠️ On n'inclut pas seller_name dans l'insert principal car la colonne
   // peut ne pas exister si la migration 009 n'a pas été appliquée.

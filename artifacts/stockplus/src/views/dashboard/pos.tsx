@@ -223,7 +223,7 @@ export default function POSPage() {
 
       const productLines = items.map(i => ({ name: i.product_name, qty: i.quantity, price: i.unit_price }))
       const subtotal = productLines.reduce((sum, item) => sum + (item.price || 0) * item.qty, 0)
-      const taxAmount = Math.round(subtotal * 0.18)
+      const taxAmount = 0
       const paymentLabel = paymentMethod
       const paymentStatus = paymentMethod === "Crédit" ? "En attente" : "Payée"
 
@@ -635,10 +635,6 @@ export default function POSPage() {
               <div className="flex justify-between text-gray-500">
                 <span>Sous-total</span>
                 <span>{(lastSale?.subtotal || 0).toLocaleString()} CFA</span>
-              </div>
-              <div className="flex justify-between text-gray-500">
-                <span>TVA (18%)</span>
-                <span>{(lastSale?.taxAmount || 0).toLocaleString()} CFA</span>
               </div>
               {lastSale?.discountAmount > 0 && (
                 <div className="flex justify-between text-red-500">
