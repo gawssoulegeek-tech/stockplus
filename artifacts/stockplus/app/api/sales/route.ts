@@ -52,8 +52,9 @@ export async function POST(req: NextRequest) {
   const {
     boutique_id,
     sale_type,
-    customer_id,
+    customer_id: providedCustomerId,
     customer_name,
+    customer_phone,
     invoice_number,
     payment_method,
     seller_name,
@@ -66,6 +67,7 @@ export async function POST(req: NextRequest) {
     sale_type: string
     customer_id?: string
     customer_name?: string
+    customer_phone?: string
     invoice_number?: string
     payment_method: string
     seller_name?: string
@@ -84,6 +86,55 @@ export async function POST(req: NextRequest) {
   }
 
   const adminClient = getSupabaseAdminClient()
+
+  // Find or create customer automatically
+  let resolvedCustomerId = providedCustomerId || null
+  const isRealCustomer = customer_name && customer_name !== "Client Passager" && customer_name.trim().length > 0
+  if (isRealCustomer) {
+    try {
+      if (customer_phone) {
+        const { data: existingByPhone } = await adminClient
+          .from('customers')
+          .select('id')
+          .eq('boutique_id', boutique_id)
+          .eq('phone_number', customer_phone)
+          .maybeSingle()
+        if (existingByPhone) {
+          resolvedCustomerId = existingByPhone.id
+        }
+      }
+      if (!resolvedCustomerId) {
+        const { data: existingByName } = await adminClient
+          .from('customers')
+          .select('id')
+          .eq('boutique_id', boutique_id)
+          .eq('full_name', customer_name)
+          .maybeSingle()
+        if (existingByName) {
+          resolvedCustomerId = existingByName.id
+        }
+      }
+      if (!resolvedCustomerId) {
+        const { data: newCustomer, error: createError } = await adminClient
+          .from('customers')
+          .insert({
+            boutique_id,
+            full_name: customer_name,
+            phone_number: customer_phone || null,
+            customer_type: 'individual',
+            is_active: true,
+            created_at: new Date().toISOString(),
+          })
+          .select('id')
+          .single()
+        if (!createError && newCustomer) {
+          resolvedCustomerId = newCustomer.id
+        }
+      }
+    } catch (e) {
+      console.warn('[Sales API] Customer auto-creation failed:', e)
+    }
+  }
 
   const productIds = Array.from(new Set(items.map((item) => item.product_id)))
   const { data: products, error: productsError } = await adminClient
@@ -141,7 +192,7 @@ export async function POST(req: NextRequest) {
   const saleInsertPayload: Record<string, unknown> = {
     boutique_id,
     sale_type,
-    customer_id,
+    customer_id: resolvedCustomerId,
     customer_name,
     invoice_number,
     subtotal,

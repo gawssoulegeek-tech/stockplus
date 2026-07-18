@@ -580,6 +580,7 @@ export interface CreateSaleRequest {
   sale_type: SaleType
   customer_id?: string
   customer_name?: string
+  customer_phone?: string
   seller_name?: string
   invoice_number?: string
   items: Array<{

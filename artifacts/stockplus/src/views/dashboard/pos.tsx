@@ -207,6 +207,7 @@ export default function POSPage() {
       const { sale, items } = await saleService.createSale(supabase, boutique.id, {
         sale_type: features.wholesale ? (activeCart.saleType === "Gros" ? SaleType.WHOLESALE : SaleType.RETAIL) : SaleType.RETAIL,
         customer_name: activeCart.customerName || "Client Passager",
+        customer_phone: activeCart.customerPhone || undefined,
         invoice_number: invoiceNumber,
         items: activeCart.items.map(i => ({
           product_id: i.id,
