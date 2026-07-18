@@ -218,14 +218,6 @@ export default function SalesHistoryPage() {
 
   return (
     <div className="space-y-10">
-      {/* Debug indicator */}
-      <div className="flex gap-4 text-[11px] font-mono bg-yellow-50 border border-yellow-200 rounded-xl px-4 py-2 text-yellow-700 items-center">
-        <span>boutique: <b>{boutique?.id?.slice(0,16) || '—'}</b></span>
-        <span>ventes: <b>{totalCount}</b></span>
-        <span>chargement: <b>{loading ? 'oui' : 'non'}</b></span>
-        <span>page: <b>{page}</b></span>
-        <a href="/api/debug-rls" target="_blank" className="ml-2 underline font-bold text-primary hover:text-primary/80">Diagnostic RLS</a>
-      </div>
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div className="space-y-1">
