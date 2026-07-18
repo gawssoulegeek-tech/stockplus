@@ -83,6 +83,42 @@ export async function GET(req: NextRequest) {
     .eq('id', profile.boutique_id)
     .single()
 
+  // Check if anon client can read its own user record
+  const { data: anonUser, error: anonUserErr } = await anonClient
+    .from('users')
+    .select('uid, boutique_id')
+    .eq('uid', user.id)
+    .single()
+
+  // Try various anon queries on sales to pinpoint the issue
+  const anonQueries: Record<string, any> = {}
+  
+  // 1. select * without filter
+  try {
+    const { data, error, count } = await anonClient
+      .from('sales')
+      .select('*', { count: 'exact', head: true })
+    anonQueries.select_all = { data, count, error: error?.message || null }
+  } catch (e: any) { anonQueries.select_all = { error: e.message } }
+
+  // 2. select count with boutique_id filter (different style)
+  try {
+    const { count, error } = await anonClient
+      .from('sales')
+      .select('*', { count: 'estimated', head: true })
+      .eq('boutique_id', profile.boutique_id)
+    anonQueries.estimated_count = { count, error: error?.message || null }
+  } catch (e: any) { anonQueries.estimated_count = { error: e.message } }
+
+  // 3. Try using a raw filter with the boutique_id value directly
+  try {
+    const { count, error } = await anonClient
+      .from('sales')
+      .select('*', { count: 'exact', head: true })
+      .eq('boutique_id', 'boutique_1783732532004')
+    anonQueries.literal_filter = { count, error: error?.message || null }
+  } catch (e: any) { anonQueries.literal_filter = { error: e.message } }
+
   return NextResponse.json({
     boutique_id: profile.boutique_id,
     user_id: user.id,
@@ -100,5 +136,8 @@ export async function GET(req: NextRequest) {
     stock_move_error: stockErr?.message || null,
     boutique_anon: boutiqueCheck,
     boutique_anon_error: boutiqueErr?.message || null,
+    anon_user: anonUser,
+    anon_user_error: anonUserErr?.message || null,
+    anon_queries: anonQueries,
   })
 }
