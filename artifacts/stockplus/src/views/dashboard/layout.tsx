@@ -4,7 +4,7 @@ import { Separator } from "@/components/ui/separator"
 import { Search, User, LogOut, Loader2, AlertTriangle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { useEffect, useState, createContext, useContext } from "react"
+import { useEffect, useState, useCallback, createContext, useContext } from "react"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -33,6 +33,20 @@ export default function DashboardLayout({
   const [userProfile, setUserProfile] = useState<any>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isImpersonating, setIsImpersonating] = useState(false)
+  const refreshBoutique = useCallback(async () => {
+    if (!userProfile?.boutique_id) return
+    const supabase = getSupabaseClient()
+    const boutiqueData = await getBoutique(supabase, userProfile.boutique_id)
+    if (boutiqueData) {
+      setBoutique({ ...boutiqueData, features: normalizeFeatures(boutiqueData.features || {}) })
+    }
+  }, [userProfile?.boutique_id])
+
+  // Rafraîchir les données boutique à chaque changement de page
+  useEffect(() => {
+    if (!isMounted || isLoading || !userProfile || userProfile.role === 'superadmin') return
+    refreshBoutique()
+  }, [pathname])
 
   useEffect(() => {
     setIsMounted(true)
@@ -160,7 +174,7 @@ export default function DashboardLayout({
   if (!userProfile) return null
 
   return (
-    <BoutiqueContext.Provider value={{ boutique, setBoutique, userProfile, setUserProfile, features: boutique?.features || {}, isImpersonating, setIsImpersonating }}>
+    <BoutiqueContext.Provider value={{ boutique, setBoutique, userProfile, setUserProfile, features: boutique?.features || {}, isImpersonating, setIsImpersonating, refreshBoutique }}>
       <SidebarProvider>
         <AppSidebar />
         <SidebarInset className="bg-gray-50/50">
