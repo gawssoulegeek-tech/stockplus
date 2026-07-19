@@ -18,6 +18,7 @@ export type FeatureKey =
   | 'autoRelance'
   | 'comptabilite'
   | 'exportComptable'
+  | 'purchases'
   | 'ecommerce'
 
 export const ALL_FEATURES: Record<FeatureKey, string> = {
@@ -35,6 +36,7 @@ export const ALL_FEATURES: Record<FeatureKey, string> = {
   autoRelance: 'Relance automatique clients',
   comptabilite: 'Comptabilité simple',
   exportComptable: 'Export comptable',
+  purchases: 'Achats Fournisseurs',
   ecommerce: 'Boutique en ligne',
 }
 
@@ -61,6 +63,7 @@ export const PLAN_FEATURES: Record<string, Record<FeatureKey, boolean>> = {
     autoRelance: false,
     comptabilite: false,
     exportComptable: false,
+    purchases: false,
     ecommerce: false,
   },
   Basic: {
@@ -78,6 +81,7 @@ export const PLAN_FEATURES: Record<string, Record<FeatureKey, boolean>> = {
     autoRelance: false,
     comptabilite: false,
     exportComptable: false,
+    purchases: false,
     ecommerce: false,
   },
   Pro: {
@@ -95,6 +99,7 @@ export const PLAN_FEATURES: Record<string, Record<FeatureKey, boolean>> = {
     autoRelance: true,
     comptabilite: true,
     exportComptable: true,
+    purchases: true,
     ecommerce: false,
   },
   Premium: {
@@ -112,6 +117,7 @@ export const PLAN_FEATURES: Record<string, Record<FeatureKey, boolean>> = {
     autoRelance: true,
     comptabilite: true,
     exportComptable: true,
+    purchases: true,
     ecommerce: false,
   },
 }

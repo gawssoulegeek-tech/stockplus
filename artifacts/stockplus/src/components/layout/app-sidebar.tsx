@@ -65,6 +65,10 @@ const navItems = [
   { title: "Analyses & Rapports", icon: BarChart3, url: "/reports", roles: ["owner", "manager"], minPlan: "Pro" },
   { title: "Import Chine", icon: Globe, url: "/inventory/china-import", roles: ["owner", "manager"], minPlan: "Pro" },
   { title: "Crédit Client", icon: CreditCard, url: "/credit", roles: ["owner", "manager"] },
+  { title: "CRM & Relance", icon: Users, url: "/crm", roles: ["owner", "manager"], minPlan: "Pro" },
+  { title: "Comptabilité", icon: FileText, url: "/accounting", roles: ["owner", "manager"], minPlan: "Pro" },
+  { title: "Achats Fournisseurs", icon: ShoppingCart, url: "/purchases", roles: ["owner", "manager"], minPlan: "Pro" },
+  { title: "Scan Fournisseur", icon: FileText, url: "/inventory/supplier-invoices", roles: ["owner", "manager"], minPlan: "Pro" },
   { title: "Équipe", icon: Users, url: "/users", roles: ["owner"], minPlan: "Pro" },
   { title: "Réglages Boutique", icon: Settings, url: "/settings", roles: ["owner"] },
 ]

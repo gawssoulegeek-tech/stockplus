@@ -164,6 +164,7 @@ export interface Boutique {
     autoRelance?: boolean
     comptabilite?: boolean
     exportComptable?: boolean
+    purchases?: boolean
     ecommerce?: boolean
   }
   
@@ -620,6 +621,87 @@ export interface BulkImportResponse {
   errors?: Array<{
     row_number: number
     error: string
+  }>
+}
+
+/**
+ * Supplier
+ */
+export interface Supplier {
+  id: string
+  boutique_id: string
+  name: string
+  contact_name?: string
+  phone_number?: string
+  email?: string
+  street_address?: string
+  city?: string
+  notes?: string
+  is_active: boolean
+  created_at: string
+  updated_at?: string
+}
+
+/**
+ * Purchase Order
+ */
+export interface Purchase {
+  id: string
+  boutique_id: string
+  supplier_id?: string
+  supplier_name?: string
+  reference?: string
+  total_amount: number
+  discount_amount: number
+  status: 'draft' | 'ordered' | 'partial' | 'received' | 'cancelled'
+  notes?: string
+  recorded_by?: string
+  order_date: string
+  received_date?: string
+  created_at: string
+  updated_at?: string
+}
+
+/**
+ * Purchase Item
+ */
+export interface PurchaseItem {
+  id: string
+  purchase_id: string
+  product_id?: string
+  product_name: string
+  quantity: number
+  unit_price: number
+  item_total: number
+  created_at: string
+}
+
+/**
+ * Create Supplier Request
+ */
+export interface CreateSupplierRequest {
+  name: string
+  contact_name?: string
+  phone_number?: string
+  email?: string
+  street_address?: string
+  city?: string
+  notes?: string
+}
+
+/**
+ * Create Purchase Request
+ */
+export interface CreatePurchaseRequest {
+  supplier_id?: string
+  supplier_name?: string
+  reference?: string
+  notes?: string
+  items: Array<{
+    product_id?: string
+    product_name: string
+    quantity: number
+    unit_price: number
   }>
 }
 
