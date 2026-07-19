@@ -184,6 +184,7 @@ export default function SaaSAdminPage() {
             message: `Paiement - ${p.boutique?.name || "Inconnu"}`,
             date: formatRelativeTime(p.created_at),
             status: "En attente",
+            boutiqueId: p.boutique_id,
             shopName: p.boutique?.name,
             requestedPlan: "Pro",
           }))
@@ -229,7 +230,7 @@ export default function SaaSAdminPage() {
 
   const handleAccessBoutique = async (boutique: any) => {
     try {
-      const { data } = await supabase.from("boutiques").select("*").eq("name", boutique.name).single()
+      const { data } = await supabase.from("boutiques").select("*").eq("id", boutique.id).single()
       if (data) {
         setContextBoutique({ ...data, features: normalizeFeatures(data.features || {}) })
         setIsImpersonating(true)
@@ -244,9 +245,9 @@ export default function SaaSAdminPage() {
     }
   }
 
-  const activateBoutiqueFromPayment = async (shopName: string, paymentId: string, planToSet?: string) => {
+  const activateBoutiqueFromPayment = async (shopName: string, paymentId: string, planToSet?: string, boutiqueId?: string) => {
     try {
-      await apiPost('activate-payment', { id: paymentId, shopName, paymentId, planToSet })
+      await apiPost('activate-payment', { id: paymentId, shopName, paymentId, planToSet, boutiqueId })
       setPaymentRequests((prev) => prev.filter((p) => p.id !== paymentId))
       loadData()
       toast({
@@ -896,7 +897,7 @@ export default function SaaSAdminPage() {
                     <div className="text-xs text-gray-400 font-bold">{p.date}</div>
                     <Button
                       className="sena-gradient text-white h-10 px-6 rounded-xl font-bold"
-                      onClick={() => activateBoutiqueFromPayment(p.shopName, p.id, p.requestedPlan)}
+                      onClick={() => activateBoutiqueFromPayment(p.shopName, p.id, p.requestedPlan, p.boutiqueId)}
                     >
                       Valider 10K
                     </Button>

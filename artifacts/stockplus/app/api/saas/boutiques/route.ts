@@ -223,18 +223,34 @@ export async function PATCH(req: NextRequest) {
         return Response.json({ ok: true, plan: newPlan })
       }
       case 'activate-payment': {
-        const { shopName, paymentId, planToSet } = data as { shopName?: string; paymentId?: string; planToSet?: string }
+        const { shopName, paymentId, planToSet, boutiqueId } = data as { shopName?: string; paymentId?: string; planToSet?: string; boutiqueId?: string }
         if (!shopName || !paymentId) {
           return Response.json({ error: 'shopName et paymentId requis' }, { status: 400 })
         }
-        const { data: shops } = await adminClient.from('boutiques').select('id, plan').eq('name', shopName)
-        if (!shops || shops.length === 0) return Response.json({ error: 'Boutique introuvable' }, { status: 404 })
-        const finalPlan = planToSet || (shops as { plan: string }[])[0].plan
-        await adminClient.from('boutiques').update({
-          status: 'Actif',
-          plan: finalPlan,
-          features: getFeaturesForPlan(finalPlan),
-        }).eq('name', shopName)
+        const finalPlan = planToSet || 'Basic'
+
+        // Chercher d'abord par ID (précis), puis par nom (fallback)
+        if (boutiqueId) {
+          const { data: shop } = await adminClient.from('boutiques').select('id').eq('id', boutiqueId).single()
+          if (shop) {
+            await adminClient.from('boutiques').update({
+              status: 'Actif',
+              plan: finalPlan,
+              features: getFeaturesForPlan(finalPlan),
+            }).eq('id', boutiqueId)
+          } else {
+            return Response.json({ error: 'Boutique introuvable par ID' }, { status: 404 })
+          }
+        } else {
+          const { data: shops } = await adminClient.from('boutiques').select('id, plan').eq('name', shopName)
+          if (!shops || shops.length === 0) return Response.json({ error: 'Boutique introuvable' }, { status: 404 })
+          await adminClient.from('boutiques').update({
+            status: 'Actif',
+            plan: finalPlan,
+            features: getFeaturesForPlan(finalPlan),
+          }).eq('name', shopName)
+        }
+
         await adminClient.from('payments').update({ status: 'completed' }).eq('id', paymentId)
         return Response.json({ ok: true })
       }
