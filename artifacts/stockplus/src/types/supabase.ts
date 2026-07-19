@@ -158,7 +158,7 @@ export interface Boutique {
     customers: boolean
     stockIncrement: boolean
     historicalMoves: boolean
-    importChina: boolean
+    chinaImport: boolean
     supplierInvoiceScan?: boolean
     crm?: boolean
     autoRelance?: boolean

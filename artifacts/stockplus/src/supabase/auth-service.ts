@@ -1,4 +1,5 @@
 import { SupabaseClient } from '@supabase/supabase-js'
+import type { Boutique } from '@/types/supabase'
 
 export interface SignUpData {
   email: string
@@ -25,28 +26,10 @@ export interface UserProfile {
   business_team_size?: string
 }
 
-export interface BoutiqueData {
-  id: string
-  name: string
-  owner_id: string
-  plan: 'Essai' | 'Basic' | 'Pro' | 'Premium'
-  status: 'Essai' | 'Actif' | 'Suspendu'
-  trial_ends_at: string
-  features: {
-    units: boolean
-    wholesale: boolean
-    credit: boolean
-    customers: boolean
-    stockIncrement: boolean
-    historicalMoves: boolean
-    importChina: boolean
-    chinaImport?: boolean
-    advancedReports?: boolean
-    multiCart?: boolean
-    supplierInvoiceScan?: boolean
-  }
-  created_at: string
-}
+/**
+ * Compatibilité : alias vers le type Boutique complet de @/types/supabase
+ */
+export type BoutiqueData = Boutique
 
 /**
  * Sign in user with email and password
