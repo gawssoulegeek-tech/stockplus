@@ -695,6 +695,10 @@ export default function InventoryPage() {
                 </DialogDescription>
               </DialogHeader>
               <form onSubmit={handleAddProduct} className="space-y-5 py-4">
+                {/* Bouton Enregistrer en haut pour mobile, caché sur desktop */}
+                <Button type="submit" className="w-full sena-gradient text-white h-14 rounded-2xl font-bold text-lg shadow-xl shadow-orange-500/20 md:hidden">
+                  Enregistrer
+                </Button>
                 <div className="rounded-3xl border border-dashed border-gray-200 bg-gray-50 p-4">
                   <Label className="text-sm font-semibold text-gray-700">Image du produit</Label>
                   <div className="mt-3 flex items-center gap-3">
@@ -874,7 +878,7 @@ export default function InventoryPage() {
                   )}
                 </div>
 
-                <Button type="submit" className="w-full sena-gradient text-white h-14 rounded-2xl font-bold text-lg shadow-xl shadow-orange-500/20">
+                <Button type="submit" className="w-full sena-gradient text-white h-14 rounded-2xl font-bold text-lg shadow-xl shadow-orange-500/20 hidden md:flex">
                   Enregistrer
                 </Button>
               </form>
