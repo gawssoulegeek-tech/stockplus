@@ -687,18 +687,15 @@ export default function InventoryPage() {
                 Nouveau Produit
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[430px] rounded-[2.5rem] p-8 bg-white border border-gray-100 shadow-2xl shadow-orange-200/20">
-              <DialogHeader>
+            <DialogContent className="sm:max-w-[430px] rounded-[2.5rem] p-0 bg-white border border-gray-100 shadow-2xl shadow-orange-200/20 flex flex-col max-h-[85vh]">
+              <DialogHeader className="shrink-0 px-8 pt-8 pb-2">
                 <DialogTitle className="text-2xl font-headline">Ajouter au Catalogue</DialogTitle>
                 <DialogDescription className="text-sm text-gray-500 mt-1">
                   Ajoutez un nouveau produit pour le rendre disponible dans la caisse et l’inventaire.
                 </DialogDescription>
               </DialogHeader>
-              <form onSubmit={handleAddProduct} className="space-y-5 py-4">
-                {/* Bouton Enregistrer en haut pour mobile, caché sur desktop */}
-                <Button type="submit" className="w-full sena-gradient text-white h-14 rounded-2xl font-bold text-lg shadow-xl shadow-orange-500/20 md:hidden">
-                  Enregistrer
-                </Button>
+              <form onSubmit={handleAddProduct} className="flex flex-col flex-1 min-h-0">
+                <div className="overflow-y-auto flex-1 px-8 py-4 space-y-5">
                 <div className="rounded-3xl border border-dashed border-gray-200 bg-gray-50 p-4">
                   <Label className="text-sm font-semibold text-gray-700">Image du produit</Label>
                   <div className="mt-3 flex items-center gap-3">
@@ -877,10 +874,12 @@ export default function InventoryPage() {
                     </div>
                   )}
                 </div>
-
-                <Button type="submit" className="w-full sena-gradient text-white h-14 rounded-2xl font-bold text-lg shadow-xl shadow-orange-500/20 hidden md:flex">
-                  Enregistrer
-                </Button>
+                </div>
+                <div className="shrink-0 px-8 pb-8 pt-4 border-t border-gray-100">
+                  <Button type="submit" className="w-full sena-gradient text-white h-14 rounded-2xl font-bold text-lg shadow-xl shadow-orange-500/20">
+                    Enregistrer
+                  </Button>
+                </div>
               </form>
             </DialogContent>
           </Dialog>
