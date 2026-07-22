@@ -13,7 +13,7 @@ import {
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
-import { useLocation } from "@/lib/compat/wouter"
+import { useLocation, Link } from "@/lib/compat/wouter"
 import {
   Area,
   AreaChart,
@@ -137,12 +137,16 @@ export default function DashboardPage() {
         </div>
         {/* Boutons d'action — stack sur mobile, row sur desktop */}
         <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
-          <Button variant="outline" className="rounded-2xl h-12 sm:h-14 md:h-16 px-6 sm:px-8 font-bold border-gray-200 hover:bg-orange-50 hover:text-primary transition-all text-base sm:text-lg shadow-sm w-full sm:w-auto" onClick={() => navigate('/inventory')}>
-            <Package className="h-5 w-5 mr-2 sm:mr-3" /> Inventaire
+          <Button variant="outline" className="rounded-2xl h-12 sm:h-14 md:h-16 px-6 sm:px-8 font-bold border-gray-200 hover:bg-orange-50 hover:text-primary transition-all text-base sm:text-lg shadow-sm w-full sm:w-auto" asChild>
+            <Link href="/inventory">
+              <Package className="h-5 w-5 mr-2 sm:mr-3" /> Inventaire
+            </Link>
           </Button>
-          <Button className="sena-gradient text-white rounded-2xl h-12 sm:h-14 md:h-16 px-6 sm:px-10 font-bold shadow-2xl shadow-orange-500/30 text-base sm:text-lg group w-full sm:w-auto" onClick={() => navigate('/pos')}>
-            <Plus className="h-5 w-5 sm:h-6 sm:w-6 mr-2 sm:mr-3 group-hover:rotate-90 transition-transform duration-300" />
-            Nouvelle Vente
+          <Button className="sena-gradient text-white rounded-2xl h-12 sm:h-14 md:h-16 px-6 sm:px-10 font-bold shadow-2xl shadow-orange-500/30 text-base sm:text-lg group w-full sm:w-auto" asChild>
+            <Link href="/pos">
+              <Plus className="h-5 w-5 sm:h-6 sm:w-6 mr-2 sm:mr-3 group-hover:rotate-90 transition-transform duration-300" />
+              Nouvelle Vente
+            </Link>
           </Button>
         </div>
       </div>
@@ -226,9 +230,11 @@ export default function DashboardPage() {
             </div>
           </CardHeader>
           <CardContent className="p-6 md:p-10 relative z-10">
-            <Button className="w-full sena-gradient text-white rounded-2xl md:rounded-[2rem] h-14 md:h-20 font-bold text-lg md:text-2xl shadow-2xl shadow-orange-500/20 group/btn" onClick={() => navigate('/ai')}>
-              Consulter Awa
-              <ArrowRight className="ml-4 h-8 w-8 group-hover/btn:translate-x-2 transition-transform" />
+            <Button className="w-full sena-gradient text-white rounded-2xl md:rounded-[2rem] h-14 md:h-20 font-bold text-lg md:text-2xl shadow-2xl shadow-orange-500/20 group/btn" asChild>
+              <Link href="/ai">
+                Consulter Awa
+                <ArrowRight className="ml-4 h-8 w-8 group-hover/btn:translate-x-2 transition-transform" />
+              </Link>
             </Button>
           </CardContent>
         </Card>
